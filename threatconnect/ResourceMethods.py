@@ -157,7 +157,7 @@ def get_description(self):
 
 def set_description(self, data):
     """ """
-    self._description = data.encode('ascii', 'ignore')
+    self._description = data.encode('utf-8', 'ignore')
 
 attr = AttributeDef('_description')
 attr.add_api_name('description')
@@ -289,7 +289,7 @@ def get_file_text(self):
 
 def set_file_text(self, data):
     """ """
-    self._file_text = data.encode('ascii', 'ignore')
+    self._file_text = data.encode('utf-8', 'ignore')
     if self._phase is 'new':
         self._phase = 'update'
 
@@ -335,7 +335,7 @@ def get_from(self):
 
 def set_from(self, data):
     """ """
-    self._from = data.encode('ascii', 'ignore')
+    self._from = data.encode('utf-8', 'ignore')
     if self._phase is 'new':
         self._phase = 'update'
 
@@ -358,7 +358,7 @@ def get_header(self):
 
 def set_header(self, data):
     """ """
-    self._header = data.encode('ascii', 'ignore')
+    self._header = data.encode('utf-8', 'ignore')
     if self._phase is 'new':
         self._phase = 'update'
 
@@ -402,7 +402,7 @@ def get_indicator(self):
 
 def set_indicator(self, data):
     """ """
-    self._indicator = data.encode('ascii', 'ignore')
+    self._indicator = data.encode('utf-8', 'ignore')
 
 attr = AttributeDef('_indicator')
 attr.add_api_name('indicator')
@@ -482,7 +482,7 @@ def get_name(self):
 
 def set_name(self, data):
     """ """
-    self._name = data.encode('ascii', 'ignore')
+    self._name = data.encode('utf-8', 'ignore')
     if self._phase is 'new':
         self._phase = 'update'
 
@@ -505,7 +505,7 @@ def get_nationality(self):
 
 def set_nationality(self, data):
     """ """
-    self._nationality = data.encode('ascii', 'ignore')
+    self._nationality = data.encode('utf-8', 'ignore')
 
 attr = AttributeDef('_nationality')
 attr.add_api_name('nationality')
@@ -545,7 +545,7 @@ def get_org(self):
 
 def set_org(self, data):
     """ """
-    self._org = data.encode('ascii', 'ignore')
+    self._org = data.encode('utf-8', 'ignore')
 
 attr = AttributeDef('_org')
 attr.add_api_name('org')
@@ -566,7 +566,7 @@ def get_owner_name(self):
 
 def set_owner_name(self, data):
     """ """
-    self._owner_name = data.encode('ascii', 'ignore')
+    self._owner_name = data.encode('utf-8', 'ignore')
 
 attr = AttributeDef('_owner_name')
 attr.add_api_name('ownerName')
@@ -587,7 +587,7 @@ def get_path(self):
 
 def set_path(self, data):
     """ """
-    self._path = data.encode('ascii', 'ignore')
+    self._path = data.encode('utf-8', 'ignore')
     if self._phase is 'new':
         self._phase = 'update'
 
@@ -654,7 +654,7 @@ def get_source(self):
 
 def set_source(self, data):
     """ """
-    self._source = data.encode('ascii', 'ignore')
+    self._source = data.encode('utf-8', 'ignore')
 
 attr = AttributeDef('_source')
 attr.add_api_name('source')
@@ -694,7 +694,7 @@ def get_subject(self):
 
 def set_subject(self, data):
     """ """
-    self._subject = data.encode('ascii', 'ignore')
+    self._subject = data.encode('utf-8', 'ignore')
     if self._phase is 'new':
         self._phase = 'update'
 
@@ -717,7 +717,7 @@ def get_suborg(self):
 
 def set_suborg(self, data):
     """ """
-    self._suborg = data.encode('ascii', 'ignore')
+    self._suborg = data.encode('utf-8', 'ignore')
 
 attr = AttributeDef('_suborg')
 attr.add_api_name('suborg')
@@ -780,7 +780,7 @@ def get_to(self):
 
 def set_to(self, data):
     """ """
-    self._to = data.encode('ascii', 'ignore')
+    self._to = data.encode('utf-8', 'ignore')
     if self._phase is 'new':
         self._phase = 'update'
 
@@ -803,7 +803,7 @@ def get_type(self):
 
 def set_type(self, data):
     """ """
-    self._type = data.encode('ascii', 'ignore')
+    self._type = data.encode('utf-8', 'ignore')
 
     if 100 <= self._resource_type.value <= 299:
         self._resource_type = get_resource_group_type(self._type)
@@ -830,7 +830,7 @@ def get_value(self):
 
 def set_value(self, data):
     """ """
-    self._value = data.encode('ascii', 'ignore')
+    self._value = data.encode('utf-8', 'ignore')
     if self._phase is 'new':
         self._phase = 'update'
 
@@ -853,7 +853,7 @@ def get_web_link(self):
 
 def set_web_link(self, data):
     """ """
-    self._web_link = data.encode('ascii', 'ignore')
+    self._web_link = data.encode('utf-8', 'ignore')
 
 attr = AttributeDef('_web_link')
 attr.add_api_name('webLink')
@@ -897,7 +897,7 @@ def get_work_location(self):
 
 def set_work_location(self, data):
     """ """
-    self._work_location = data.encode('ascii', 'ignore')
+    self._work_location = data.encode('utf-8', 'ignore')
 
 attr = AttributeDef('_work_location')
 attr.add_api_name('workLocation')
@@ -1063,7 +1063,7 @@ sha256_attr = attr
 #
 def set_hostname(self, data):
     """ """
-    self._indicator = data.encode('ascii', 'ignore')
+    self._indicator = data.encode('utf-8', 'ignore')
     self._type = ResourceType.HOSTS
 
     # update the resource type
@@ -1104,7 +1104,7 @@ ip_attr = attr
 #
 def set_owner(self, data):
     """ """
-    self._owner_name = data['name'].encode('ascii', 'ignore')
+    self._owner_name = data['name'].encode('utf-8', 'ignore')
 
 attr = AttributeDef('_owner')
 attr.add_api_name('owner')
@@ -1153,7 +1153,7 @@ summary_attr = attr
 #
 def set_text(self, data):
     """ """
-    self._indicator = data.encode('ascii', 'ignore')
+    self._indicator = data.encode('utf-8', 'ignore')
     self._type = ResourceType.URLS
 
     # update the resource type
@@ -1173,7 +1173,7 @@ text_attr = attr
 # #
 # def set_url(self, data):
 #     """ """
-#     self._indicator = data.encode('ascii', 'ignore')
+#     self._indicator = data.encode('utf-8', 'ignore')
 #     self._type = ResourceType.URLS
 #
 #     # update the resource type

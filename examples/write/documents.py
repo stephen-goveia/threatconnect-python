@@ -122,7 +122,6 @@ def main():
         #
         # download document
         #
-
         if res.get_id() == mu_id:
             res.download()
 
@@ -178,7 +177,7 @@ def main():
 
     # (Optional) iterate through the result sets after changes.
     for res in resources:
-        if res.get_id() == lu_id:
+        if res.get_id() == mu_id:
             # (Optional) write the document out to a file
             print(res.get_file_name())
             print(res.document)

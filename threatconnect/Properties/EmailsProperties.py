@@ -43,7 +43,6 @@ class EmailsProperties(GroupsProperties):
         self._object_attributes.append(ResourceMethods.body_attr)
         self._object_attributes.append(ResourceMethods.from_attr)
         self._object_attributes.append(ResourceMethods.header_attr)
-        self._object_attributes.append(ResourceMethods.score_attr)
         self._object_attributes.append(ResourceMethods.subject_attr)
         self._object_attributes.append(ResourceMethods.to_attr)
 

@@ -55,6 +55,8 @@ class OwnerFilterObject(FilterObject):
     def __init__(self, base_uri, tcl):
         """ """
         super(OwnerFilterObject, self).__init__(base_uri, tcl)
+        # TODO: this is a quick hack and needs to be fixed
+        self._owners = []
         self._property_class = OwnersProperties
         self._properties_class = OwnersProperties
 

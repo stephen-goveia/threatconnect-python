@@ -9,14 +9,14 @@ from examples.working_init import *
 
 """ Toggle the Boolean to enable specific examples """
 enable_example1 = False
-enable_example2 = False
+enable_example2 = True
 enable_example3 = False
 
 
 def show_data(result_obj):
     """  """
-    pd('Bulk Download', header=True)
-
+    print('Status: {0}'.format(result_obj.get_status().name))
+    print('Length: {0}'.format(len(result_obj)))
     if result_obj.get_status().name == "SUCCESS":
         for obj in result_obj:
             #
@@ -36,19 +36,19 @@ def show_data(result_obj):
             for tag_obj in obj.tag_objects:
                 print(tag_obj)
 
-    print(tc.report)
+    print(tc.report.stats)
 
 
 def main():
     """ """
-    # get all owner names
-    # owners_obj = tc.owners()
-    # owners_obj.retrieve()
-    # all owners
-    # owners = owners_obj.get_owner_names()
+    # set threat connect log (tcl) level
+    tc.set_tcl_file('log/tc.log', 'critical')
+    tc.set_tcl_console_level('critical')
 
+    # owners = ['Common Community']
+    owners = ['Blocklist.de Source', 'ZeuS Tracker Source', 'MalwareDomainList Source']
     # owners = ['Test Community']
-    owners = ['Common Community']
+    # owners = ['ImportTest']
 
     if enable_example1:
         """ get community/source status """
@@ -78,21 +78,25 @@ def main():
         filter1 = indicators.add_filter()
         filter1.add_owner(owners)
         filter1.set_format('json')
-        filter1.add_pf_confidence(50, FilterOperator.GE)
-        filter1.add_pf_date_added('2014-04-10T00:00:00Z', FilterOperator.GE)
-        filter1.add_pf_rating('2.0', FilterOperator.GT)
-        filter1.add_pf_type('Host')
-        filter1.add_pf_last_modified('2015-01-21T00:31:44Z', FilterOperator.LE)
-        filter1.add_pf_threat_assess_confidence('95', FilterOperator.GE)
-        filter1.add_pf_threat_assess_rating('4.0', FilterOperator.GE)
-        filter1.add_pf_tag('China', FilterOperator.EQ)
-        filter1.add_pf_attribute('Description', FilterOperator.EQ)
+        filter1.add_pf_confidence(1, FilterOperator.GE)
+        # filter1.add_pf_date_added('2014-04-10T00:00:00Z', FilterOperator.GE)
+        # filter1.add_pf_rating('4.0', FilterOperator.GE)
+        # filter1.add_pf_type('Host')
+        # filter1.add_pf_last_modified('2015-01-21T00:31:44Z', FilterOperator.LE)
+        # filter1.add_pf_threat_assess_confidence('95', FilterOperator.GE)
+        # filter1.add_pf_threat_assess_rating('4.0', FilterOperator.GE)
+        # filter1.add_pf_tag('ImportTest', FilterOperator.EQ)
+        # filter1.add_pf_attribute('Description', FilterOperator.EQ)
 
         # retrieve indicators
         indicators.retrieve()
 
+        print(tc.report.stats)
+
         # show indicator data
-        show_data(indicators)
+        # show_data(indicators)
+        # for row in indicators.csv:
+        #     print(row)
 
     if enable_example3:
         """ get bulk indicators csv format """

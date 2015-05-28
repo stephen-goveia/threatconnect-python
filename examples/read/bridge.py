@@ -18,7 +18,7 @@ logging.basicConfig(
 
 
 # read source configuration file
-src_config_file = "../tc_tcdev-test.conf"
+src_config_file = "../tc-tcdev-test.conf"
 src_config = ConfigParser.RawConfigParser()
 src_config.read(src_config_file)
 
@@ -48,8 +48,10 @@ except ConfigParser.NoOptionError:
     print('Could not read source configuration file.')
     sys.exit(1)
 
-src_tc = ThreatConnect(src_api_access_id, src_api_secret_key, src_api_default_org, src_api_base_url, src_api_max_results)
-dst_tc = ThreatConnect(dst_api_access_id, dst_api_secret_key, dst_api_default_org, dst_api_base_url, dst_api_max_results)
+src_tc = ThreatConnect(
+    src_api_access_id, src_api_secret_key, src_api_default_org, src_api_base_url, src_api_max_results)
+dst_tc = ThreatConnect(
+    dst_api_access_id, dst_api_secret_key, dst_api_default_org, dst_api_base_url, dst_api_max_results)
 
 
 def progress_bar(char, count):

@@ -9,7 +9,7 @@ from threatconnect.ThreatConnect import *
 # from threatconnect.Config.IndicatorType import IndicatorType
 from threatconnect.Config.ResourceProperties import ResourceProperties
 # from threatconnect.Config.VictimAssetType import VictimAssetType
-from threatconnect.DataFormatter import pd
+from threatconnect.DataFormatter import pd, format_header, format_item
 # from threatconnect import ResourceMethods
 # from threatconnect.ResourceMethods import *
 

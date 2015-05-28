@@ -562,7 +562,7 @@ class Resource(object):
                     self._tc.api_build_request(attributes, request_object, owners)
 
                     del attributes
-                    self.get_attributes(obj)
+                    # self.get_attributes(obj)
 
             #
             # process tag requests
@@ -579,7 +579,7 @@ class Resource(object):
                     self._tc.api_build_request(tags, request_object, owners)
 
                     del tags
-                    self.get_tags(obj)
+                    # self.get_tags(obj)
 
             #
             # process associations requests

@@ -1,6 +1,5 @@
 """ standard """
 from random import randint
-import re
 
 """ custom """
 from examples.working_init import *

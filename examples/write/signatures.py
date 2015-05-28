@@ -19,6 +19,7 @@ victim_id = 1  # victim resource id to associate with signature
 ip_address = '10.20.30.40'  # ip address to associate to signature
 rn = randint(1, 1000)  # random number generator for testing
 
+
 def main():
     """ """
     # set threat connect log (tcl) level

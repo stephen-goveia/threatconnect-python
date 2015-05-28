@@ -1,4 +1,5 @@
 """ standard """
+import re
 
 """ custom """
 from threatconnect.Config.FilterOperator import FilterSetOperator
@@ -83,6 +84,18 @@ class FilterObject(object):
     def api_filter_names(self):
         """ """
         return sorted(self._api_filter_names)
+
+    @property
+    def filters(self):
+        """ """
+        filters = []
+        for filter in sorted(self._api_filter_names):
+            if re.findall('^add_', filter):
+                filters.append(filter)
+        for filter in sorted(self._post_filter_names):
+            if re.findall('^add_', filter):
+                filters.append(filter)
+        return filters
 
     @property
     def post_filter_names(self):

@@ -53,7 +53,9 @@ class OwnersProperties(Properties):
     @property
     def filters(self):
         """ """
-        return ['add_indicator']
+        # TODO: get_owners is a quick hack and needs to be fixed
+        return ['add_indicator',
+                'get_owners']
 
     @property
     def indicator_owner_allowed(self):

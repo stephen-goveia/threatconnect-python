@@ -8,6 +8,7 @@ enable_example2 = False
 enable_example3 = True
 enable_example4 = False
 
+
 def show_data(result_obj):
     """  """
     pd('Attributes', header=True)

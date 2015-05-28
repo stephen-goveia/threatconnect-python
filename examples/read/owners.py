@@ -6,27 +6,28 @@ enable_example2 = False
 enable_example3 = False
 
 
+# shared method to display results from examples below
 def show_data(result_obj):
     """  """
-    pd('Owners', header=True)
-    pd('Status', result_obj.get_status())
-    pd('Status Code', result_obj.get_status_code())
-    pd('URIs', result_obj.get_uris())
-
     if result_obj.get_status().name == "SUCCESS":
         for obj in result_obj:
-            print(obj)
-    pd('Stats', header=True)
-    pd('Result Count (Total)', result_obj.get_result_count())
-    pd('Result Count (Filtered)', len(result_obj))
+            print('\n{:_^80}'.format(obj.get_name()))
+            print('{:<20}{:<50}'.format('ID', obj.get_id()))
+            print('{:<20}{:<50}'.format('Type', obj.get_type()))
+    #
+    # print report
+    #
+    print(tc.report.stats)
 
 
 def main():
-    """
-    Method:
-    get_owners() ->  This method can be used to get a object containing owners.
-    """
+    """ """
+    # set threat connect log (tcl) level
+    tc.set_tcl_file('log/tc.log')
+    tc.set_tcl_console_level('critical')
+
     if enable_example1:
+        """ This is a basic example that pull all owners. """
         # optionally set the max results the api should return in one request
         tc.set_max_results(500)
 
@@ -34,11 +35,8 @@ def main():
         owners.retrieve()
         show_data(owners)
 
-    """
-    Method:
-    get_owners() ->  This method can be used to get a object containing owners filtered by indicator.
-    """
     if enable_example2:
+        """ This example retrieves all owners that a particular indicator appears. """
 
         # get owner object
         owners = tc.owners()
@@ -46,23 +44,7 @@ def main():
         # create a filter
         # If no indicator type is provided the indicator type will be automatically determined.
         filter1 = owners.add_filter()
-        filter1.add_indicator('93.54.64.246')
-        # filter1.add_indicator('81.206.124.7')
-        # filter1.add_indicator('ivyfatima.ferrer@yahoo.com')
-        # filter1.add_indicator('E7E20956FEDFD93814505051CA3DB035')
-        # filter1.add_indicator('frankhere.oicp.net')
-        # filter1.add_indicator('http://eaurougef1.eu/user.php')
-
-        # Optionally provide the indicator type enum.
-        # filter1.add_indicator('194.58.101.24', ResourceType.ADDRESSES)
-        # filter1.add_indicator('ivyfatima.ferrer@yahoo.com', ResourceType.EMAIL_ADDRESSES)
-        # filter1.add_indicator('E7E20956FEDFD93814505051CA3DB035', ResourceType.FILES)
-        # filter1.add_indicator('frankhere.oicp.net', ResourceType.HOSTS)
-        # filter1.add_indicator('http://eaurougef1.eu/user.php', ResourceType.URLS)
-
-        # FAILURE TESTING
-        # filter1.add_indicator('194.58.101.24', ResourceType.FILES)
-        # filter1.add_indicator('194.58.101.24', ResourceType.EMAIL_ADDRESSES)
+        filter1.add_indicator('4.3.2.1')
 
         # check for any error on filter creation
         if filter1.error:
@@ -70,7 +52,9 @@ def main():
                 pd(error)
             sys.exit(1)
 
+        # retrieve owners
         owners.retrieve()
+
         show_data(owners)
 
     """
@@ -85,25 +69,17 @@ def main():
         # create a filter
         # If no indicator type is provided the indicator type will be automatically determined.
         filter1 = owners.add_filter()
-        filter1.add_indicator('93.54.64.246')
-        filter1.add_indicator('93.54.64.246')
-        filter1.add_indicator('81.206.124.7')
-        filter1.add_indicator('ivyfatima.ferrer@yahoo.com')
-        # filter1.add_indicator('E7E20956FEDFD93814505051CA3DB035')
-        # filter1.add_indicator('frankhere.oicp.net')
-        # filter1.add_indicator('http://eaurougef1.eu/user.php')
-
-        filter2 = owners.add_filter()
-        filter2.add_filter_operator(FilterSetOperator.AND)
-        filter2.add_indicator('E7E20956FEDFD93814505051CA3DB035')
-        filter2.add_indicator('frankhere.oicp.net')
-        filter2.add_indicator('http://eaurougef1.eu/user.php')
+        filter1.add_indicator('4.3.2.1')
 
         # check for any error on filter creation
         if filter1.error:
             for error in filter1.get_errors():
                 pd(error)
             sys.exit(1)
+
+        filter2 = owners.add_filter()
+        filter2.add_filter_operator(FilterSetOperator.AND)
+        filter2.add_indicator('bad_guy@badguysareus.com')
 
         # check for any error on filter creation
         if filter2.error:

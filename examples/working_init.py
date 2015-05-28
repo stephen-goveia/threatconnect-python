@@ -4,11 +4,8 @@ import sys
 
 """ custom """
 from threatconnect import *
-from threatconnect.Config.IndicatorType import IndicatorType
 
 # configuration file
-# config_file = "../tc.conf"
-# config_file = "../tc_tcdev-test.conf"
 config_file = "../tc-sumx-us.conf"
 
 # read configuration file
@@ -23,6 +20,7 @@ try:
     api_max_results = config.get('threatconnect', 'api_max_results')
 except ConfigParser.NoOptionError:
     print('Could not read configuration file.')
+    raise
     sys.exit(1)
 
 tc = ThreatConnect(api_access_id, api_secret_key, api_default_org, api_base_url, api_max_results)

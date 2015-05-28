@@ -653,8 +653,8 @@ class ThreatConnect:
 
         # DEBUG
         self.tcl.debug('url: %s', api_response.url)
-        self.tcl.debug('text: %s', api_response.text)
-        self.tcl.debug('content: %s', api_response.content)
+        # self.tcl.debug('text: %s', api_response.text)
+        # self.tcl.debug('content: %s', api_response.content)
         self.tcl.debug('path_url: %s', path_url)
         self.tcl.debug('status_code: %s', api_response.status_code)
         self.tcl.debug('apparent_encoding: %s', api_response.apparent_encoding)
