@@ -653,6 +653,8 @@ class ThreatConnect:
 
         # DEBUG
         self.tcl.debug('url: %s', api_response.url)
+        # print('url: {0}'.format(api_response.url))
+        # print('status_code: {0}'.format(api_response.status_code))
         # self.tcl.debug('text: %s', api_response.text)
         # self.tcl.debug('content: %s', api_response.content)
         self.tcl.debug('path_url: %s', path_url)
@@ -710,7 +712,6 @@ class ThreatConnect:
                 if len(filter_obj) > 0:
                     # request object are for api filters
                     for request_obj in filter_obj:
-                        # DEBUG
                         resource_obj.set_current_filter(request_obj.name)
                         resource_obj.set_owner_allowed(request_obj.owner_allowed)
                         resource_obj.set_resource_pagination(request_obj.resource_pagination)
@@ -864,7 +865,7 @@ class ThreatConnect:
     def set_proxies(self, proxy_address, proxy_port):
         """ """
         #TODO: add validation
-        self.proxies['https'] = '%s:%s'.format(proxy_address, proxy_port)
+        self.proxies['https'] = '{0}:{1}'.format(proxy_address, proxy_port)
 
     def set_tcl_file(self, fqpn, level='info'):
         """ """

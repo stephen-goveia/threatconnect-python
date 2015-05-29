@@ -2,6 +2,7 @@
 import dateutil.parser
 import sys
 import time
+import urllib
 import uuid
 
 """ custom """
@@ -192,6 +193,7 @@ class Resource(object):
 
         groups = self._tc.groups()
         filter1 = groups.add_filter()
+        filter1.add_owner([resource_obj.get_owner_name()])
         filter1.filter_associations(resource_obj.resource_type, identifier, group_type)
         groups.retrieve()
 
@@ -214,6 +216,7 @@ class Resource(object):
 
         indicators = self._tc.indicators()
         filter1 = indicators.add_filter()
+        filter1.add_owner([resource_obj.get_owner_name()])
         filter1.filter_associations(resource_obj.resource_type, identifier, indicator_type)
         indicators.retrieve()
 
@@ -271,7 +274,10 @@ class Resource(object):
 
             request_object = RequestObject(resource_type.name, resource_obj.get_indicator())
             request_object.set_http_method(properties.http_method)
-            request_object.set_request_uri(properties.attribute_path.format(resource_obj.get_indicator()))
+            indicator = resource_obj.get_indicator()
+            if resource_type in [ResourceType.URL, ResourceType.URLS]:
+                indicator = urllib.quote(indicator, safe='~')
+            request_object.set_request_uri(properties.attribute_path.format(indicator))
             request_object.set_owner_allowed(True)
             request_object.set_resource_pagination(True)
             request_object.set_resource_type(ResourceType.ATTRIBUTES)
@@ -286,7 +292,7 @@ class Resource(object):
             request_object = None
 
         attributes = self._tc.attributes()
-        data_set = self._tc.api_build_request(attributes, request_object)
+        data_set = self._tc.api_build_request(attributes, request_object, [resource_obj.get_owner_name()])
 
         for obj in data_set:
             resource_obj.add_attribute_object(obj)
@@ -703,7 +709,8 @@ class Resource(object):
             request_object = None
 
         tags = self._tc.tags()
-        data_set = self._tc.api_build_request(tags, request_object)
+        data_set = self._tc.api_build_request(tags, request_object, [resource_obj.get_owner_name()])
+        # data_set = self._tc.api_build_request(tags, request_object)
 
         for obj in data_set:
             resource_obj.add_tag_object(obj)

@@ -215,7 +215,7 @@ class IndicatorFilterObject(FilterObject):
         ro = RequestObject(
             filter_type, '{0}|{1}'.format(base_resource_type.name.lower(), identifier))
         ro.set_description(description)
-        ro.set_owner_allowed(False)
+        ro.set_owner_allowed(True)
         ro.set_resource_pagination(True)
         ro.set_request_uri(request_uri)
         ro.set_resource_type(irt)
