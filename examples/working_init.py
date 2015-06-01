@@ -6,7 +6,7 @@ import sys
 from threatconnect import *
 
 # configuration file
-config_file = "../tc-sumx-us.conf"
+config_file = "../tc.conf"
 
 # read configuration file
 config = ConfigParser.RawConfigParser()
