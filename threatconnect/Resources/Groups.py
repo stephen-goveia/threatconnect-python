@@ -1,5 +1,6 @@
 """ std modules """
 import types
+import urllib
 
 """ custom modules """
 from threatconnect import FilterMethods
@@ -75,6 +76,7 @@ class GroupFilterObject(FilterObject):
         base_properties = ResourceProperties[base_resource_type.name].value()
 
         request_uri = base_properties.base_path + '/'
+        identifier = urllib.quote(identifier, safe='~')
         request_uri += str(identifier)
         if group_type is not None:
             group_properties = ResourceProperties[group_type.name].value()

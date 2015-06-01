@@ -77,8 +77,8 @@ class ThreatConnect:
         self.base_uri = base_uri
 
         # default values
-        self.api_retries = 3
-        self.api_sleep = 15  # seconds
+        self.api_retries = 5
+        self.api_sleep = 60  # seconds
         self.proxies = {'https': None}
         self._activity_log = 'false'
 
