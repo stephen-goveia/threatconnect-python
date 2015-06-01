@@ -197,6 +197,7 @@ class IndicatorFilterObject(FilterObject):
         base_properties = ResourceProperties[base_resource_type.name].value()
 
         request_uri = base_properties.base_path + '/'
+        identifier = urllib.quote(identifier, safe='~')
         request_uri += str(identifier)
         if indicator_type is not None:
             indicator_properties = ResourceProperties[indicator_type.name].value()
