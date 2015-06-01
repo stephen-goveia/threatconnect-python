@@ -80,6 +80,7 @@ class ThreatConnect:
         self.api_retries = 3
         self.api_sleep = 15  # seconds
         self.proxies = {'https': None}
+        self._activity_log = 'false'
 
         # config items
         self.api_request_timeout = 30
@@ -579,7 +580,7 @@ class ThreatConnect:
 
     def _api_request(
             self, request_uri, request_payload, http_method='GET', body=None,
-            activity_log='false', content_type='application/json'):
+            content_type='application/json'):
         """ """
         start = datetime.now()
         # DEBUG
@@ -587,14 +588,14 @@ class ThreatConnect:
         self.tcl.debug('request_payload: {0}'.format(pformat(request_payload)))
         self.tcl.debug('http_method: {0}'.format(http_method))
         self.tcl.debug('body: {0}'.format(body))
-        self.tcl.debug('activity_log: {0}'.format(activity_log))
+        self.tcl.debug('activity_log: {0}'.format(self._activity_log))
         self.tcl.debug('content_type: {0}'.format(content_type))
 
         # Report (count api calls)
         self.report.add_api_call()
 
         # Decide whether or not to suppress all activity logs
-        request_payload.setdefault('createActivityLog', activity_log)
+        request_payload.setdefault('createActivityLog', self._activity_log)
 
         url = '{0}{1}'.format(self._api_url, request_uri)
 
@@ -839,6 +840,14 @@ class ThreatConnect:
     def victim_assets(self):
         """ """
         return VictimAssets(self)
+
+    def set_activity_log(self, activity_log):
+        """ """
+        if isinstance(activity_log, bool):
+            activity_log = str(activity_log).lower()
+
+        if activity_log in ['true', 'false']:
+            self._activity_log = activity_log
 
     def set_api_retries(self, retries):
         """ """
