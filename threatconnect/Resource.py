@@ -31,6 +31,7 @@ class Resource(object):
 
         # filtered resource object list
         self._objects = []
+        self._objects_dict = {}
 
         # master resource object list
         self._master_objects = []
@@ -135,6 +136,7 @@ class Resource(object):
                 if resource_id not in self._object_res_id_idx:
                     self._object_res_id_idx.setdefault(resource_id, data_obj)
                     self._objects.append(data_obj)
+                    self._objects_dict.setdefault(id(data_obj), data_obj)
 
         # use name if id is not available
         if hasattr(data_obj, 'get_name'):
@@ -459,7 +461,15 @@ class Resource(object):
         self.tcl.debug('committing')
         # iterate through each object in COPY of resource objects
         for obj in list(self._objects):
-            # time.sleep(.01)
+
+            # TODO: Test this logic
+            # continue to next object if already processed
+            if obj.phase in ['added', 'updated']:
+                self.tcl.info('skipping already processed object: {0}'.format(obj.phase))
+                continue
+
+            self.tcl.debug('phase: {0}'.format(obj.phase))
+
             temporary_id = None
             new_id = None
 
@@ -479,8 +489,9 @@ class Resource(object):
                     # add resource
                     obj.request_object.set_body(obj.get_json())
                     self._tc.api_build_request(self, obj.request_object, owners)
-                    obj.set_phase('added')
                     new_id = str(obj.get_id())
+
+                    obj.set_phase('added')
                 else:
                     print('Failed validation.')
                     print(obj)
@@ -520,8 +531,9 @@ class Resource(object):
                     request_object.set_resource_type(resource_type)
 
                 # update resource
-                self._tc.api_build_request(self, request_object)
+                self._tc.api_build_request(self, request_object, owners)
                 obj.set_phase('updated')
+
             elif obj.phase == 'delete':
                 # switch any multiple resource request to single result request
                 if resource_type.value % 10:
@@ -537,7 +549,7 @@ class Resource(object):
                     request_object.set_http_method(properties.http_method)
                     request_object.set_request_uri(
                         properties.delete_path.format(obj.get_indicator()))
-                    request_object.set_owner_allowed(False)
+                    request_object.set_owner_allowed(True)
                     request_object.set_resource_pagination(False)
                     request_object.set_resource_type(resource_type)
                 elif isinstance(properties, GroupProperties):
@@ -547,11 +559,11 @@ class Resource(object):
                             resource_type.name.lower(), obj.get_id()))
                     request_object.set_http_method(properties.http_method)
                     request_object.set_request_uri(properties.delete_path.format(obj.get_id()))
-                    request_object.set_owner_allowed(False)
+                    request_object.set_owner_allowed(True)
                     request_object.set_resource_pagination(False)
                     request_object.set_resource_type(resource_type)
 
-                self._tc.api_build_request(self, request_object)
+                self._tc.api_build_request(self, request_object, owners)
                 self._objects.remove(obj)
 
             """
