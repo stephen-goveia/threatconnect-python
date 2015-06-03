@@ -77,8 +77,8 @@ class ThreatConnect:
         self.base_uri = base_uri
 
         # default values
-        self.api_retries = 5
-        self.api_sleep = 60  # seconds
+        self.api_retries = 5  # maximum of 5 minute window
+        self.api_sleep = 59  # seconds
         self.proxies = {'https': None}
         self._activity_log = 'false'
 
@@ -213,7 +213,12 @@ class ThreatConnect:
                     #
                     api_response = self._api_request(
                         request_uri, request_payload=request_payload, http_method=http_method, body=body)
-                    api_response.encoding = 'utf-8'
+
+                    #
+                    # set response encoding (best guess)
+                    #
+                    if api_response.encoding is None:
+                        api_response.encoding = api_response.apparent_encoding
 
                     # ReportEntry
                     report_entry.set_status_code(api_response.status_code)
@@ -332,7 +337,13 @@ class ThreatConnect:
             #
             api_response = self._api_request(
                 request_uri, request_payload={}, http_method=http_method, body=body)
-            api_response.encoding = 'utf-8'
+
+            #
+            # set response encoding (best guess)
+            #
+            if api_response.encoding is None:
+                api_response.encoding = api_response.apparent_encoding
+
             if 'content-type' in api_response.headers:
                 content_type = api_response.headers['content-type']
 
@@ -579,11 +590,15 @@ class ThreatConnect:
         return obj_list
 
     def _api_request(
-            self, request_uri, request_payload, http_method='GET', body=None,
-            content_type='application/json'):
+            self, request_uri, request_payload, http_method='GET', body=None, content_type='application/json'):
         """ """
         start = datetime.now()
+        h_content_length = None
+        h_content_type = None
+
+        #
         # DEBUG
+        #
         self.tcl.debug('request_uri: {0}'.format(request_uri))
         self.tcl.debug('request_payload: {0}'.format(pformat(request_payload)))
         self.tcl.debug('http_method: {0}'.format(http_method))
@@ -591,21 +606,23 @@ class ThreatConnect:
         self.tcl.debug('activity_log: {0}'.format(self._activity_log))
         self.tcl.debug('content_type: {0}'.format(content_type))
 
-        # Report (count api calls)
-        self.report.add_api_call()
-
-        # Decide whether or not to suppress all activity logs
+        #
+        # update payload for activity log
+        #
         request_payload.setdefault('createActivityLog', self._activity_log)
 
+        #
+        # prepare request
+        #
         url = '{0}{1}'.format(self._api_url, request_uri)
-
-        # api request
         api_request = Request(
             http_method, url, data=body, params=request_payload)
         request_prepped = api_request.prepare()
-        # get path url to add_obj to header (required for hmac)
+
+        #
+        # generate HMAC headers
+        #
         path_url = request_prepped.path_url
-        # TODO: add_obj content-type to api_request_header method
         api_headers = self._api_request_headers(http_method, path_url)
 
         # POST -> add resource, tag or attribute
@@ -617,7 +634,7 @@ class ThreatConnect:
         request_prepped.prepare_headers(api_headers)
 
         #
-        # api request
+        # api request (handle temporary communications issues with the API gracefully)
         #
         for i in range(1, self.api_retries + 1, 1):
             try:
@@ -630,11 +647,10 @@ class ThreatConnect:
                 self.tcl.info('Pausing for {0} seconds to give server time to catch up.'.format(self.api_sleep))
                 time.sleep(self.api_sleep)
                 self.tcl.info('Retry {0} ....'.format(i))
+
                 if i == self.api_retries:
                     self.tcl.critical('Exiting: {0}'.format(e))
                     raise RuntimeError(e)
-                    # always let calling script handle exceptions
-                    # sys.exit(1)
             except exceptions.ConnectionError as e:
                 self.tcl.error('Error: {0}'.format(e))
                 self.tcl.error('Connection Error. The server may be down.')
@@ -644,15 +660,21 @@ class ThreatConnect:
                 if i == self.api_retries:
                     self.tcl.critical('Exiting: {0}'.format(e))
                     raise RuntimeError(e)
-                    # always let calling script handle exceptions
-                    # sys.exit(1)
             except socket.error as e:
                 self.tcl.critical('Exiting: {0}'.format(e))
                 raise RuntimeError(e)
-                # always let calling script handle exceptions
-                # sys.exit(1)
 
+        #
+        # header values
+        #
+        if 'content-length' in api_response.headers:
+            content_length = api_response.headers['content-length']
+        if 'content-type' in api_response.headers:
+            content_type = api_response.headers['content-type']
+
+        #
         # DEBUG
+        #
         self.tcl.debug('url: %s', api_response.url)
         # print('url: {0}'.format(api_response.url))
         # print('status_code: {0}'.format(api_response.status_code))
@@ -660,23 +682,34 @@ class ThreatConnect:
         # self.tcl.debug('content: %s', api_response.content)
         self.tcl.debug('path_url: %s', path_url)
         self.tcl.debug('status_code: %s', api_response.status_code)
-        self.tcl.debug('apparent_encoding: %s', api_response.apparent_encoding)
-        self.tcl.debug('encoding: %s', api_response.encoding)
-        self.tcl.debug('headers: %s', api_response.headers)
-        if 'content-length' in api_response.headers:
-            self.tcl.debug('content-length: %s', api_response.headers['content-length'])
-            # content_length = api_response.headers['content-length']
-        if 'content-type' in api_response.headers:
-            self.tcl.debug('content-type: %s', api_response.headers['content-type'])
-            # content_type = api_response.headers['content-type']
+        # self.tcl.debug('apparent_encoding: %s', api_response.apparent_encoding)
+        # self.tcl.debug('encoding: %s', api_response.encoding)
+        # self.tcl.debug('headers: %s', api_response.headers)
+        self.tcl.debug('content-length: %s', h_content_length)
+        self.tcl.debug('content-type: %s', h_content_type)
 
+        #
         # raise exception on *critical* errors
+        #
+        non_critical_errors = [
+            'The MD5 for this File is invalid, a File with this MD5 already exists'  #  400 status code
+        ]
         if api_response.status_code in [400, 401, 403, 500, 503]:
-            raise RuntimeError(api_response.content)
+            if h_content_type == 'application/json':
+                api_response_dict = api_response.json()
+                if api_response_dict['message'] not in non_critical_errors:
+                    raise RuntimeError(api_response.content)
 
+        #
         # Report
+        #
+        self.report.add_api_call()  # count api calls
         self.report.add_request_time(datetime.now() - start)
         self.tcl.debug('Request Time: {0}'.format(datetime.now() - start))
+
+        #
+        # return response
+        #
         return api_response
 
     def _api_request_headers(self, http_method, api_uri):
@@ -922,7 +955,6 @@ class ThreatConnect:
 
     def set_tcl_console_level(self, level):
         """ """
-
         if level in self.log_level.keys():
             if self.tcl.level > self.log_level[level]:
                 self.tcl.setLevel(self.log_level[level])

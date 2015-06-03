@@ -27,7 +27,9 @@ class ReportEntry(object):
 
     def set_action(self, data):
         """ """
-        self._action = data.encode('utf-8', 'ignore')
+        # self._action = data.encode('utf-8', 'ignore')
+        # self._action = data.decode('ascii', 'ignore')
+        self._action = unicode(data, errors='ignore')
 
     def set_resource_type(self, data_enum):
         """ """

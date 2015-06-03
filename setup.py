@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='threatconnect',
-    version='2.01',
+    version='2.02',
     description='Python wrapper for ThreatConnect API',
     author='ThreatConnect',
     author_email='support@threatconnect.com',

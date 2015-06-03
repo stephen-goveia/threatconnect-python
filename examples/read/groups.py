@@ -20,6 +20,8 @@ def show_data(result_obj):
             print('{:<20}{:<50}'.format('ID', obj.get_id()))
             print('{:<20}{:<50}'.format('Owner Name', obj.get_owner_name()))
             print('{:<20}{:<50}'.format('Date Added', obj.get_date_added()))
+            if hasattr(obj, 'get_type'):
+                print('{:<20}{:<50}'.format('Type', obj.get_type()))
             print('{:<20}{:<50}'.format('Web Link', obj.get_web_link()))
 
     #

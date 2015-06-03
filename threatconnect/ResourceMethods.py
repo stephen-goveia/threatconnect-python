@@ -289,7 +289,8 @@ def get_file_text(self):
 
 def set_file_text(self, data):
     """ """
-    self._file_text = data.encode('utf-8', 'ignore')
+    # self._file_text = data.encode('utf-8', 'ignore')
+    self._file_text = unicode(data, errors='ignore')
     if self._phase is 'new':
         self._phase = 'update'
 

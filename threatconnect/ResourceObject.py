@@ -35,8 +35,9 @@ def resource_class(dynamic_attribute_objs, resource_type):
         '_request_url',  # request_urls that matched for this resource
         '_required_attrs',  # attributes required for an adding this resource
         '_resource_type',  # type of resource for this object
+        '_security_labels_requests',  # list of security label requests for this resource
         '_tag_objects',  # list of tag objects for this resource
-        '_tag_requests',  # list of tag request for this resource
+        '_tag_requests',  # list of tag requests for this resource
         '_validated',  # validation boolean for this resource
         '_writable_attrs')  # attributes that are writable for this resource
 
@@ -73,6 +74,7 @@ def resource_class(dynamic_attribute_objs, resource_type):
             self._request_url = []
             self._required_attrs = []
             self._resource_type = resource_type
+            self._security_label_requests = []
             self._tag_objects = []
             self._tag_requests = []
             self._validated = False
@@ -197,7 +199,7 @@ def resource_class(dynamic_attribute_objs, resource_type):
             request_object_dict = {
                 'name1': 'attribute',
                 'name2_method': self.get_id,
-                'description': description.encode('utf-8').strip(),
+                'description': description.encode('utf-8', 'ignore'),
                 'http_method': properties.http_method,
                 'request_uri_path': properties.association_add_path,
                 'uri_attribute_1_method': identifier_method,
@@ -208,6 +210,42 @@ def resource_class(dynamic_attribute_objs, resource_type):
                 'resource_type': ResourceType.ATTRIBUTES}
 
             self.add_association_request(request_object_dict)
+
+        def _security_label_mod(self, security_label, http_method, action):
+            """ """
+            # get properties for the object
+            if self._resource_type.value % 10:
+                self._resource_type = ResourceType(self._resource_type.value - 5)
+            properties = threatconnect.Config.ResourceProperties.ResourceProperties[self._resource_type.name].value(
+                http_method=http_method)
+
+            # for indicators
+            if 500 <= self._resource_type.value <= 599:
+                # identifier = self.get_indicator()
+                identifier_method = self.get_indicator
+            else:
+                # identifier = self.get_id()
+                identifier_method = self.get_id
+
+            description = action + ' the security label (' + security_label + ') on '
+            description += self._resource_type.name.lower() + ' resource ({0}).'
+
+            # build request object dict so that the identifier can be
+            # pulled at the very end.  This is important due to using
+            # temp ids when creating a resource.
+            request_object_dict = {
+                'name1': self._resource_type.name,
+                'name2': security_label,
+                'description': description.encode('utf-8', 'ignore'),
+                'http_method': properties.http_method,
+                'request_uri_path': properties.security_label_mod_path,
+                'identifier_method': identifier_method,
+                'security_label': security_label,
+                'owner_allowed': True,
+                'resource_pagination': False,
+                'resource_type': ResourceType.SECURITY_LABELS}
+
+            self.add_security_label_request(request_object_dict)
 
         def _tag_mod(self, tag, http_method, action):
             """ """
@@ -234,7 +272,7 @@ def resource_class(dynamic_attribute_objs, resource_type):
             request_object_dict = {
                 'name1': self._resource_type.name,
                 'name2': tag,
-                'description': description.encode('utf-8').strip(),
+                'description': description.encode('utf-8', 'ignore'),
                 'http_method': properties.http_method,
                 'request_uri_path': properties.tag_mod_path,
                 'identifier_method': identifier_method,
@@ -302,7 +340,8 @@ def resource_class(dynamic_attribute_objs, resource_type):
                 'name1': 'attribute',
                 'name2': '{0}|{1}'.format(attribute_type, value),
                 'body': body_json,
-                'description': description.encode('utf-8').strip(),
+                'description': description.decode('utf-8', 'ignore'),
+                # 'description': unicode(description, errors='ignore'),
                 'http_method': properties.http_method,
                 'request_uri_path': properties.attribute_add_path,
                 'identifier_method': identifier_method,
@@ -337,6 +376,10 @@ def resource_class(dynamic_attribute_objs, resource_type):
             """ """
             self._required_attrs.append(data)
 
+        def add_security_label(self, security_label):
+            """ """
+            self._security_label_mod(security_label, PropertiesAction.POST, 'Adding')
+
         def add_tag(self, tag):
             """ """
             self._tag_mod(tag, PropertiesAction.POST, 'Adding')
@@ -344,6 +387,10 @@ def resource_class(dynamic_attribute_objs, resource_type):
         def add_tag_object(self, data_obj):
             """ """
             self._tag_objects.append(data_obj)
+
+        def add_security_label_request(self, data_obj):
+            """ """
+            self._security_label_requests.append(data_obj)
 
         def add_tag_request(self, data_obj):
             """ """
@@ -402,7 +449,7 @@ def resource_class(dynamic_attribute_objs, resource_type):
             request_object_dict = {
                 'name1': 'attribute',
                 'name2': attribute_id,
-                'description': description.encode('utf-8').strip(),
+                'description': description.encode('utf-8', 'ignore'),
                 'http_method': properties.http_method,
                 'request_uri_path': properties.attribute_delete_path,
                 'identifier_method': identifier_method,
@@ -508,7 +555,7 @@ def resource_class(dynamic_attribute_objs, resource_type):
                 'name1': 'attribute',
                 'name2': '{0}|{1}'.format(attribute_id, value),
                 'body': body_json,
-                'description': description.encode('utf-8').strip(),
+                'description': description.encode('utf-8', 'ignore'),
                 'http_method': properties.http_method,
                 'request_uri_path': properties.attribute_update_path,
                 'identifier_method': identifier_method,
@@ -610,6 +657,25 @@ def resource_class(dynamic_attribute_objs, resource_type):
         def resource_type(self):
             """ """
             return self._resource_type
+
+        @property
+        def security_label_requests(self):
+            """ """
+            for rod in self._security_label_requests:
+                # build request object
+                request_object = RequestObject(rod['name1'], rod['name2'])
+                request_object.set_description(rod['description'].format(rod['identifier_method']()))
+                request_object.set_http_method(rod['http_method'])
+                identifier = rod['identifier_method']()
+                if self._resource_type in [ResourceType.URL, ResourceType.URLS]:
+                    identifier = urllib.quote(identifier, safe='~')
+                request_object.set_request_uri(
+                    rod['request_uri_path'].format(identifier, rod['security_label']))
+                request_object.set_owner_allowed(rod['owner_allowed'])
+                request_object.set_resource_pagination(rod['resource_pagination'])
+                request_object.set_resource_type(rod['resource_type'])
+
+                yield request_object
 
         @property
         def tag_objects(self):

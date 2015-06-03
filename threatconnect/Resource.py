@@ -583,6 +583,23 @@ class Resource(object):
                     # self.get_attributes(obj)
 
             #
+            # process security label requests
+            #
+            for request_object in obj.security_label_requests:
+                # replace temporary id
+                if temporary_id != new_id:
+                    request_uri = str(request_object.request_uri.encode("utf-8")).replace(temporary_id, new_id)
+                    request_object.set_request_uri(request_uri)
+
+                if request_object.http_method in ['DELETE', 'POST', 'PUT']:
+                    # instantiate tag resource object
+                    security_labels = self._tc.security_labels()
+                    self._tc.api_build_request(security_labels, request_object, owners)
+
+                    del security_labels
+                    # self.get_tags(obj)
+
+            #
             # process tag requests
             #
             for request_object in obj.tag_requests:

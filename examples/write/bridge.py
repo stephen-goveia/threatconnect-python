@@ -16,9 +16,10 @@ logging.basicConfig(
     filename='import.log',
     filemode='w')
 
-
-# read source configuration file
-src_config_file = "../tc-tcdev-test.conf"
+#
+# read source configuration file (read instance of ThreatConnect)
+#
+src_config_file = "../tc.conf"
 src_config = ConfigParser.RawConfigParser()
 src_config.read(src_config_file)
 
@@ -32,9 +33,14 @@ except ConfigParser.NoOptionError:
     print('Could not read source configuration file.')
     sys.exit(1)
 
-# read destination configuration file
-# dst_config_file = "../tc-sumx-us.conf"
-dst_config_file = "../tcw-sumx-us.conf"
+src_tc = ThreatConnect(
+    src_api_access_id, src_api_secret_key, src_api_default_org, src_api_base_url, src_api_max_results)
+src_owners = ['Common Community']
+
+#
+# read destination configuration file (write instance of ThreatConnect)
+#
+dst_config_file = "../tc-local.conf"
 dst_config = ConfigParser.RawConfigParser()
 dst_config.read(dst_config_file)
 
@@ -48,27 +54,12 @@ except ConfigParser.NoOptionError:
     print('Could not read source configuration file.')
     sys.exit(1)
 
-src_tc = ThreatConnect(
-    src_api_access_id, src_api_secret_key, src_api_default_org, src_api_base_url, src_api_max_results)
 dst_tc = ThreatConnect(
     dst_api_access_id, dst_api_secret_key, dst_api_default_org, dst_api_base_url, dst_api_max_results)
-
-
-def progress_bar(char, count):
-    count += 1
-    sys.stdout.write('{0}'.format(char))
-    if not count % 100:
-        print('')
-    return count
-
+dst_owners = ['Common Community Local']
 
 def main():
     """ """
-    src_owners = ['Common Community']
-    # src_owners = ['Test Community']
-    # dst_owners = ['Common Community Doppelganger']
-    dst_owners = ['Common Community Bizarro']
-
     # destination resource object
     dst_indicators = dst_tc.indicators()
 
@@ -82,6 +73,11 @@ def main():
     filter1 = src_indicators.add_filter()
     filter1.add_owner(src_owners)
     filter1.set_format('json')
+
+    #
+    # Optional Post Filters
+    #
+
     # filter1.add_pf_confidence(50, FilterOperator.GE)
     # filter1.add_pf_date_added('2014-04-10T00:00:00Z', FilterOperator.GE)
     # filter1.add_pf_rating('2.0', FilterOperator.GT)
@@ -93,17 +89,13 @@ def main():
     # filter1.add_pf_attribute('Description', FilterOperator.EQ)
 
     # retrieve indicators
-    print('Retrieving Indicators ...')
+    print('Retrieving Bulk Indicators ...')
     src_indicators.retrieve()
-    print(src_tc.report)
+    print(src_tc.report.stats)
 
     print('Duplicating Indicators ...')
-    line_wrap = 0
     if src_indicators.get_status().name == "SUCCESS":
         for obj in src_indicators:
-            # print poor mans status bar
-            line_wrap = progress_bar('i', line_wrap)
-
             # log indicator
             logging.info('%s: %s', obj.resource_type.name.lower(), obj.get_indicator())
 
@@ -127,7 +119,6 @@ def main():
             # print attribute
             #
             for attribute_obj in obj.attribute_objects:
-                line_wrap = progress_bar('a', line_wrap)
                 # print(attribute_obj)
                 indicator.add_attribute(attribute_obj.get_type(), attribute_obj.get_value())
 
@@ -135,11 +126,7 @@ def main():
             # print tags
             #
             for tag_obj in obj.tag_objects:
-                line_wrap = progress_bar('t', line_wrap)
                 indicator.add_tag(tag_obj.get_name())
-
-            # temp testing
-            # break
 
         print('\nCommitting ...')
         # (Required) commit all changes above.  No changes are made until the commit phase.

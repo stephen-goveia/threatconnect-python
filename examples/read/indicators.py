@@ -5,6 +5,7 @@ from datetime import datetime
 from examples.working_init import *
 from threatconnect.Config.FilterOperator import FilterOperator
 from threatconnect.Config.IndicatorType import IndicatorType
+from threatconnect.Config.ResourceType import ResourceType
 
 """ Working with Indicators """
 
@@ -68,11 +69,12 @@ def show_data(result_obj):
             # resource associations (groups)
             #
             print('\n{:-^40}'.format(' Group Associations '))
-            result_obj.get_group_associations(obj)
+            result_obj.get_group_associations(obj, ResourceType.ADVERSARIES)
             for g_associations in obj.association_objects_groups:
                 print('{:<20}{:<50}'.format('  ID', g_associations.get_id()))
                 print('{:<20}{:<50}'.format('  Name', g_associations.get_name()))
-                print('{:<20}{:<50}'.format('  Type', g_associations.get_type()))
+                if hasattr(g_associations, 'get_type'):
+                    print('{:<20}{:<50}'.format('  Type', g_associations.get_type()))
                 print('{:<20}{:<50}'.format('  Owner Name', g_associations.get_owner_name()))
                 print('{:<20}{:<50}'.format('  Date Added', g_associations.get_date_added()))
                 print('{:<20}{:<50}\n'.format('  Web Link', g_associations.get_web_link()))

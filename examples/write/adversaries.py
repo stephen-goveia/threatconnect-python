@@ -11,7 +11,7 @@ from examples.working_init import *
 owners = ['Example Community']  # org or community
 lu_id = 5  # adversary id for loop update
 mu_id = 6  # adversary id for manual update
-# dl_id = 999999  # threat id to delete
+# dl_id = 999999  # adversary id to delete
 email_id = 17  # email resource id to associate with adversary
 email_address = 'notsobad@gmail.com'  # email address to associate to adversary
 rn = randint(1, 1000)  # random number generator for testing
@@ -131,6 +131,9 @@ def main():
 
     # (Optional) add tag to newly created resource
     resource.add_tag('TAG #{0}'.format(rn))
+
+    # (Optional) add security label to newly created resource
+    resource.add_security_label('TLP Green')
 
     #
     # update resource if required

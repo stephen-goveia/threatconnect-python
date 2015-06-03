@@ -92,6 +92,16 @@ class GroupProperties(Properties):
         return resource_class(self._object_attributes, self._resource_type)()
 
     @property
+    def security_label_add_path(self):
+        """ """
+        return ResourceUri.GROUPS.value + '/' + self.resource_uri_attribute + '/{0}/securityLabels/{1}'
+
+    @property
+    def security_label_mod_path(self):
+        """ """
+        return ResourceUri.GROUPS.value + '/' + self.resource_uri_attribute + '/{0}/securityLabels/{1}'
+
+    @property
     def tag_add_path(self):
         """ """
         return ResourceUri.GROUPS.value + '/' + self.resource_uri_attribute + '/{0}/tags/{1}'
