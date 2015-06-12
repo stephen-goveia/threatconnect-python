@@ -44,7 +44,7 @@ owners = tc.owners()
 owners.retrieve()
 
 if owners.get_status().name == "SUCCESS":
-    for owner in owners():
+    for owner in owners:
         print(owner)
 ```
 
