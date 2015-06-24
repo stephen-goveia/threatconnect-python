@@ -2,11 +2,11 @@
 import types
 
 """ custom modules """
-from threatconnect import FilterMethods
-from threatconnect.Config.ResourceProperties import ResourceProperties
+from threatconnect import IndicatorFilterMethods
+# from threatconnect.Config.ResourceProperties import ResourceProperties
 from threatconnect.Config.ResourceType import ResourceType
 from threatconnect.FilterObject import FilterObject
-from threatconnect.Properties.BulkIndicators import BulkProperties
+# from threatconnect.Properties.BulkIndicators import BulkProperties
 from threatconnect.RequestObject import RequestObject
 from threatconnect.Resource import Resource
 
@@ -22,8 +22,8 @@ class Bulk(Resource):
         self._filter_class = BulkFilterObject
 
         # set properties
-        properties = BulkProperties(base_uri=self.base_uri)
-        self._resource_type = properties.resource_type
+        # properties = BulkProperties(base_uri=self.base_uri)
+        # self._resource_type = properties.resource_type
 
         # create default request object for non-filtered requests
         self._request_object = RequestObject('bulk', 'default')
@@ -57,5 +57,5 @@ class BulkFilterObject(FilterObject):
         # add_obj filter methods
         #
         for method_name in self._properties.filters:
-            method = getattr(FilterMethods, method_name)
+            method = getattr(IndicatorFilterMethods, method_name)
             setattr(self, method_name, types.MethodType(method, self))

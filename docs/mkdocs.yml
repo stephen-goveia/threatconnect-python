@@ -1,0 +1,24 @@
+site_name: ThreatConnect&trade; Python SDK Documentation v1.0
+theme_dir: tc-theme
+
+pages:
+ - [ 'index.md', 'Home', 'Introduction' ]
+ # retrieve
+ - [ 'python/retrieve/adversaries_retrieve.md', 'Retrieve', 'Adversaries Retrieve' ]
+ - [ 'python/retrieve/documents_retrieve.md', 'Retrieve', 'Documents Retrieve' ]
+ - [ 'python/retrieve/emails_retrieve.md', 'Retrieve', 'Emails Retrieve' ]
+ - [ 'python/retrieve/groups_retrieve.md', 'Retrieve', 'Groups Retrieve' ]
+ - [ 'python/retrieve/incidents_retrieve.md', 'Retrieve', 'Incidents Retrieve' ]
+ - [ 'python/retrieve/indicators_retrieve.md', 'Retrieve', 'Indicators Retrieve' ]
+ - [ 'python/retrieve/signatures_retrieve.md', 'Retrieve', 'Signatures Retrieve' ]
+ - [ 'python/retrieve/threats_retrieve.md', 'Retrieve', 'Threats Retrieve' ]
+ # commit
+ - [ 'python/commit/adversaries_commit.md', 'Commit', 'Adversaries Commit' ]
+ - [ 'python/commit/documents_commit.md', 'Commit', 'Documents Commit' ]
+ - [ 'python/commit/emails_commit.md', 'Commit', 'Emails Commit' ]
+ - [ 'python/commit/groups_commit.md', 'Commit', 'Groups Commit' ]
+ - [ 'python/commit/signatures_commit.md', 'Commit', 'Signatures Commit' ]
+ - [ 'python/commit/threats_commit.md', 'Commit', 'Threats Commit' ]
+ # advanced
+ - [ 'python/advanced/manual.md', 'Advanced Features', 'Manual API Calls' ]
+ - [ 'python/advanced/advanced_filtering.md', 'Advanced Features', 'Advanced Filtering' ]

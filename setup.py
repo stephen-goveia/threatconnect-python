@@ -10,12 +10,11 @@ setup(
     packages=[
         'threatconnect',
         'threatconnect/Config',
-        'threatconnect/Properties',
         'threatconnect/Resources'],
     # test_suite = '',
     url='https://github.com/ThreatConnect-Inc/threatconnect-python',
     license='GPLv3',
-    install_requires=['requests', 'enum34', 'python-dateutil'],
+    install_requires=['requests', 'enum34', 'python-dateutil', 'psutil'],
     # test_suite = '',
     use_2to3=True,
     # convert_2to3_doctests = [''],

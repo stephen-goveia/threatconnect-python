@@ -1,62 +1,131 @@
-""" standard """
-from pprint import pformat
-
 """ custom """
-from threatconnect.DataFormatter import format_header, format_item
+from threatconnect import SharedMethods
 
 
 class ReportEntry(object):
     """ """
+    __slots__ = (
+        '_body',  # request object
+        '_content_type',  # request object
+        '_data',
+        '_description',  # post filter/request object
+        '_failure_msg',  # api response
+        '_filter',  # post filter object
+        '_http_method',  # request object
+        '_method',  # post filter object
+        '_operator',  # post filter object
+        '_payload',  # request object
+        '_request_uri',  # request object
+        '_request_url',  # api response
+        '_resource_type',  # request object
+        '_status_code',  # api response
+        '_track',  # flag for tracking filters
+        '_type')  # ro or pfo
 
     def __init__(self):
         """ """
-        self._action = None
-        self._data = []
-        self._request_urls = []
+        self._body = None
+        self._content_type = None
+        self._description = None
+        self._failure_msg = None
+        self._filter = None
+        self._http_method = None
+        self._method = None
+        self._operator = None
+        self._payload = None
+        self._request_uri = None
+        self._request_url = None
         self._resource_type = None
-        self._status = None
         self._status_code = None
+        self._track = False
+        self._type = None
 
-    def add_data(self, data):
-        """ """
-        self._data.append(data)
+    def add_request_object(self, data_obj):
+        """ add request object as a report entry """
+        self._body = data_obj.body
+        self._content_type = data_obj.content_type
+        self._description = data_obj.description
+        self._http_method = data_obj.http_method
+        self._payload = str(data_obj.payload)
+        self._request_uri = data_obj.request_uri
+        self._resource_type = data_obj.resource_type
+        self._track = data_obj.track
+        self._type = 'ro'
 
-    def add_request_url(self, data):
-        """ """
-        self._request_urls.append(data.encode('utf-8', 'ignore'))
+    def add_post_filter_object(self, data_obj):
+        """ add post filter object as a report entry """
+        self._description = data_obj.description
+        self._filter = data_obj.filter
+        self._method = data_obj.method
+        self._operator = data_obj.operator
+        self._type = 'pfo'
 
-    def set_action(self, data):
+    def set_request_url(self, data):
         """ """
-        # self._action = data.encode('utf-8', 'ignore')
-        # self._action = data.decode('ascii', 'ignore')
-        self._action = unicode(data, errors='ignore')
+        self._request_url = SharedMethods.uni(data)
 
-    def set_resource_type(self, data_enum):
+    def set_failure_msg(self, data):
         """ """
-        self._resource_type = data_enum
-
-    def set_status(self, data):
-        """ """
-        self._status = data.encode('utf-8', 'ignore')
+        self._failure_msg = SharedMethods.uni(data)
 
     def set_status_code(self, data_int):
         """ """
-        self._status_code = data_int
+        self._status_code = SharedMethods.uni(data_int)
 
     @property
-    def action(self):
+    def body(self):
         """ """
-        return self._action
+        return self._body
 
     @property
-    def data(self):
+    def content_type(self):
         """ """
-        return self._data
+        return self._content_type
 
     @property
-    def request_urls(self):
+    def description(self):
         """ """
-        return self._request_urls
+        return self._description
+
+    @property
+    def failure_msg(self):
+        """ """
+        return self._failure_msg
+
+    @property
+    def filter(self):
+        """ """
+        return self._filter
+
+    @property
+    def http_method(self):
+        """ """
+        return self._http_method
+
+    @property
+    def method(self):
+        """ """
+        return self._method
+
+    @property
+    def operator(self):
+        """ """
+        return self._operator
+
+    @property
+    def payload(self):
+        """ """
+        return self._payload
+
+    @property
+    def request_uri(self):
+        """ """
+        return self._request_uri
+
+    @property
+    def request_url(self):
+        """ """
+        return self._request_url
 
     @property
     def resource_type(self):
@@ -64,25 +133,49 @@ class ReportEntry(object):
         return self._resource_type
 
     @property
-    def status(self):
-        """ """
-        return self._status
-
-    @property
     def status_code(self):
         """ """
         return self._status_code
 
-    def __str__(self):
+    @property
+    def track(self):
         """ """
-        obj_str = format_header('{0}'.format(self.action), '.', '.')
-        obj_str += format_item('Status', self._status)
-        obj_str += format_item('Status Code', self._status_code)
-        obj_str += format_item('Request URLs', self.request_urls)
-        obj_str += format_item('Data', '')
-        for data in self._data:
-            for k, v in data.viewitems():
-                obj_str += format_item('{0}'.format(k), v, 1)
+        return self._track
 
-        return obj_str.encode('utf-8')
+    @property
+    def type(self):
+        """ """
+        return self._type
 
+    def __str__(self):
+        """ add print method to object """
+
+        printable_string = '\n{0:_^80}\n'.format('Report Entry')
+
+        #
+        # status
+        #
+        printable_string += '\n{0:40}\n'.format('Properties')
+        printable_string += ('{0:<30}: {1:<50}\n'.format('Status Code', self.status_code))
+        if self.failure_msg is not None:
+            printable_string += ('{0:<30}: {1:<50}\n'.format('Fail Msg', self.failure_msg))
+        printable_string += ('{0:<30}: {1:<50}\n'.format('Description', self.description))
+        printable_string += ('{0:<30}: {1:<50}\n'.format('Resource Type', self.resource_type))
+
+        #
+        # http settings
+        #
+        printable_string += '\n{0:40}\n'.format('HTTP Settings')
+        printable_string += '  {0:<29}{1:<50}\n'.format('HTTP Method', self.http_method)
+        printable_string += '  {0:<29}{1:<50}\n'.format('Request URI', self.request_uri)
+        printable_string += '  {0:<29}{1:<50}\n'.format('Request URL', self.request_url)
+        printable_string += '  {0:<29}{1:<50}\n'.format('Content Type', self.content_type)
+        printable_string += '  {0:<29}{1:<50}\n'.format('Body', self.body)
+
+        #
+        # payload
+        #
+        printable_string += '\n{0:40}\n'.format('Payload')
+        printable_string += '  {0:<29}{1:<50}\n'.format('Payload', self.payload)
+
+        return printable_string

@@ -53,6 +53,8 @@ class ErrorCodes(Enum):
     e10011 = 'Resource Error: Confidence must be of integer type. ({0}) is not an integer value.'
     e10012 = 'Resource Error: ({0}) was not found in id index.'
     e10013 = 'Resource Error: ({0}) was not found in name index.'
+    e10020 = 'Resource Error: ID must be of integer type. ({0}) is not an integer value.'
+    e10030 = 'Resource Error: Resource Type is not configured for this object.'
 
     #
     # API Errors

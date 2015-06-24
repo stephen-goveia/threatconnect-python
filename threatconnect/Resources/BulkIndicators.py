@@ -1,16 +1,16 @@
 """ standard """
-import csv
-import io
+import re
 import types
 
 """ custom """
-from threatconnect import FilterMethods
+from threatconnect import IndicatorFilterMethods
+
+from threatconnect import ApiProperties
+from threatconnect.Config.ResourceType import ResourceType
 from threatconnect.FilterObject import FilterObject
-from threatconnect.Properties.BulkIndicatorsProperties import BulkIndicatorsProperties
+from threatconnect.IndicatorObject import IndicatorObjectAdvanced
 from threatconnect.RequestObject import RequestObject
 from threatconnect.Resource import Resource
-
-""" Note: PEP 8 intentionally ignored for variable/methods to match API standard. """
 
 
 class BulkIndicators(Resource):
@@ -19,75 +19,59 @@ class BulkIndicators(Resource):
     def __init__(self, tc_obj):
         """ """
         super(BulkIndicators, self).__init__(tc_obj)
+
         self._filter_class = BulkIndicatorFilterObject
-        self._modified_since = None
+        self._resource_type = ResourceType.INDICATORS
 
-        # set properties
-        properties = BulkIndicatorsProperties(base_uri=self.base_uri)
-        self._resource_type = properties.resource_type
+    def _method_wrapper(self, resource_object):
+        """ return resource object as new object with additional methods """
+        return IndicatorObjectAdvanced(self.tc, self, resource_object)
 
+    @ property
+    def default_request_object(self):
+        """ default request when no filters are provided """
+        resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
         # create default request object for non-filtered requests
-        self._request_object = RequestObject('bulk_indicators', 'default')
-        self._request_object.set_http_method(properties.http_method)
-        self._request_object.set_owner_allowed(properties.base_owner_allowed)
-        self._request_object.set_request_uri(properties.base_path)
-        self._request_object.set_resource_pagination(properties.resource_pagination)
-        self._request_object.set_resource_type(properties.resource_type)
+        request_object = RequestObject()
+        request_object.set_http_method(resource_properties['bulk']['http_method'])
+        request_object.set_owner_allowed(resource_properties['bulk']['owner_allowed'])
+        request_object.set_request_uri(resource_properties['bulk']['uri'])
+        request_object.set_resource_pagination(resource_properties['bulk']['pagination'])
+        request_object.set_resource_type(self._resource_type)
 
-    @property
-    def csv(self):
-        """ """
-        headers = [
-            'confidence', 'dateAdded', 'id', 'indicator', 'lastModified', 'ownerName', 'rating', 'type', 'webLink']
-        csv_output = io.BytesIO()
-
-        csv_data = csv.writer(csv_output, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
-        csv_data.writerow(headers)
-
-        for obj in self._objects:
-            csv_row = [
-                obj.get_confidence(),
-                obj.get_date_added(),
-                obj.get_id(),
-                obj.get_indicator(),
-                obj.get_last_modified(),
-                obj.get_owner_name(),
-                obj.get_rating(),
-                obj.get_type(),
-                obj.get_web_link(),
-                ]
-            csv_data.writerow(csv_row)
-
-        for row in csv_output.getvalue().split('\r\n'):
-            yield row
+        return request_object
 
 
 class BulkIndicatorFilterObject(FilterObject):
     """ """
 
-    def __init__(self, base_uri, tcl):
+    def __init__(self, tc_obj, indicator_type_enum=None):
         """ """
-        super(BulkIndicatorFilterObject, self).__init__(base_uri, tcl)
+        super(BulkIndicatorFilterObject, self).__init__(tc_obj)
         self._owners = []
 
-        # pd('IndicatorFilterObject', header=True)
-        # pd('indicator_type_enum', indicator_type_enum)
-
-        self._properties = BulkIndicatorsProperties(base_uri=self.base_uri)
-        self._resource_type = self._properties.resource_type
-
-        # create default request object for filtered request with only owners
-        self._request_object = RequestObject('indicators', 'default')
-        self._request_object.set_http_method(self._properties.http_method)
-        self._request_object.set_owner_allowed(self._properties.base_owner_allowed)
-        self._request_object.set_request_uri(self._properties.base_path)
-        self._request_object.set_resource_pagination(self._properties.resource_pagination)
-        self._request_object.set_resource_type(self._properties.resource_type)
+        self._resource_type = ResourceType.INDICATORS
+        self._resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
 
         #
         # add_obj filter methods
         #
-        for method_name in self._properties.filters:
-            # pd('method_name', method_name)
-            method = getattr(FilterMethods, method_name)
-            setattr(self, method_name, types.MethodType(method, self))
+        for method_name in self._resource_properties['filters']:
+            # only add post filters for Bulk Indicator download
+            if re.findall('add_pf_', method_name):
+                self.add_post_filter_names(method_name)
+                method = getattr(IndicatorFilterMethods, method_name)
+                setattr(self, method_name, types.MethodType(method, self))
+
+    @ property
+    def default_request_object(self):
+        """ default request when only a owner filter is provided """
+        request_object = RequestObject()
+        request_object.set_description('filter by owner')
+        request_object.set_http_method(self._resource_properties['bulk']['http_method'])
+        request_object.set_owner_allowed(self._resource_properties['bulk']['owner_allowed'])
+        request_object.set_request_uri(self._resource_properties['bulk']['uri'])
+        request_object.set_resource_pagination(self._resource_properties['bulk']['pagination'])
+        request_object.set_resource_type(self._resource_type)
+
+        return request_object

@@ -1,53 +1,67 @@
 """ custom """
-from threatconnect.DataFormatter import format_header, format_item
-
+from threatconnect import SharedMethods
+from threatconnect.Config.FilterOperator import FilterOperator
 
 class PostFilterObject(object):
-    """ """
-    def __init__(self, name):
+    """ object to store post filter values for processing after api request """
+    def __init__(self):
         """ """
+        self._description = None
         self._filter = None
         self._method = None
-        self._name = name
         self._operator = None
 
+    def set_description(self, data):
+        """ set post filter description """
+        self._description = SharedMethods.uni(data)
+
     def set_filter(self, data):
-        """ """
-        self._filter = data
+        """ set post filter data to filter on """
+        self._filter = SharedMethods.uni(data)
 
     def set_method(self, data):
-        """ """
-        self._method = data
+        """ set post filter method name for getattr """
+        self._method = SharedMethods.uni(data)
 
     def set_operator(self, data_enum):
-        """ """
-        self._operator = data_enum
+        """ set post filter operator for comparison """
+        if isinstance(data_enum, FilterOperator):
+            self._operator = data_enum
+        else:
+            raise AttributeError('Invalid post filter operator.')
+
+    @property
+    def description(self):
+        """ post filter description """
+        return self._description
 
     @property
     def filter(self):
-        """ """
+        """ post filter data to filter on """
         return self._filter
 
     @property
     def method(self):
-        """ """
+        """ post filter method name for getattr """
         return self._method
 
     @property
-    def name(self):
-        """ """
-        return self._name
-
-    @property
     def operator(self):
-        """ """
+        """ post filter operator for comparison """
         return self._operator
 
     def __str__(self):
-        """ """
-        obj_str = format_header('{0} (Post Filter Object)'.format(self._name))
-        printable_items = dict(self.__dict__)
-        for key, val in sorted(printable_items.viewitems()):
-            obj_str += format_item(key, val)
+        """ allow object to be displayed with print """
 
-        return obj_str
+        printable_string = '\n{0:_^80}\n'.format('Post Filter Object')
+
+        #
+        # filter properties
+        #
+        printable_string += '{0:40}\n'.format('Filter Properties')
+        printable_string += ('  {0:<28}: {1:<50}\n'.format('description', self.description))
+        printable_string += ('  {0:<28}: {1:<50}\n'.format('filter', self.filter))
+        printable_string += ('  {0:<28}: {1:<50}\n'.format('method', self.method))
+        printable_string += ('  {0:<28}: {1:<50}\n'.format('operator', self.operator))
+
+        return printable_string

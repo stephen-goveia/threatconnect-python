@@ -1,46 +1,50 @@
 """ standard """
 import base64
+from datetime import datetime
 import hashlib
 import hmac
 import logging
 import os
-from pprint import pformat
 import re
 import socket
 import time
-import uuid
-from datetime import datetime
 
 """ third-party """
 from requests import (exceptions, packages, Request, Session)
 # disable ssl warning message
 packages.urllib3.disable_warnings()
 
+#
+# memory testing
+#
+import psutil
+
 """ custom """
 from threatconnect.ErrorCodes import ErrorCodes
+
+# tc config modules
 from threatconnect.Config.FilterOperator import FilterSetOperator
 from threatconnect.Config.ResourceType import ResourceType
-from threatconnect.Config.ResourceProperties import ResourceProperties
-from threatconnect.Config.PropertiesEnums import ApiStatus
+
+from threatconnect.IndicatorObject import parse_indicator
+from threatconnect.GroupObject import parse_group
+from threatconnect.OwnerObject import parse_owner
+from threatconnect.VictimObject import parse_victim
+
 from threatconnect.ReportEntry import ReportEntry
 from threatconnect.Report import Report
 from threatconnect.Resources.Adversaries import Adversaries
-from threatconnect.Resources.Attributes import Attributes
 from threatconnect.Resources.Bulk import Bulk
 from threatconnect.Resources.BulkIndicators import BulkIndicators
 from threatconnect.Resources.Documents import Documents
 from threatconnect.Resources.Emails import Emails
-from threatconnect.Resources.FileOccurrences import FileOccurrences
 from threatconnect.Resources.Groups import Groups
 from threatconnect.Resources.Incidents import Incidents
 from threatconnect.Resources.Indicators import Indicators
 from threatconnect.Resources.Owners import Owners
-from threatconnect.Resources.Tags import Tags
 from threatconnect.Resources.Threats import Threats
-from threatconnect.Resources.SecurityLabels import SecurityLabels
 from threatconnect.Resources.Signatures import Signatures
 from threatconnect.Resources.Victims import Victims
-from threatconnect.Resources.VictimAssets import VictimAssets
 
 
 def tc_logger():
@@ -53,7 +57,7 @@ def tc_logger():
 class ThreatConnect:
     """ """
 
-    def __init__(self, api_aid, api_sec, api_org, api_url, api_max_results=200, base_uri='v2'):
+    def __init__(self, api_aid, api_sec, api_org, api_url):
         """ """
         # logger
         self.log_level = {
@@ -66,6 +70,9 @@ class ThreatConnect:
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(funcName)s:%(lineno)d)')
         self.tcl = tc_logger()
 
+        # debugging
+        self._memory_monitor = True
+
         # credentials
         self._api_aid = api_aid
         self._api_sec = api_sec
@@ -73,17 +80,17 @@ class ThreatConnect:
         # user defined values
         self._api_org = api_org
         self._api_url = api_url
-        self._api_max_results = api_max_results
-        self.base_uri = base_uri
+        self._api_result_limit = 200
 
         # default values
-        self.api_retries = 5  # maximum of 5 minute window
-        self.api_sleep = 59  # seconds
-        self.proxies = {'https': None}
         self._activity_log = 'false'
+        self._api_request_timeout = 30
+        self._api_retries = 5  # maximum of 5 minute window
+        self._api_sleep = 59  # seconds
+        self._proxies = {'https': None}
+        self._enable_report = False
 
         # config items
-        self.api_request_timeout = 30
         self._report = []
         self._verify_ssl = False
 
@@ -93,571 +100,197 @@ class ThreatConnect:
         # instantiate report object
         self.report = Report()
 
-    def api_build_request(self, resource_obj, request_object, owners=None):
+        #
+        # Memory Testing
+        #
+        self._p = psutil.Process(os.getpid())
+        self._memory = self._p.memory_info().rss
+
+    def _api_request_headers(self, ro):
         """ """
-        #
-        # initialize vars
-        #
-        obj_list = []
-        if owners is None or not owners:
-            owners = [self._api_org]  # set owners to default org
+        timestamp = int(time.time())
+        signature = "{0}:{1}:{2}".format(ro.path_url, ro.http_method, timestamp)
+        hmac_signature = hmac.new(self._api_sec, signature, digestmod=hashlib.sha256).digest()
+        authorization = 'TC {0}:{1}'.format(self._api_aid, base64.b64encode(hmac_signature))
+        # python 3.x
+        # hmac_signature = hmac.new(self._api_sec.encode(), signature.encode(), digestmod=hashlib.sha256).digest()
+        # authorization = 'TC {0}:{1}'.format(self._api_aid, base64.b64encode(hmac_signature).decode())
+
+        ro.add_header('Timestamp', timestamp)
+        ro.add_header('Authorization', authorization)
+
+    def api_filter_handler(self, resource_obj, filter_objs):
+        """ """
+        data_set = None
+        default_request_object = resource_obj.default_request_object
+
+        if not filter_objs:
+            # build api call (no filters)
+            data_set = self.api_response_handler(resource_obj, default_request_object)
         else:
-            owners = list(owners)  # get copy of owners list for pop
-        count = len(owners)
-        modified_since = None
-        request_payload = {}
-        result_start = 0
-        result_remaining = 0
+            #
+            # process each filter added to the resource object for retrieve
+            #
+            first_run = True
 
-        #
-        # resource object values
-        #
-        body = request_object.body
-        content_type = request_object.content_type
-        http_method = request_object.http_method
-        owner_allowed = request_object.owner_allowed
-        resource_pagination = request_object.resource_pagination
-        resource_type = request_object.resource_type
-        request_uri = request_object.request_uri
+            #
+            # each resource object can have x filter objects with an operator to join or intersect results
+            #
+            for filter_obj in filter_objs:
 
-        #
-        # ReportEntry (create a report entry for this request)
-        #
-        report_entry = ReportEntry()
-        report_entry.set_action(request_object.name)
-        report_entry.set_resource_type(resource_obj.resource_type)
-        report_entry.add_data({'HTTP Method': http_method})
-        report_entry.add_data({'Max Results': self._api_max_results})
-        report_entry.add_data({'Owners': str(owners)})
-        report_entry.add_data({'Owner Allowed': owner_allowed})
-        report_entry.add_data({'Request URI': request_uri})
-        report_entry.add_data({'Request Body': body})
-        report_entry.add_data({'Resource Pagination': resource_pagination})
-        report_entry.add_data({'Resource Type': resource_type})
+                obj_list = []  # temp storage for results on individual filter objects
+                owners = filter_obj.owners
+                if len(owners) == 0:  # handle filters with no owners
+                    owners = [self._api_org]  # use default org
 
-        #
-        # debug
-        #
-        self.tcl.debug('Action: {0}'.format(request_object.name))
-        self.tcl.debug('Resource Type: {0}'.format(resource_obj.resource_type))
-        self.tcl.debug('HTTP Method: {0}'.format(http_method))
-        self.tcl.debug('Max Results: {0}'.format(self._api_max_results))
-        self.tcl.debug('Owners: {0}'.format(str(owners)))
-        self.tcl.debug('Owner Allowed: {0}'.format(owner_allowed))
-        self.tcl.debug('Request URI: {0}'.format(request_uri))
-        self.tcl.debug('Request Body: {0}'.format(body))
-        self.tcl.debug('Resource Pagination: {0}'.format(resource_pagination))
-        self.tcl.debug('Resource Type: {0}'.format(resource_type))
+                # iterate through all owners
+                for o in owners:
+                    self.tcl.debug('owner: {0}'.format(o))
+                    if len(filter_obj) > 0:
+                        # request object are for api filters
+                        for ro in filter_obj:
+                            if ro.owner_allowed:
+                                ro.set_owner(o)
+                            results = self.api_response_handler(resource_obj, ro)
 
-        # TODO: what would happen if this was always set to request object value?
-        if resource_type.name in [
-                'INDICATORS', 'ADDRESSES', 'EMAIL_ADDRESSES', 'FILES', 'HOSTS', 'URLS']:
+                            if ro.resource_type not in [ResourceType.OWNERS, ResourceType.VICTIMS]:
+                                # TODO: should this be done?
+                                # post filter owners
+                                for obj in results:
+                                    if obj.owner_name != o:
+                                        results.remove(obj)
 
-            # TODO: find a cleaner way
-            if not re.findall('bulk', request_uri):
-                modified_since = resource_obj.get_modified_since()
-
-        # update resource object with max results
-        # ???moved to report resource_obj.set_max_results(self._api_max_results)
-
-        # append uri to resource object
-        # ???moved to report resource_obj.add_uris(request_uri)
-
-        # iterate through all owners and results
-        if owner_allowed or resource_pagination:
-            # DEBUG
-
-            if modified_since is not None:
-                request_payload['modifiedSince'] = modified_since
-                # ReportEntry
-                report_entry.add_data({'Modified Since': modified_since})
-
-            # if request_object.owner_allowed:
-            #     # if len(list(request_object.owners)) > 0:
-            #     # owners = list(request_object.owners)
-            #     count = len(owners)
-
-            for x in xrange(count):
-                retrieve_data = True
-
-                # only add_obj owner parameter if owners is allowed
-                if owner_allowed:
-                    owner = owners.pop(0)
-                    request_payload['owner'] = owner
-
-                    # DEBUG
-                    self.tcl.debug('owner: %s', owner)
-                    self.tcl.debug('request_payload: %s', request_payload)
-
-                # only add_obj result parameters if resource_pagination is allowed
-                if resource_pagination:
-                    result_limit = int(self._api_max_results)
-                    result_remaining = result_limit
-                    result_start = 0
-
-                while retrieve_data:
-                    # set retrieve data to False to prevent loop for non paginating request
-                    retrieve_data = False
-
-                    # only add_obj result parameters if resource_pagination is allowed
-                    if request_object.resource_pagination:
-                        request_payload['resultLimit'] = result_limit
-                        request_payload['resultStart'] = result_start
-
-                        # DEBUG
-                        self.tcl.debug('result_limit: %s', result_limit)
-                        self.tcl.debug('result_start: %s', result_start)
-
-                    #
-                    # api request
-                    #
-                    api_response = self._api_request(
-                        request_uri, request_payload=request_payload, http_method=http_method, body=body)
-
-                    #
-                    # set response encoding (best guess)
-                    #
-                    if api_response.encoding is None:
-                        api_response.encoding = api_response.apparent_encoding
-
-                    # ReportEntry
-                    report_entry.set_status_code(api_response.status_code)
-                    report_entry.add_request_url(api_response.url)
-
-                    # break is status is not valid
-                    if api_response.status_code not in [200, 201, 202]:
-                        # ReportEntry
-                        report_entry.set_status('Failure')
-                        report_entry.set_status_code(api_response.status_code)
-                        report_entry.add_data({'Failure Message': api_response.content})
-                        # Logging
-                        resource_obj.add_error_message(ErrorCodes.e80000.value.format(api_response.content))
-                        break
-
-                    #
-                    # CSV Special Case
-                    #
-                    if re.findall('bulk/csv$', request_object.request_uri):
-                        obj_list.extend(
-                            self._api_process_response_csv(resource_obj, api_response.content))
-                        break
-
-                    #
-                    # parse response
-                    #
-                    api_response_dict = api_response.json()
-                    resource_obj.current_url = api_response.url
-
-                    # update group object with api response data
-                    resource_obj.add_api_response(api_response.content)
-                    resource_obj.add_status_code(api_response.status_code)
-                    # resource_obj.add_error_message(api_response.content)
-
-                    #
-                    # bulk indicators
-                    #
-
-                    # indicator response has no status so it must come first
-                    if 'indicator' in api_response_dict:
-
-                        #
-                        # process response
-                        #
-                        obj_list.extend(self._api_process_response(
-                            resource_obj, api_response, request_object))
-
-                    #
-                    # non Success status
-                    #
-                    elif api_response_dict['status'] != 'Success':
-                        # ReportEntry
-                        report_entry.set_status(api_response_dict['status'])
-                        report_entry.add_data(
-                            {'Failure Message': api_response_dict['message']})
-
-                    #
-                    # normal response
-                    #
-                    elif 'data' in api_response_dict:
-                        # ReportEntry
-                        report_entry.set_status(api_response_dict['status'])
-
-                        # update resource object
-                        resource_obj.add_status(ApiStatus[api_response_dict['status'].upper()])
-
-                        #
-                        # process response
-                        #
-                        obj_list.extend(self._api_process_response(
-                            resource_obj, api_response, request_object))
-
-                        # add_obj resource_pagination if required
-                        if request_object.resource_pagination:
-                            # get the number of results returned by the api
-                            if result_start == 0:
-                                result_remaining = api_response_dict['data']['resultCount']
-
-                            result_remaining -= result_limit
-
-                            # flip retrieve data flag if there are more results to pull
-                            if result_remaining > 0:
-                                retrieve_data = True
-
-                            # increment the start position
-                            result_start += result_limit
+                            obj_list.extend(results)
                     else:
-                        resource_obj.add_error_message(api_response.content)
+                        ro = filter_obj.default_request_object
+                        if ro.owner_allowed:
+                            ro.set_owner(o)
+                        results = self.api_response_handler(resource_obj, ro)
 
-        elif content_type == 'application/octet-stream':
-            #
-            # api request
-            #
-            api_response = self._api_request(
-                request_uri, request_payload={}, http_method=http_method,
-                body=body, content_type=content_type)
+                        if ro.resource_type not in [ResourceType.OWNERS, ResourceType.VICTIMS]:
+                            # TODO: should this be done?
+                            # post filter owners
+                            for obj in results:
+                                if obj.owner_name != o:
+                                    results.remove(obj)
 
-            # ReportEntry
-            report_entry.set_status_code(api_response.status_code)
-            report_entry.add_request_url(api_response.url)
+                        obj_list.extend(results)
 
-            if api_response.status_code not in [200, 201, 202]:
-                # ReportEntry
-                report_entry.set_status('Failure')
-                report_entry.add_data({'Failure Message': api_response.content})
-                # Logging
-                self.tcl.critical(ErrorCodes.e80000.value.format(api_response.content))
-                raise RuntimeError(ErrorCodes.e90001.value)
-            else:
-                report_entry.set_status('Success')
-
-            return api_response.content
-        else:
-            #
-            # api request
-            #
-            api_response = self._api_request(
-                request_uri, request_payload={}, http_method=http_method, body=body)
-
-            #
-            # set response encoding (best guess)
-            #
-            if api_response.encoding is None:
-                api_response.encoding = api_response.apparent_encoding
-
-            if 'content-type' in api_response.headers:
-                content_type = api_response.headers['content-type']
-
-            # ReportData
-            report_entry.set_status_code(api_response.status_code)
-            report_entry.add_request_url(api_response.url)
-
-            # break is status is not valid
-            if api_response.status_code not in [200, 201, 202]:
-                if api_response.status_code == 404:
-                    # failure_message = api_response.json()['message']
-                    failure_message = api_response.content
-                else:
-                    failure_message = api_response.content
-                # ReportEntry
-                report_entry.set_status('Failure')
-                report_entry.add_data({'Failure Message': failure_message})
-                # Logging
-                self.tcl.critical(ErrorCodes.e80000.value.format(api_response.content))
-                raise RuntimeError(ErrorCodes.e90001.value)
-            elif content_type == "text/plain":
-                # signature download
-                return api_response.content
-            else:
-                api_response_dict = api_response.json()
-                resource_obj.current_url = api_response.url
-
-                # ReportEntry
-                report_entry.set_status(api_response_dict['status'])
-
-                # update group object with api response data
-                resource_obj.add_api_response(api_response.content)
-                resource_obj.add_status_code(api_response.status_code)
-                resource_obj.add_status(ApiStatus[api_response_dict['status'].upper()])
-
-                # no need to process data for deletes or if no data exists
-                if http_method != 'DELETE' and 'data' in api_response_dict:
                     #
-                    # process response
+                    # post filters
                     #
-                    processed_data = self._api_process_response(
-                        resource_obj, api_response, request_object)
+                    pf_obj_set = set(obj_list)
+                    self.tcl.debug('count before post filter: {0}'.format(len(obj_list)))
+                    for pfo in filter_obj.post_filters:
+                        self.tcl.debug('pfo: {0}'.format(pfo))
 
-                    obj_list.extend(processed_data)
+                        #
+                        # Report Entry
+                        #
+                        report_entry = ReportEntry()
+                        report_entry.add_post_filter_object(pfo)
 
-        # ReportData
-        report_entry.add_data({'Result Count': len(obj_list)})
+                        # current post filter method
+                        filter_method = getattr(resource_obj, pfo.method)
 
-        # Report
-        self.report.add_unfiltered_results(len(obj_list))
-        self.report.add(report_entry)
+                        # current post filter results
+                        post_filter_results = set(filter_method(pfo.filter, pfo.operator, pfo.description))
 
-        return obj_list
+                        pf_obj_set = pf_obj_set.intersection(post_filter_results)
 
-    def _api_process_response(self, resource_obj, api_response, request_object):
+                        self.report.add(report_entry)
+
+                    # set obj_list to post_filter results
+                    if filter_obj.post_filters_len > 0:
+                        obj_list = list(pf_obj_set)
+
+                    self.tcl.debug('count after post filter: {0}'.format(len(obj_list)))
+
+                    # no need to join or intersect on first run
+                    if first_run:
+                        data_set = set(obj_list)
+                        first_run = False
+                        continue
+
+                #
+                # depending on the filter type the result will be intersected or joined
+                #
+                if filter_obj.operator is FilterSetOperator.AND:
+                    data_set = data_set.intersection(obj_list)
+                elif filter_obj.operator is FilterSetOperator.OR:
+                    data_set.update(set(obj_list))
+
+        #
+        # only add to report if these results should be tracked (exclude attribute, tags, etc)
+        #
+        self.report.add_filtered_results(len(data_set))
+
+        #
+        # after intersection or join add the objects to the resource object
+        #
+        for obj in data_set:
+            resource_obj.add_obj(obj)
+
+    def api_request(self, ro):
         """ """
-        start = datetime.now()
-
-        # DEBUG
-        resource_object_id = request_object.resource_object_id
-        obj_list = []
-
-        # convert json response to dict
-        api_response_dict = api_response.json()
-        api_response_url = api_response.url
-
-        # update group object with result data
-        current_filter = resource_obj.get_current_filter()
-
-        # use resource type from resource object to get the resource properties
-        # resource_type = resource_obj.resource_type
-        properties = ResourceProperties[request_object.resource_type.name].value(
-            base_uri=self.base_uri)
-        resource_key = properties.resource_key
-
-        # bulk indicator
-        if 'indicator' in api_response_dict:
-            response_data = api_response_dict['indicator']
-        else:
-            response_data = api_response_dict['data'][resource_key]
-
-        # DEBUG
-        self.tcl.debug('current_filter: %s', current_filter)
-        self.tcl.debug('resource_key: %s', resource_key)
-
-        # wrap single response item in a list
-        if isinstance(response_data, dict):
-            response_data = [response_data]
-
-        result_count = len(response_data)
-        resource_obj.add_result_count(result_count)
-
-        # DEBUG
-        self.tcl.debug('result_count: %s', result_count)
-
-        report_counter = 0
-        report_units = 100
-
-        # update group object with result data
-        for data in response_data:
-            report_counter += 1
-
-            if resource_object_id is not None:
-                # if this is an existing resource pull it from Resource object
-                # so that it can be updated
-                data_obj = resource_obj.get_resource_by_identity(resource_object_id)
-            else:
-                # create new resource object
-                data_obj = properties.resource_object
-            data_methods = data_obj.get_data_methods()
-
-            # set values for each resource parameter
-            for attrib, obj_method in data_methods.viewitems():
-                # DEBUG
-                if attrib in data:
-                    obj_method(data[attrib])
-
-            #
-            # bulk
-            #
-            resource_type = data_obj.resource_type
-            if 500 <= resource_type.value <= 599:
-
-                #
-                # attributes
-                #
-
-                # check for attributes in bulk download
-                if 'attribute' in data:
-                    attribute_properties = ResourceProperties.ATTRIBUTES.value(
-                        base_uri=self.base_uri)
-                    for attribute in data['attribute']:
-                        attribute_data_obj = attribute_properties.resource_object
-                        attribute_data_methods = attribute_data_obj.get_data_methods()
-
-                        for attrib, obj_method in attribute_data_methods.viewitems():
-                            if attrib in attribute:
-                                obj_method(attribute[attrib])
-
-                        data_obj.add_attribute_object(attribute_data_obj)
-
-                #
-                # tag
-                #
-                if 'tag' in data:
-                    tag_properties = ResourceProperties.TAGS.value(
-                        base_uri=self.base_uri)
-                    for tag in data['tag']:
-                        tag_data_obj = tag_properties.resource_object
-                        tag_data_methods = tag_data_obj.get_data_methods()
-
-                        for t, obj_method in tag_data_methods.viewitems():
-                            if t in tag:
-                                obj_method(tag[t])
-
-                        data_obj.add_tag_object(tag_data_obj)
-
-            data_obj.validate()
-
-            # get resource object id of newly created object or of the previously
-            # created object
-
-            # TODO: does this work with matching ids from different owners???
-            # a better way may be to hash all values if the order in which they are
-            # concatenated is always the same.
-
-            # if the object supports id then use the id
-            if hasattr(data_obj, 'get_id'):
-                index = data_obj.get_id()
-            elif hasattr(data_obj, 'get_name'):
-                index = data_obj.get_name()
-            else:
-                # all object should either support get_id or get_name.
-                self.tcl.critical(ErrorCodes.e90000.value)
-                raise RuntimeError(ErrorCodes.e90000.value)
-                # always let calling script handle exceptions
-                # sys.exit(1)
-
-            # add the resource to the master resource object list to make intersections
-            # and joins simple when processing filters
-            roi = resource_obj.add_master_resource_obj(data_obj, index)
-
-            # get stored object by the returned object id
-            stored_obj = resource_obj.get_resource_by_identity(roi)
-
-            # update the api response url and current filter
-            stored_obj.add_request_url(api_response_url)
-            stored_obj.set_request_object(request_object)
-            data_obj.set_phase('new')  # set phase to new
-
-            stored_obj.add_matched_filter(current_filter)
-
-            # append the object to obj_list to be returned for further filtering
-            obj_list.append(stored_obj)
-
-            if report_counter % report_units:
-                # timer report
-                self.tcl.debug('Process Time ({0}): {1}'.format(report_units, datetime.now() - start))
-
-        # timer report
-        self.tcl.debug('Total Process Time: {0}'.format(datetime.now() - start))
-
-        return obj_list
-
-    def _api_process_response_csv(self, resource_obj, csv_data):
-        """ """
-        obj_list = []
-
-        properties = ResourceProperties.INDICATORS.value(
-            base_uri=self.base_uri)
-
-        headers = True
-        for line in csv_data.split('\n'):
-            if headers:
-                # Type,Value,Rating,Confidence
-                headers = False
-                continue
-            elif len(line) == 0:
-                continue
-
-            # temporary id
-            resource_id = uuid.uuid4().int
-
-            (indicator_type, indicator, rating, confidence) = line.split(',')
-            data_obj = properties.resource_object
-            data_obj.set_id(resource_id)
-            data_obj.set_type(indicator_type)
-            data_obj.set_indicator(indicator)
-            if confidence != 'null':
-                data_obj.set_confidence(int(confidence))
-            if rating != 'null':
-                data_obj.set_rating(rating)
-
-            # add the resource to the master resource object list to make intersections
-            # and joins simple when processing filters
-            roi = resource_obj.add_master_resource_obj(data_obj, resource_id)
-
-            # get stored object by the returned object id
-            stored_obj = resource_obj.get_resource_by_identity(roi)
-
-            # append the object to obj_list to be returned
-            obj_list.append(stored_obj)
-
-        return obj_list
-
-    def _api_request(
-            self, request_uri, request_payload, http_method='GET', body=None, content_type='application/json'):
-        """ """
-        start = datetime.now()
+        api_response = None
+        fail_msg = None
         h_content_length = None
         h_content_type = None
+        start = datetime.now()
 
         #
-        # DEBUG
+        # enable activity log
         #
-        self.tcl.debug('request_uri: {0}'.format(request_uri))
-        self.tcl.debug('request_payload: {0}'.format(pformat(request_payload)))
-        self.tcl.debug('http_method: {0}'.format(http_method))
-        self.tcl.debug('body: {0}'.format(body))
-        self.tcl.debug('activity_log: {0}'.format(self._activity_log))
-        self.tcl.debug('content_type: {0}'.format(content_type))
-
-        #
-        # update payload for activity log
-        #
-        request_payload.setdefault('createActivityLog', self._activity_log)
+        # request_object.enable_activity_mode()
 
         #
         # prepare request
         #
-        url = '{0}{1}'.format(self._api_url, request_uri)
-        api_request = Request(
-            http_method, url, data=body, params=request_payload)
+        url = '{0}{1}'.format(self._api_url, ro.request_uri)
+        api_request = Request(ro.http_method, url, data=ro.body, params=ro.payload)
         request_prepped = api_request.prepare()
 
         #
-        # generate HMAC headers
+        # generate headers
         #
-        path_url = request_prepped.path_url
-        api_headers = self._api_request_headers(http_method, path_url)
-
-        # POST -> add resource, tag or attribute
-        # PUT -> update resource, tag or attribute
-        # Not all POST or PUT request will have a json body.
-        if http_method in ['POST', 'PUT'] and body is not None:
-            api_headers['Content-Type'] = content_type
-            api_headers['Content-Length'] = len(body)
-        request_prepped.prepare_headers(api_headers)
+        ro.set_path_url(request_prepped.path_url)
+        self._api_request_headers(ro)
+        request_prepped.prepare_headers(ro.headers)
 
         #
-        # api request (handle temporary communications issues with the API gracefully)
+        # Debug
         #
-        for i in range(1, self.api_retries + 1, 1):
+        self.tcl.debug('request_object: {0}'.format(ro))
+        self.tcl.debug('url: {0}'.format(url))
+        self.tcl.debug('path url: {0}'.format(request_prepped.path_url))
+
+        #
+        # api request (gracefully handle temporary communications issues with the API)
+        #
+        for i in range(1, self._api_retries + 1, 1):
             try:
                 api_response = self._session.send(
-                    request_prepped, verify=self._verify_ssl, timeout=self.api_request_timeout, proxies=self.proxies)
+                    request_prepped, verify=self._verify_ssl, timeout=self._api_request_timeout,
+                    proxies=self._proxies, stream=False)
                 break
             except exceptions.ReadTimeout as e:
-                self.tcl.critical('Error: {0}'.format(e))
+                self.tcl.error('Error: {0}'.format(e))
                 self.tcl.error('The server may be experiencing delays at the moment.')
-                self.tcl.info('Pausing for {0} seconds to give server time to catch up.'.format(self.api_sleep))
-                time.sleep(self.api_sleep)
+                self.tcl.info('Pausing for {0} seconds to give server time to catch up.'.format(self._api_sleep))
+                time.sleep(self._api_sleep)
                 self.tcl.info('Retry {0} ....'.format(i))
 
-                if i == self.api_retries:
+                if i == self._api_retries:
                     self.tcl.critical('Exiting: {0}'.format(e))
                     raise RuntimeError(e)
             except exceptions.ConnectionError as e:
                 self.tcl.error('Error: {0}'.format(e))
                 self.tcl.error('Connection Error. The server may be down.')
-                self.tcl.info('Pausing for {0} seconds to give server time to catch up.'.format(self.api_sleep))
-                time.sleep(self.api_sleep)
+                self.tcl.info('Pausing for {0} seconds to give server time to catch up.'.format(self._api_sleep))
+                time.sleep(self._api_sleep)
                 self.tcl.info('Retry {0} ....'.format(i))
-                if i == self.api_retries:
+                if i == self._api_retries:
                     self.tcl.critical('Exiting: {0}'.format(e))
                     raise RuntimeError(e)
             except socket.error as e:
@@ -668,37 +301,54 @@ class ThreatConnect:
         # header values
         #
         if 'content-length' in api_response.headers:
-            content_length = api_response.headers['content-length']
+            h_content_length = api_response.headers['content-length']
         if 'content-type' in api_response.headers:
-            content_type = api_response.headers['content-type']
-
-        #
-        # DEBUG
-        #
-        self.tcl.debug('url: %s', api_response.url)
-        # print('url: {0}'.format(api_response.url))
-        # print('status_code: {0}'.format(api_response.status_code))
-        # self.tcl.debug('text: %s', api_response.text)
-        # self.tcl.debug('content: %s', api_response.content)
-        self.tcl.debug('path_url: %s', path_url)
-        self.tcl.debug('status_code: %s', api_response.status_code)
-        # self.tcl.debug('apparent_encoding: %s', api_response.apparent_encoding)
-        # self.tcl.debug('encoding: %s', api_response.encoding)
-        # self.tcl.debug('headers: %s', api_response.headers)
-        self.tcl.debug('content-length: %s', h_content_length)
-        self.tcl.debug('content-type: %s', h_content_type)
+            h_content_type = api_response.headers['content-type']
 
         #
         # raise exception on *critical* errors
         #
         non_critical_errors = [
-            'The MD5 for this File is invalid, a File with this MD5 already exists'  #  400 status code
+            'The MD5 for this File is invalid, a File with this MD5 already exists',  # 400 (application/json)
+            'The requested resource was not found',  # 404 (application/json)
+            'Could not find resource for relative',  # 500 (text/plain)
+            'The requested Security Label was not removed - access was denied',  # 401 (application/json)
         ]
-        if api_response.status_code in [400, 401, 403, 500, 503]:
-            if h_content_type == 'application/json':
-                api_response_dict = api_response.json()
-                if api_response_dict['message'] not in non_critical_errors:
-                    raise RuntimeError(api_response.content)
+
+        #
+        # TODO: work out some logic to improve the API error handling, possible area where API could improve
+        #
+
+        # valid status codes 200, 201, 202
+        # if api_response.status_code in [400, 401, 403, 500, 503]:
+        if api_response.status_code not in [200, 201, 202]:
+            # check for non critical errors that have bad status codes
+            nce_found = False
+            fail_msg = api_response.content
+            for nce in non_critical_errors:
+                # api_response_dict['message'] not in non_critical_errors:
+                if re.findall(nce, api_response.content):
+                    nce_found = True
+
+            # raise error on bad status codes that are not defined as nce
+            if not nce_found:
+                self.tcl.critical('Status Code: {0}'.format(api_response.status_code))
+                self.tcl.critical('Failed API Response: {0}'.format(api_response.content))
+                raise RuntimeError(api_response.content)
+
+        #
+        # set response encoding (best guess)
+        #
+        if api_response.encoding is None:
+            api_response.encoding = api_response.apparent_encoding
+
+        #
+        # Debug
+        #
+        self.tcl.debug('url: %s', api_response.url)
+        self.tcl.debug('status_code: %s', api_response.status_code)
+        self.tcl.debug('content-length: %s', h_content_length)
+        self.tcl.debug('content-type: %s', h_content_type)
 
         #
         # Report
@@ -707,216 +357,338 @@ class ThreatConnect:
         self.report.add_request_time(datetime.now() - start)
         self.tcl.debug('Request Time: {0}'.format(datetime.now() - start))
 
+        if self._enable_report:
+            report_entry = ReportEntry()
+            report_entry.add_request_object(ro)
+            report_entry.set_request_url(api_response.url)
+            report_entry.set_status_code(api_response.status_code)
+            report_entry.set_failure_msg(fail_msg)
+            self.report.add(report_entry)
+
         #
         # return response
         #
+        # self.print_mem('end _api_request')
         return api_response
 
-    def _api_request_headers(self, http_method, api_uri):
+    def api_response_handler(self, resource_obj, ro):
         """ """
-        timestamp = int(time.time())
-        signature = "{0}:{1}:{2}".format(api_uri, http_method, timestamp)
-        hmac_signature = hmac.new(self._api_sec, signature, digestmod=hashlib.sha256).digest()
-        authorization = 'TC {0}:{1}'.format(self._api_aid, base64.b64encode(hmac_signature))
+        #
+        # initialize vars
+        #
+        api_response_dict = {}
+        obj_list = []
+        # only track filter counts on request from this method
+        ro.enable_track()
 
-        return {'Timestamp': timestamp, 'Authorization': authorization}
+        #
+        # debug
+        #
+        self.tcl.debug('Results Limit: {0}'.format(self._api_result_limit))
 
-    def get_filtered_resource(self, resource_obj, filter_objs):
-        """ """
-        data_set = None
+        # only resource supports pagination
+        if ro.resource_pagination:
+            ro.set_result_limit(self._api_result_limit)
+            ro.set_result_start(0)
 
-        if not filter_objs:
-            # owners = [self._api_org]
-            # resource_obj.add_owners(owners)
+        while ro.remaining_results > 0:
+            #
+            # api request
+            #
+            api_response = self.api_request(ro)
+            # self.tcl.debug('Results Content: {0}'.format(api_response.content))
+            self.tcl.debug('Status Code: {0}'.format(api_response.status_code))
+            self.tcl.debug('Content Type: {0}'.format(api_response.headers['content-type']))
 
             #
-            # build api call (no filters)
+            # Process API response
             #
-            data_set = self.api_build_request(resource_obj, resource_obj.request_object)
-        else:
-            first_run = True
-            for filter_obj in filter_objs:
-                # DEBUG
-                if resource_obj.resource_type != ResourceType.OWNERS:
-                    resource_obj.add_owners(filter_obj.get_owners())
-                set_operator = filter_obj.get_filter_operator()
+            if api_response.headers['content-type'] == 'application/json':
+                api_response_dict = api_response.json()
+                # self.print_mem('after building dict')
 
-                obj_list = []
-                # iterate through each filter method
-                if len(filter_obj) > 0:
-                    # request object are for api filters
-                    for request_obj in filter_obj:
-                        resource_obj.set_current_filter(request_obj.name)
-                        resource_obj.set_owner_allowed(request_obj.owner_allowed)
-                        resource_obj.set_resource_pagination(request_obj.resource_pagination)
-                        resource_obj.set_request_uri(request_obj.request_uri)
-                        resource_obj.set_resource_type(request_obj.resource_type)
-                        obj_list.extend(self.api_build_request(
-                            resource_obj, request_obj, filter_obj.get_owners()))
-                else:
-                    # resource_obj.set_owner_allowed(filter_obj.get_owner_allowed())
-                    # resource_obj.set_resource_pagination(filter_obj.get_resource_pagination())
-                    # resource_obj.set_request_uri(filter_obj.get_request_uri())
-                    # resource_obj.set_resource_type(filter_obj.resource_type)
-
-                    obj_list.extend(self.api_build_request(
-                        resource_obj, filter_obj.request_object, filter_obj.get_owners()))
-                    # obj_list.extend(self.api_build_request(resource_obj, resource_obj.request_obj))
+                # try and free memory for next api request
+                api_response.close()
+                del api_response  # doesn't appear to clear memory
 
                 #
-                # post filters
+                # BULK INDICATOR (does not have status)
                 #
-                # pf_obj_set = set()
-                # for pf_obj in filter_obj.get_post_filters():
-                # filter_method = getattr(resource_obj, pf_obj.method)
-                #     pf_obj_set.update(filter_method(pf_obj.filter, pf_obj.operator))
+                if 'indicator' in api_response_dict:
+                    if ro.resource_type == ResourceType.INDICATORS:
+                        data = api_response_dict['indicator']
+                        for item in data:
+                            obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
 
-                pf_obj_set = set(obj_list)
-                for pf_obj in filter_obj.get_post_filters():
-                    self.tcl.debug('Post Filter: {0}'.format(pf_obj.name))
-                    # current post filter method
-                    filter_method = getattr(resource_obj, pf_obj.method)
+                            if len(obj_list) % 500 == 0:
+                                self.tcl.debug('obj_list len: {0}'.format(len(obj_list)))
+                                self.print_mem('bulk process - {0:d} objects'.format(len(obj_list)))
 
-                    # current post filter results
-                    post_filter_results = set(filter_method(pf_obj.filter, pf_obj.operator))
-                    pf_obj_set = pf_obj_set.intersection(post_filter_results)
-
-                if filter_obj.get_post_filters_len() > 0:
-                    obj_list = list(pf_obj_set)
-
-                # intersection pf_obj list with obj_list to apply filters
-                # to current result set
-                # if filter_obj.get_post_filters_len() > 0:
-                #     obj_list = pf_obj_set.intersection(obj_list)
-
-                if first_run:
-                    data_set = set(obj_list)
-                    first_run = False
+                elif api_response_dict['status'] == 'Failure':
+                    # handle failed request (404 Resource not Found)
+                    if 'message' in api_response_dict:
+                        self.tcl.error('{0} "{1}"'.format(api_response_dict['message'], ro.description))
+                    ro.set_remaining_results(0)
                     continue
 
-                if set_operator is FilterSetOperator.AND:
-                    data_set = data_set.intersection(obj_list)
-                elif set_operator is FilterSetOperator.OR:
-                    data_set.update(set(obj_list))
+                #
+                # ADVERSARIES
+                #
+                elif ro.resource_type == ResourceType.ADVERSARIES:
+                    data = api_response_dict['data']['adversary']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(
+                            parse_group(item, ResourceType.ADVERSARIES, resource_obj, ro.description, ro.request_uri))
 
-        # Report
-        self.report.add_filtered_results(len(data_set))
+                #
+                # INDICATORS
+                #
+                elif ro.resource_type == ResourceType.INDICATORS:
+                    data = api_response_dict['data']['indicator']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
 
-        # add_obj data objects to group object
-        for obj in data_set:
-            resource_obj.add_obj(obj)
+                #
+                # ADDRESSES
+                #
+                elif ro.resource_type == ResourceType.ADDRESSES:
+                    data = api_response_dict['data']['address']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
 
-    def adversaries(self):
+                #
+                # DOCUMENTS
+                #
+                elif ro.resource_type == ResourceType.DOCUMENTS:
+                    data = api_response_dict['data']['document']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(
+                            parse_group(item, ResourceType.DOCUMENTS, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # EMAILS
+                #
+                elif ro.resource_type == ResourceType.EMAILS:
+                    data = api_response_dict['data']['email']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(
+                            parse_group(item, ResourceType.EMAILS, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # EMAIL ADDRESSES
+                #
+                elif ro.resource_type == ResourceType.EMAIL_ADDRESSES:
+                    data = api_response_dict['data']['emailAddress']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # GROUPS
+                #
+                elif ro.resource_type == ResourceType.GROUPS:
+                    data = api_response_dict['data']['group']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(
+                            parse_group(item, ResourceType.GROUPS, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # FILES
+                #
+                elif ro.resource_type == ResourceType.FILES:
+                    data = api_response_dict['data']['file']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # HOSTS
+                #
+                elif ro.resource_type == ResourceType.HOSTS:
+                    data = api_response_dict['data']['host']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # INCIDENTS
+                #
+                elif ro.resource_type == ResourceType.INCIDENTS:
+                    data = api_response_dict['data']['incident']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(
+                            parse_group(item, ResourceType.INCIDENTS, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # OWNERS
+                #
+                elif ro.resource_type == ResourceType.OWNERS:
+                    data = api_response_dict['data']['owner']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(
+                            parse_owner(item, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # SIGNATURES
+                #
+                elif ro.resource_type == ResourceType.SIGNATURES:
+                    data = api_response_dict['data']['signature']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(
+                            parse_group(item, ResourceType.SIGNATURES, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # THREATS
+                #
+                elif ro.resource_type == ResourceType.THREATS:
+                    data = api_response_dict['data']['threat']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(
+                            parse_group(item, ResourceType.THREATS, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # URLS
+                #
+                elif ro.resource_type == ResourceType.URLS:
+                    data = api_response_dict['data']['url']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # VICTIMS
+                #
+                elif ro.resource_type == ResourceType.VICTIMS:
+                    data = api_response_dict['data']['victim']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        # victims data comes back with no owner, manually add owner here
+                        item['owner'] = ro.owner
+                        obj_list.append(parse_victim(item, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # memory testing
+                #
+                self.print_mem('pagination - {0:d} objects'.format(len(obj_list)))
+
+            elif api_response.headers['content-type'] == 'text/plain':
+                self.tcl.error('{0} "{1}"'.format(api_response.content, ro.description))
+                ro.set_remaining_results(0)
+                continue
+
+            # add_obj resource_pagination if required
+            if ro.resource_pagination:
+                # get the number of results returned by the api
+                if ro.result_start == 0:
+                    ro.set_remaining_results(api_response_dict['data']['resultCount'] - ro.result_limit)
+
+                # increment the start position
+                ro.set_result_start(ro.result_start + ro.result_limit)
+            else:
+                ro.set_remaining_results(0)
+
+        self.tcl.debug('Result Count: {0}'.format(len(obj_list)))
+        self.report.add_unfiltered_results(len(obj_list))
+        return obj_list
+
+    #
+    # api / sdk settings
+    #
+
+    def print_mem(self, msg):
+        if self._memory_monitor:
+            current_mem = self._p.memory_info().rss
+            self.tcl.info('Memory ({0}) - Delta {1:d} Bytes'.format(msg, current_mem - self._memory))
+            self.tcl.info('Memory ({0}) - RSS {1:d} Bytes'.format(msg, current_mem))
+            self._memory = current_mem
+
+    def report_enable(self):
         """ """
-        return Adversaries(self)
+        self._enable_report = True
 
-    def attributes(self):
+    def report_disable(self):
         """ """
-        return Attributes(self)
+        self._enable_report = False
 
-    def bulk(self):
-        """ """
-        return Bulk(self)
+    def set_activity_log(self, data_bool):
+        """ enable or disable api activity log """
+        if isinstance(data_bool, bool):
+            data_bool = str(data_bool).lower()
 
-    def bulk_indicators(self):
-        """ """
-        return BulkIndicators(self)
+        if data_bool in ['true', 'false']:
+            self._activity_log = data_bool
 
-    def documents(self):
-        """ """
-        return Documents(self)
-
-    def emails(self):
-        """ """
-        return Emails(self)
-
-    def file_occurrences(self):
-        """ """
-        return FileOccurrences(self)
-
-    def groups(self):
-        """ """
-        return Groups(self)
-
-    def incidents(self):
-        """ """
-        return Incidents(self)
-
-    def indicators(self):
-        """ """
-        return Indicators(self)
-
-    def owners(self):
-        """ """
-        return Owners(self)
-
-    def security_labels(self):
-        """ """
-        return SecurityLabels(self)
-
-    def signatures(self):
-        """ """
-        return Signatures(self)
-
-    def tags(self):
-        """ """
-        return Tags(self)
-
-    def threats(self):
-        """ """
-        return Threats(self)
-
-    def victims(self):
-        """ """
-        return Victims(self)
-
-    def victim_assets(self):
-        """ """
-        return VictimAssets(self)
-
-    def set_activity_log(self, activity_log):
-        """ """
-        if isinstance(activity_log, bool):
-            activity_log = str(activity_log).lower()
-
-        if activity_log in ['true', 'false']:
-            self._activity_log = activity_log
-
-    def set_api_retries(self, retries):
-        """ """
-        if isinstance(retries, int):
-            self.api_retries = retries
+    def set_api_request_timeout(self, data_int):
+        """ set timeout value for the requests module """
+        if isinstance(data_int, int):
+            self._api_request_timeout = data_int
         else:
-            print(ErrorCodes.e0101.value.format(retries))
+            raise AttributeError(ErrorCodes.e0101.value.format(data_int))
 
-    def set_api_sleep(self, sleep):
-        """ """
-        if isinstance(sleep, int):
-            self.api_sleep = sleep
+    def set_api_retries(self, data):
+        """ set the number of api retries before exception is raised """
+        if isinstance(data, int):
+            self._api_retries = data
         else:
-            print(ErrorCodes.e0102.value.format(sleep))
+            raise AttributeError(ErrorCodes.e0101.value.format(data))
 
-    def set_max_results(self, max_results):
-        """ """
-        # validate the max_results is an integer
-        if isinstance(max_results, int):
-            self._api_max_results = max_results
+    def set_api_sleep(self, data):
+        """ set the amount of time between retries """
+        if isinstance(data, int):
+            self._api_sleep = data
         else:
-            print(ErrorCodes.e0100.value.format(max_results))
+            raise AttributeError(ErrorCodes.e0102.value.format(data))
 
-    def set_proxies(self, proxy_address, proxy_port):
-        """ """
-        #TODO: add validation
-        self.proxies['https'] = '{0}:{1}'.format(proxy_address, proxy_port)
+    def set_api_result_limit(self, data_int):
+        """ set the number of result to return per api request (500 max) """
+        if isinstance(data_int, int):
+            self._api_result_limit = data_int
+        else:
+            raise AttributeError(ErrorCodes.e0100.value.format(data_int))
+
+    def set_proxies(self, proxy_address, proxy_port, proxy_user=None, proxy_pass=None):
+        """ define proxy server to use with the requests module """
+        # "http": "http://user:pass@10.10.1.10:3128/",
+
+        # TODO: add validation
+        if proxy_user is not None and proxy_pass is not None:
+            self._proxies['https'] = '{0}:{1}@{2}:{3}'.format(proxy_user, proxy_pass, proxy_address, proxy_port)
+        else:
+            self._proxies['https'] = '{0}:{1}'.format(proxy_address, proxy_port)
 
     def set_tcl_file(self, fqpn, level='info'):
-        """ """
+        """ set the log file destination and log level """
         file_path = os.path.dirname(fqpn)
         if os.access(file_path, os.W_OK):
             if self.tcl.level > self.log_level[level]:
                 self.tcl.setLevel(self.log_level[level])
             fh = logging.FileHandler(fqpn)
-            fh.set_name('tc_log_file')
+            # fh.set_name('tc_log_file')  # not supported in python 2.6
             if level in self.log_level.keys():
                 fh.setLevel(self.log_level[level])
             else:
@@ -924,42 +696,72 @@ class ThreatConnect:
             fh.setFormatter(self.formatter)
             self.tcl.addHandler(fh)
 
-        # # get console logger
-        # console_logger = self.tcl.handlers[1]
-        #
-        # # get log level, close and delete previous file handler
-        # level = self.tcl.handlers[0].level
-        # self.tcl.handlers[0].stream.close()
-        # # remove file logger
-        # self.tcl.removeHandler(self.tcl.handlers[0])
-        # # remove console logger so it can be re-added
-        # self.tcl.removeHandler(self.tcl.handlers[0])
-        #
-        # # add new handler with new filename
-        # formatter = logging.Formatter(
-        #     '%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(funcName)s:%(lineno)d)')
-        # fh = logging.FileHandler(filename)
-        # fh.setLevel(level)
-        # fh.setFormatter(formatter)
-        # self.tcl.addHandler(fh)
-        #
-        # # add console logger back with same settings
-        # self.tcl.addHandler(console_logger)
-
-    def set_tcl_level(self, level):
-        """ """
-        if level in self.log_level.keys():
-            if self.tcl.level > self.log_level[level]:
-                self.tcl.setLevel(self.log_level[level])
-            self.tcl.handlers[0].setLevel(self.log_level[level])
+    # def set_tcl_level(self, level):
+    #     """ """
+    #     if level in self.log_level.keys():
+    #         if self.tcl.level > self.log_level[level]:
+    #             self.tcl.setLevel(self.log_level[level])
+    #         self.tcl.handlers[0].setLevel(self.log_level[level])
 
     def set_tcl_console_level(self, level):
-        """ """
+        """ set the console log level """
         if level in self.log_level.keys():
             if self.tcl.level > self.log_level[level]:
                 self.tcl.setLevel(self.log_level[level])
             ch = logging.StreamHandler()
-            ch.set_name('console')
+            # ch.set_name('console')  # not supported in python 2.6
             ch.setLevel(self.log_level[level])
             ch.setFormatter(self.formatter)
             self.tcl.addHandler(ch)
+
+    #
+    # Resources
+    #
+
+    def adversaries(self):
+        """ return an adversary container object """
+        return Adversaries(self)
+
+    def bulk(self):
+        """ return a bulk container object """
+        return Bulk(self)
+
+    def bulk_indicators(self):
+        """ return a bulk indicator container object """
+        return BulkIndicators(self)
+
+    def documents(self):
+        """ return a document container object """
+        return Documents(self)
+
+    def emails(self):
+        """ return an email container object """
+        return Emails(self)
+
+    def groups(self):
+        """ return an group container object """
+        return Groups(self)
+
+    def incidents(self):
+        """ return an incident container object """
+        return Incidents(self)
+
+    def indicators(self):
+        """ return an indicator container object """
+        return Indicators(self)
+
+    def owners(self):
+        """ return an owner container object """
+        return Owners(self)
+
+    def signatures(self):
+        """ return a signature container object """
+        return Signatures(self)
+
+    def threats(self):
+        """ return a threat container object """
+        return Threats(self)
+
+    def victims(self):
+        """ return a victim container object """
+        return Victims(self)

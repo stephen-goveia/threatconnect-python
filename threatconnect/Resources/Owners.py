@@ -2,13 +2,13 @@
 import types
 
 """ custom """
-from threatconnect import FilterMethods
-from threatconnect.Properties.OwnersProperties import OwnersProperties
+from threatconnect import ApiProperties
+from threatconnect import OwnerFilterMethods
+from threatconnect.Config.ResourceType import ResourceType
 from threatconnect.FilterObject import FilterObject
+from threatconnect.OwnerObject import OwnerObjectAdvanced
 from threatconnect.RequestObject import RequestObject
 from threatconnect.Resource import Resource
-
-""" Note: PEP 8 intentionally ignored for variable/methods to match API standard. """
 
 
 class Owners(Resource):
@@ -17,64 +17,78 @@ class Owners(Resource):
         """ """
         super(Owners, self).__init__(tc_obj)
         self._filter_class = OwnerFilterObject
+        self._resource_type = ResourceType.OWNERS
 
-        # set properties
-        properties = OwnersProperties(base_uri=self.base_uri)
-        self._resource_type = properties.resource_type
+    def _method_wrapper(self, resource_object):
+        """ """
+        return OwnerObjectAdvanced(self.tc, self, resource_object)
 
+    @ property
+    def default_request_object(self):
+        """ default request when no filters are provided """
+        resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
         # create default request object for non-filtered requests
-        self._request_object = RequestObject('owners', 'default')
-        self._request_object.set_http_method(properties.http_method)
-        self._request_object.set_owner_allowed(properties.base_owner_allowed)
-        self._request_object.set_request_uri(properties.base_path)
-        self._request_object.set_resource_pagination(properties.resource_pagination)
-        self._request_object.set_resource_type(properties.resource_type)
+        request_object = RequestObject()
+        request_object.set_http_method(resource_properties['base']['http_method'])
+        request_object.set_owner_allowed(resource_properties['base']['owner_allowed'])
+        request_object.set_request_uri(resource_properties['base']['uri'])
+        request_object.set_resource_pagination(resource_properties['base']['pagination'])
+        request_object.set_resource_type(self._resource_type)
+        return request_object
 
-    def get_owner_by_id(self, data):
-        for obj in self._objects:
-            if obj.get_id() == data:
-                return obj
-        return None
+    def get_owner_by_id(self, data_int):
+        """ return owner by id """
+        if isinstance(data_int, int):
+            for obj in self._objects:
+                if obj.get_id() == data_int:
+                    return obj
+        else:
+            return None
 
     def get_owner_by_name(self, data):
-        for obj in self._objects:
-            if obj.get_name() == data:
-                return obj
-        return None
+        """ return owner by name """
+        if isinstance(data, (str, unicode)):
+            for obj in self._objects:
+                if obj.get_name() == data:
+                    return obj
+        else:
+            return None
 
-    def get_owner_names(self):
-        owner_names = []
+    @property
+    def names(self):
+        """ generator for owner names """
         for obj in self._objects:
-            owner_names.append(obj.get_name())
-        return owner_names
+            yield obj.get_name()
 
 
 class OwnerFilterObject(FilterObject):
     """ """
 
-    def __init__(self, base_uri, tcl):
+    def __init__(self, tc_obj):
         """ """
-        super(OwnerFilterObject, self).__init__(base_uri, tcl)
-        # TODO: this is a quick hack and needs to be fixed
-        self._owners = []
-        self._property_class = OwnersProperties
-        self._properties_class = OwnersProperties
+        super(OwnerFilterObject, self).__init__(tc_obj)
+        # self._owners = []
 
         # define properties for resource type
-        self._properties = self._properties_class(base_uri=self.base_uri)
-        self._resource_type = self._properties.resource_type
-
-        # create default request object for filtered request with only owners
-        self._request_object = RequestObject('owners', 'default')
-        self._request_object.set_http_method(self._properties.http_method)
-        self._request_object.set_owner_allowed(self._properties.base_owner_allowed)
-        self._request_object.set_request_uri(self._properties.base_path)
-        self._request_object.set_resource_pagination(self._properties.resource_pagination)
-        self._request_object.set_resource_type(self._properties.resource_type)
+        self._resource_type = ResourceType.OWNERS
+        self._resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
 
         #
         # add_obj filter methods
         #
-        for method_name in self._properties.filters:
-            method = getattr(FilterMethods, method_name)
+        for method_name in self._resource_properties['filters']:
+            method = getattr(OwnerFilterMethods, method_name)
             setattr(self, method_name, types.MethodType(method, self))
+
+    @ property
+    def default_request_object(self):
+        """ default request when no filter is provided """
+        request_object = RequestObject()
+        request_object.set_description('filter by owner')
+        request_object.set_http_method(self._resource_properties['base']['http_method'])
+        request_object.set_owner_allowed(self._resource_properties['base']['owner_allowed'])
+        request_object.set_request_uri(self._resource_properties['base']['uri'])
+        request_object.set_resource_pagination(self._resource_properties['base']['pagination'])
+        request_object.set_resource_type(self._resource_type)
+
+        return request_object
