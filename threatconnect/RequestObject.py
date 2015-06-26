@@ -56,7 +56,7 @@ class RequestObject(object):
 
     def set_body(self, data):
         """ set the POST/PUT body content """
-        self._body = self._uni(data)
+        self._body = data
         self._headers['Content-Length'] = len(self._body)
 
     def set_content_type(self, data):
@@ -72,7 +72,7 @@ class RequestObject(object):
         """ set the http method """
         data = data.upper()
         if data in ['DELETE', 'GET', 'POST', 'PUT']:
-            self._http_method = self._uni(data)
+            self._http_method = data
 
             # set content type for commit methods
             if self._content_type is None and data in ['POST', 'PUT']:
