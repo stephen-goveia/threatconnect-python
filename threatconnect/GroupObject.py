@@ -248,6 +248,8 @@ class GroupObject(object):
         """ """
         if data is None or isinstance(data, (int, list, dict)):
             return data
+        elif not isinstance(data, unicode):
+            return unicode(data, errors='ignore')
         else:
             return data
 
@@ -868,6 +870,7 @@ class GroupObjectAdvanced(GroupObject):
         # phase 2 (update) -> don't validate before PUT group, POST/PUT items in commit queue.
 
         """ commit group and related associations, attributes, security labels and tags """
+        r_id = None
         ro = RequestObject()
         ro.set_body(self.gen_body)
         if self.phase == 1:
@@ -877,6 +880,16 @@ class GroupObjectAdvanced(GroupObject):
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._id))
             ro.set_resource_pagination(prop['pagination'])
+            if self.validate:
+                api_response = self._tc.api_request(ro)
+                if api_response.headers['content-type'] == 'application/json':
+                    api_response_dict = api_response.json()
+                    if api_response_dict['status'] == 'Success':
+                        resource_key = ApiProperties.api_properties[self.resource_type.name]['resource_key']
+                        r_id = api_response_dict['data'][resource_key]['id']
+            else:
+                self.tcl.debug('Resource Object'.format(self))
+                raise RuntimeError('Cannot commit incomplete resource object')
         elif self.phase == 2:
             prop = self._resource_properties['update']
             ro.set_description('update group "{0}".'.format(self._name))
@@ -884,51 +897,43 @@ class GroupObjectAdvanced(GroupObject):
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._id))
             ro.set_resource_pagination(prop['pagination'])
+            r_id = self.id
         if self.owner_name is not None:
             ro.set_owner(self.owner_name)
         ro.set_resource_type(self.resource_type)
 
         # validate all required fields are present
-        if self.validate:
-            api_response = self._tc.api_request(ro)
-            if api_response.headers['content-type'] == 'application/json':
-                api_response_dict = api_response.json()
-                if api_response_dict['status'] == 'Success':
-                    resource_key = ApiProperties.api_properties[self.resource_type.name]['resource_key']
-                    r_id = api_response_dict['data'][resource_key]['id']
 
-                    #
-                    # commit all associations, attributes, tags, etc
-                    #
-                    for ro in self._resource_container.commit_queue(self.id):
-                        if self.owner_name is not None:
-                            ro.set_owner(self.owner_name)
+        if r_id is not None:
+            #
+            # commit all associations, attributes, tags, etc
+            #
+            for ro in self._resource_container.commit_queue(self.id):
+                if self.owner_name is not None:
+                    ro.set_owner(self.owner_name)
 
-                        # replace the id
-                        if self.phase == 1 and self.id != r_id:
-                            request_uri = str(ro.request_uri.replace(str(self.id), str(r_id)))
-                            ro.set_request_uri(request_uri)
-                        self.tcl.debug('Replacing {0} with {1}'.format(self.id, str(r_id)))
+                # replace the id
+                if self.phase == 1 and self.id != r_id:
+                    request_uri = str(ro.request_uri.replace(str(self.id), str(r_id)))
+                    ro.set_request_uri(request_uri)
+                self.tcl.debug('Replacing {0} with {1}'.format(self.id, str(r_id)))
 
-                        api_response2 = self._tc.api_request(ro)
-                        if 'content-type' in api_response2.headers:
-                            if api_response2.headers['content-type'] == 'application/json':
-                                api_response_dict2 = api_response.json()
-                                if api_response_dict2['status'] != 'Success':
-                                    self.tcl.error('API Request Failure: [{0}]'.format(ro.description))
-                            elif api_response2.headers['content-type'] == 'application/octet-stream':
-                                if api_response.status_code in [200, 201, 202]:
-                                    self.set_contents(ro.body)
-                        else:
-                            # upload PUT response
-                            if api_response.status_code in [200, 201, 202]:
-                                self.set_contents(ro.body)
+                api_response2 = self._tc.api_request(ro)
+                if 'content-type' in api_response2.headers:
+                    if api_response2.headers['content-type'] == 'application/json':
+                        api_response_dict2 = api_response.json()
+                        if api_response_dict2['status'] != 'Success':
+                            self.tcl.error('API Request Failure: [{0}]'.format(ro.description))
+                    elif api_response2.headers['content-type'] == 'application/octet-stream':
+                        if api_response.status_code in [200, 201, 202]:
+                            self.set_contents(ro.body)
+                else:
+                    # upload PUT response
+                    if api_response.status_code in [200, 201, 202]:
+                        self.set_contents(ro.body)
 
-                    # clear the commit queue
-                    self._resource_container.clear_commit_queue_id(self.id)
-        else:
-            self.tcl.debug('Resource Object'.format(self))
-            raise RuntimeError('Cannot commit incomplete resource object')
+            # clear the commit queue
+            self._resource_container.clear_commit_queue_id(self.id)
 
         # clear phase
         self.set_phase(0)

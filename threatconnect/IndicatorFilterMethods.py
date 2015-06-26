@@ -101,7 +101,7 @@ def add_indicator(self, data):
     if indicator_type == ResourceType.INDICATORS:
         ro.set_request_uri(prop['uri'], [indicator_uri_attribute, SharedMethods.urlsafe(data)])
     else:
-        ro.set_request_uri(prop['uri'], [SharedMethods.urlsafe(data)])
+        ro.set_request_uri(prop['uri'], [indicator_uri_attribute, SharedMethods.urlsafe(data)])
     ro.set_resource_pagination(prop['pagination'])
     ro.set_resource_type(indicator_type)
     self._add_request_objects(ro)

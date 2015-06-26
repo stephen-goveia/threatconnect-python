@@ -1050,6 +1050,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def commit(self):
         """ commit indicator and related associations, attributes, security labels and tags """
+        r_id = None
         ro = RequestObject()
         ro.set_body(self.gen_body)
         if self.phase == 1:
@@ -1059,6 +1060,17 @@ class IndicatorObjectAdvanced(IndicatorObject):
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._reference_indicator))
             ro.set_resource_pagination(prop['pagination'])
+            # validate all required fields are present
+            if self.validate:
+                api_response = self._tc.api_request(ro)
+                if api_response.headers['content-type'] == 'application/json':
+                    api_response_dict = api_response.json()
+                    if api_response_dict['status'] == 'Success':
+                        resource_key = ApiProperties.api_properties[self.resource_type.name]['resource_key']
+                        r_id = api_response_dict['data'][resource_key]['id']
+            else:
+                self.tcl.debug('Resource Object'.format(self))
+                raise RuntimeError('Cannot commit incomplete resource object')
         elif self.phase == 2:
             prop = self._resource_properties['update']
             ro.set_description('update indicator {0}.'.format(self._reference_indicator))
@@ -1066,31 +1078,28 @@ class IndicatorObjectAdvanced(IndicatorObject):
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._reference_indicator))
             ro.set_resource_pagination(prop['pagination'])
+            r_id = self.id
         if self.owner_name is not None:
             ro.set_owner(self.owner_name)
         ro.set_resource_type(self.resource_type)
 
-        # validate all required fields are present
-        if self.validate:
-            api_response = self._tc.api_request(ro)
-            if api_response.headers['content-type'] == 'application/json':
-                api_response_dict = api_response.json()
-                if api_response_dict['status'] == 'Success':
-                    self.set_phase(0)
+        # submit all attributes, tags or associations
+        for ro in self._resource_container.commit_queue(self.id):
+            if self.owner_name is not None:
+                ro.set_owner(self.owner_name)
+            # replace the id
+            if self.phase == 1 and self.id != r_id:
+                request_uri = str(ro.request_uri.replace(str(self.id), str(r_id)))
+                ro.set_request_uri(request_uri)
+            api_response2 = self._tc.api_request(ro)
+            if api_response2.headers['content-type'] == 'application/json':
+                api_response_dict2 = api_response2.json()
+                if api_response_dict2['status'] != 'Success':
+                    self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
 
-                    # submit all attributes, tags or associations
-                    for ro in self._resource_container.commit_queue(self.id):
-                        if self.owner_name is not None:
-                            ro.set_owner(self.owner_name)
-                        api_response2 = self._tc.api_request(ro)
-                        if api_response2.headers['content-type'] == 'application/json':
-                            api_response_dict2 = api_response.json()
-                            if api_response_dict2['status'] != 'Success':
-                                self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
-                    self._resource_container.clear_commit_queue_id(self.id)
-        else:
-            self.tcl.debug('Resource Object'.format(self))
-            raise RuntimeError('Cannot commit incomplete resource object')
+        self._resource_container.clear_commit_queue_id(self.id)
+
+        self.set_phase(0)
 
         # return object
         return self
