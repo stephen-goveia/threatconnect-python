@@ -248,8 +248,6 @@ class GroupObject(object):
         """ """
         if data is None or isinstance(data, (int, list, dict)):
             return data
-        elif not isinstance(data, unicode):
-            return unicode(data, errors='ignore')
         else:
             return data
 
@@ -864,6 +862,11 @@ class GroupObjectAdvanced(GroupObject):
         return json.dumps(body_dict)
 
     def commit(self):
+
+        # phase 0 (no action) -> don't validate and don't POST group, only POST items in commit queue.
+        # phase 1 (add) -> validate before POST group, only POST items in commit queue if group POST succeeded.
+        # phase 2 (update) -> don't validate before PUT group, POST/PUT items in commit queue.
+
         """ commit group and related associations, attributes, security labels and tags """
         ro = RequestObject()
         ro.set_body(self.gen_body)
@@ -1246,7 +1249,7 @@ class GroupObjectAdvanced(GroupObject):
         """ upload document  """
         if self._resource_type == ResourceType.DOCUMENTS:
             prop = self._resource_properties['document_upload']
-        elif self._resource_type == ResourceType.DOCUMENTS:
+        elif self._resource_type == ResourceType.SIGNATURES:
             prop = self._resource_properties['signature_upload']
         else:
             self.tcl.error('Upload requested for wrong resource type.')
