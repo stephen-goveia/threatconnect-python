@@ -873,6 +873,9 @@ class GroupObjectAdvanced(GroupObject):
         r_id = None
         ro = RequestObject()
         ro.set_body(self.gen_body)
+        if self.owner_name is not None:
+            ro.set_owner(self.owner_name)
+        ro.set_resource_type(self.resource_type)
         if self.phase == 1:
             prop = self._resource_properties['add']
             ro.set_description('adding group "{0}".'.format(self._name))
@@ -898,9 +901,12 @@ class GroupObjectAdvanced(GroupObject):
             ro.set_request_uri(prop['uri'].format(self._id))
             ro.set_resource_pagination(prop['pagination'])
             r_id = self.id
-        if self.owner_name is not None:
-            ro.set_owner(self.owner_name)
-        ro.set_resource_type(self.resource_type)
+            api_response = self._tc.api_request(ro)
+            if api_response.headers['content-type'] == 'application/json':
+                api_response_dict = api_response.json()
+                if api_response_dict['status'] == 'Success':
+                    resource_key = ApiProperties.api_properties[self.resource_type.name]['resource_key']
+                    r_id = api_response_dict['data'][resource_key]['id']
 
         # validate all required fields are present
 
