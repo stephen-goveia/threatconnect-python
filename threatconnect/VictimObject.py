@@ -506,7 +506,7 @@ class VictimObjectAdvanced(VictimObject):
 
     def commit(self):
         """ commit victim and related assets, associations """
-        r_id = None
+        r_id = self.id
         ro = RequestObject()
         ro.set_body(self.gen_body)
         if self.owner_name is not None:
@@ -537,7 +537,6 @@ class VictimObjectAdvanced(VictimObject):
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._id))
             ro.set_resource_pagination(prop['pagination'])
-            r_id = self.id
             api_response = self._tc.api_request(ro)
             if api_response.headers['content-type'] == 'application/json':
                 api_response_dict = api_response.json()

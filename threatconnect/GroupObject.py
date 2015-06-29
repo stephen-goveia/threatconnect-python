@@ -870,7 +870,7 @@ class GroupObjectAdvanced(GroupObject):
         # phase 2 (update) -> don't validate before PUT group, POST/PUT items in commit queue.
 
         """ commit group and related associations, attributes, security labels and tags """
-        r_id = None
+        r_id = self.id
         ro = RequestObject()
         ro.set_body(self.gen_body)
         if self.owner_name is not None:
@@ -900,7 +900,6 @@ class GroupObjectAdvanced(GroupObject):
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._id))
             ro.set_resource_pagination(prop['pagination'])
-            r_id = self.id
             api_response = self._tc.api_request(ro)
             if api_response.headers['content-type'] == 'application/json':
                 api_response_dict = api_response.json()
@@ -927,15 +926,15 @@ class GroupObjectAdvanced(GroupObject):
                 api_response2 = self._tc.api_request(ro)
                 if 'content-type' in api_response2.headers:
                     if api_response2.headers['content-type'] == 'application/json':
-                        api_response_dict2 = api_response.json()
+                        api_response_dict2 = api_response2.json()
                         if api_response_dict2['status'] != 'Success':
                             self.tcl.error('API Request Failure: [{0}]'.format(ro.description))
                     elif api_response2.headers['content-type'] == 'application/octet-stream':
-                        if api_response.status_code in [200, 201, 202]:
+                        if api_response2.status_code in [200, 201, 202]:
                             self.set_contents(ro.body)
                 else:
                     # upload PUT response
-                    if api_response.status_code in [200, 201, 202]:
+                    if api_response2.status_code in [200, 201, 202]:
                         self.set_contents(ro.body)
 
             # clear the commit queue

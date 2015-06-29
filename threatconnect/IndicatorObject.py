@@ -1050,7 +1050,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def commit(self):
         """ commit indicator and related associations, attributes, security labels and tags """
-        r_id = None
+        r_id = self.id
         ro = RequestObject()
         ro.set_body(self.gen_body)
         if self.owner_name is not None:
@@ -1081,7 +1081,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._reference_indicator))
             ro.set_resource_pagination(prop['pagination'])
-            r_id = self.id
             api_response = self._tc.api_request(ro)
             if api_response.headers['content-type'] == 'application/json':
                 api_response_dict = api_response.json()
