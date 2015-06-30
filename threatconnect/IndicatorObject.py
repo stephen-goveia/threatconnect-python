@@ -1071,6 +1071,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
                     if api_response_dict['status'] == 'Success':
                         resource_key = ApiProperties.api_properties[self.resource_type.name]['resource_key']
                         r_id = api_response_dict['data'][resource_key]['id']
+                        self.set_id(r_id)
             else:
                 self.tcl.debug('Resource Object'.format(self))
                 raise RuntimeError('Cannot commit incomplete resource object')
@@ -1084,9 +1085,8 @@ class IndicatorObjectAdvanced(IndicatorObject):
             api_response = self._tc.api_request(ro)
             if api_response.headers['content-type'] == 'application/json':
                 api_response_dict = api_response.json()
-                if api_response_dict['status'] == 'Success':
-                    resource_key = ApiProperties.api_properties[self.resource_type.name]['resource_key']
-                    r_id = api_response_dict['data'][resource_key]['id']
+                if api_response_dict['status'] != 'Success':
+                    self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
 
         # submit all attributes, tags or associations
         for ro in self._resource_container.commit_queue(self.id):
