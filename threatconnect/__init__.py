@@ -15,3 +15,5 @@ from threatconnect.Resources.Owners import (Owners, OwnerFilterObject)
 from threatconnect.Resources.Signatures import (Signatures, SignatureFilterObject)
 from threatconnect.Resources.Threats import (Threats, ThreatFilterObject)
 from threatconnect.Resources.Victims import (Victims, VictimFilterObject)
+from threatconnect.Config.ResourceType import *
+from threatconnect.Config.FilterOperator import *

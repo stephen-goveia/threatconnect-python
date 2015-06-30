@@ -318,7 +318,7 @@ class GroupObject(object):
     def set_contents(self, data):
         """Read-Only group metadata"""
         if self._resource_type in [ResourceType.DOCUMENTS, ResourceType.SIGNATURES]:
-            self._contents = self._uni(data)
+            self._contents = data
         else:
             raise AttributeError('Contents is not supported for this resource type.')
 
