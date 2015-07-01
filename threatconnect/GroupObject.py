@@ -890,7 +890,6 @@ class GroupObjectAdvanced(GroupObject):
                     if api_response_dict['status'] == 'Success':
                         resource_key = ApiProperties.api_properties[self.resource_type.name]['resource_key']
                         r_id = api_response_dict['data'][resource_key]['id']
-                        self.set_id(r_id)
             else:
                 self.tcl.debug('Resource Object'.format(self))
                 raise RuntimeError('Cannot commit incomplete resource object')
@@ -939,6 +938,8 @@ class GroupObjectAdvanced(GroupObject):
 
             # clear the commit queue
             self._resource_container.clear_commit_queue_id(self.id)
+
+            self.set_id(r_id)
 
         # clear phase
         self.set_phase(0)
