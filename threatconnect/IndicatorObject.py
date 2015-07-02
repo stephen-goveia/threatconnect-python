@@ -475,7 +475,7 @@ class IndicatorObject(object):
             self._properties['_size'] = {
                 'api_field': 'size',
                 'method': 'set_size',
-                'required': True,
+                'required': False,
             }
 
         #

@@ -758,7 +758,7 @@ class GroupObjectAdvanced(GroupObject):
         }
         self._structure = self._basic_structure.copy()
         self._tc = tc_obj
-        self.tcl = tc_obj.tcl
+        self._tc.tcl = tc_obj.tcl
 
         # load data from resource_obj
         self.load_data(self._resource_obj)
@@ -891,7 +891,7 @@ class GroupObjectAdvanced(GroupObject):
                         resource_key = ApiProperties.api_properties[self.resource_type.name]['resource_key']
                         r_id = api_response_dict['data'][resource_key]['id']
             else:
-                self.tcl.debug('Resource Object'.format(self))
+                self._tc.tcl.debug('Resource Object'.format(self))
                 raise RuntimeError('Cannot commit incomplete resource object')
         elif self.phase == 2:
             prop = self._resource_properties['update']
@@ -904,7 +904,7 @@ class GroupObjectAdvanced(GroupObject):
             if api_response.headers['content-type'] == 'application/json':
                 api_response_dict = api_response.json()
                 if api_response_dict['status'] != 'Success':
-                    self.tcl.error('API Request Failure: [{0}]'.format(ro.description))
+                    self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
 
         # validate all required fields are present
 
@@ -920,14 +920,14 @@ class GroupObjectAdvanced(GroupObject):
                 if self.phase == 1 and self.id != r_id:
                     request_uri = str(ro.request_uri.replace(str(self.id), str(r_id)))
                     ro.set_request_uri(request_uri)
-                self.tcl.debug('Replacing {0} with {1}'.format(self.id, str(r_id)))
+                self._tc.tcl.debug('Replacing {0} with {1}'.format(self.id, str(r_id)))
 
                 api_response2 = self._tc.api_request(ro)
                 if 'content-type' in api_response2.headers:
                     if api_response2.headers['content-type'] == 'application/json':
                         api_response_dict2 = api_response2.json()
                         if api_response_dict2['status'] != 'Success':
-                            self.tcl.error('API Request Failure: [{0}]'.format(ro.description))
+                            self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
                     elif api_response2.headers['content-type'] == 'application/octet-stream':
                         if api_response2.status_code in [200, 201, 202]:
                             self.set_contents(ro.body)
@@ -1084,7 +1084,7 @@ class GroupObjectAdvanced(GroupObject):
         elif self._resource_type == ResourceType.SIGNATURES:
             prop = self._resource_properties['signature_download']
         else:
-            self.tcl.error('Download requested for wrong resource type.')
+            self._tc.tcl.error('Download requested for wrong resource type.')
             raise AttributeError('Download is not support for this Resource Type.')
 
         ro = RequestObject()
@@ -1263,7 +1263,7 @@ class GroupObjectAdvanced(GroupObject):
         elif self._resource_type == ResourceType.SIGNATURES:
             prop = self._resource_properties['signature_upload']
         else:
-            self.tcl.error('Upload requested for wrong resource type.')
+            self._tc.tcl.error('Upload requested for wrong resource type.')
             raise AttributeError('Upload is not support for this Resource Type.')
 
         ro = RequestObject()
