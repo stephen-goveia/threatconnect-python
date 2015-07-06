@@ -583,7 +583,7 @@ class IndicatorObject(object):
     def set_size(self, data, update=True):
         """ """
         if self._resource_type == ResourceType.FILES:
-            self._size = self._uni(data)
+            self._size = self._uni(str(data))
         else:
             raise AttributeError('Size is not supported for this resource type.')
 
