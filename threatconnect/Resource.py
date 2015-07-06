@@ -87,6 +87,35 @@ class Resource(object):
         # return resource object
         return self._method_wrapper(resource_object)
 
+    def update(self, resource_id, owner=None):
+        # resource object
+        if self._resource_type == ResourceType.VICTIMS:
+            resource_obj = VictimObject()
+        else:
+            resource_obj = GroupObject(self._resource_type)
+
+        resource_obj.set_id(int(resource_id))
+        resource_obj.set_owner_name(owner)
+        resource_obj.set_phase(2)  # set resource api phase (1 = add)
+
+        # return object for modification
+        return self._method_wrapper(resource_obj)
+
+    def delete(self, resource_id, owner=None):
+        # resource object
+        if self._resource_type == ResourceType.VICTIMS:
+            resource_obj = VictimObject()
+        else:
+            resource_obj = GroupObject(self._resource_type)
+
+        resource_obj.set_id(resource_id)
+        resource_obj.set_owner_name(owner)
+        resource_obj.set_phase(3)  # set resource api phase (3 = delete)
+
+        # call delete to queue call
+        wrapper = self._method_wrapper(resource_obj)
+        wrapper.delete()
+
     def add_obj(self, data_obj):
         """add object to resource instance"""
         has_id = False

@@ -52,6 +52,37 @@ class Indicators(Resource):
         else:
             raise AttributeError('({0}) is an invalid indicator.'.format(indicator))
 
+    def update(self, id, owner=None):
+        """ add indicator to resource container """
+        # generate unique temporary id
+        resource_id = id
+
+        # resource object
+        resource_obj = IndicatorObject()
+        resource_obj.set_id(int(resource_id))  # set temporary resource id
+        resource_obj.set_owner_name(owner)
+        resource_obj.set_phase(2)  # set resource api phase (1 = add)
+
+        # return object for modification
+        return self._method_wrapper(resource_obj)
+
+    def delete(self, id, owner=None):
+        """ add indicator to resource container """
+        # generate unique temporary id
+        resource_id = id
+
+        # resource object
+        resource_obj = IndicatorObject()
+        resource_obj.set_id(int(resource_id))  # set temporary resource id
+        resource_obj.set_owner_name(owner)
+        resource_obj.set_phase(2)  # set resource api phase (1 = add)
+
+        # call delete to queue call
+        wrapper = self._method_wrapper(resource_obj)
+        wrapper.delete()
+        # return object for modification
+        return wrapper
+
     def add_filter(self, resource_type=None):
         """ add filter to resource container specific to indicator """
         filter_obj = self._filter_class(self.tc, resource_type, self._modified_since)
