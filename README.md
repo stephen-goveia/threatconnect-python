@@ -28,7 +28,7 @@ pip setup.py install --force
 
 Documentation
 -----
-(https://threatconnect-inc.github.io/threatconnect-app-engine/python/start/)
+https://threatconnect-inc.github.io/threatconnect-app-engine/python/start/
 
 Examples
 -----
