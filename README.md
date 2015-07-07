@@ -26,27 +26,9 @@ To automatically pull prerequisites.
 pip setup.py install --force
 ```
 
-Instantiation
+Documentation
 -----
-
-```
-from threatconnect import ThreatConnect
-
-api_access_id = '<api access id>'
-api_secret_key = '<api secret key>'
-api_default_org = '<default org>'
-api_base_url = '<api.threatconnect.com or mytc.example.com/api>'
-api_max_results = '300'
-
-tc = ThreatConnect(api_access_id, api_secret_key, api_default_org, api_base_url, api_max_results)
-
-owners = tc.owners()
-owners.retrieve()
-
-if owners.get_status().name == "SUCCESS":
-    for owner in owners():
-        print(owner)
-```
+(https://threatconnect-inc.github.io/threatconnect-app-engine/python/start/)
 
 Examples
 -----
