@@ -712,7 +712,7 @@ batch_job_properties = {
         'http_method': 'POST',
         'owner_allowed': False,
         'pagination': False,
-        'uri': '/v2/batch/indicators',
+        'uri': '/v2/batch',
     },
     'id': {
         'http_method': 'GET',

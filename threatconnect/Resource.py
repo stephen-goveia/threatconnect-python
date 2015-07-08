@@ -97,12 +97,13 @@ class Resource(object):
         if self._resource_type == ResourceType.VICTIMS:
             resource_obj = VictimObject()
         elif self._resource_type == ResourceType.BATCH_JOBS:
-            resource_object = BatchJobObject()
+            resource_obj = BatchJobObject()
         else:
             resource_obj = GroupObject(self._resource_type)
 
         resource_obj.set_id(int(resource_id))
-        resource_obj.set_owner_name(owner)
+        if owner is not None:
+            resource_obj.set_owner_name(owner)
         resource_obj.set_phase(2)  # set resource api phase (1 = add)
 
         # return object for modification

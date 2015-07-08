@@ -1,0 +1,10 @@
+{
+   "status":"Success",
+   "data":{
+      "batchStatus":{
+         "status":"Completed",
+         "errorCount":1,
+         "id":32
+      }
+   }
+}

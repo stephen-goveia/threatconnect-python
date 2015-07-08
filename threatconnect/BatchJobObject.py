@@ -98,11 +98,8 @@ class BatchJobObject(object):
     def haltOnError(self):
         return self._haltOnError
 
-    def set_haltOnError(self, haltOnError, update=True):
+    def set_haltOnError(self, haltOnError):
         self._haltOnError = haltOnError
-
-        if update:
-            self._phase = 2
             
     #
     # attributeWriteType
@@ -111,11 +108,8 @@ class BatchJobObject(object):
     def attributeWriteType(self):
         return self._haltOnError
 
-    def set_attributeWriteType(self, attributeWriteType, update=True):
+    def set_attributeWriteType(self, attributeWriteType):
         self._attributeWriteType = attributeWriteType
-
-        if update:
-            self._phase = 2
             
     #
     # action
@@ -124,14 +118,8 @@ class BatchJobObject(object):
     def action(self):
         return self._action
 
-    def set_action(self, action, update=True):
+    def set_action(self, action):
         self._action = action
-
-        if update:
-            self._phase = 2
-
-
-
 
     #
     # validate
@@ -228,6 +216,7 @@ class BatchJobObject(object):
         if data not in self._request_uris:
             self._request_uris.append(data)
 
+
 class BatchJobObjectAdvanced(BatchJobObject):
     """ Temporary Object with extended functionality. """
     __slots__ = (
@@ -292,7 +281,6 @@ class BatchJobObjectAdvanced(BatchJobObject):
             keyval_str += '{0}="{1}" '.format(k, getattr(self, v))
 
         return keyval_str
-
 
     def commit(self):
         """ commit victim and related assets, associations """
