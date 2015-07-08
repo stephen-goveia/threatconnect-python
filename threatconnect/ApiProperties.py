@@ -704,6 +704,39 @@ victims_properties = {
     },
 }
 
+#
+# batch jobs
+#
+batch_job_properties = {
+    'add': {
+        'http_method': 'POST',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '/v2/batch/indicators',
+    },
+    'id': {
+        'http_method': 'GET',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '/v2/batch/{0}',  # batch id
+    },
+    'batch_error_download': {
+        'http_method': 'GET',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '/v2/batch/{0}/errors',  # batch id
+    },
+    'batch_job_upload': {
+        'http_method': 'POST',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '/v2/batch/{0}',  # batch id
+    },
+    'filters': [
+        'add_id'
+    ]
+}
+
 
 api_properties = {
     'ADDRESSES': {
@@ -791,4 +824,9 @@ api_properties = {
         'resource_key':  'victim',
         'uri_attribute':  'victims',
     },
+    'BATCH_JOBS': {
+        'properties': batch_job_properties,
+        'resource_key': 'batchJob',
+        'uri_attribute': 'batchJobs'
+    }
 }

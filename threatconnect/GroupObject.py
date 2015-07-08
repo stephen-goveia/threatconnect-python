@@ -284,7 +284,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.EMAILS:
             return self._body
         else:
-            raise AttributeError('Body is not supported for this resource type.')
+            raise RuntimeError('Body is not supported for this resource type.')
 
     def set_body(self, data, update=True):
         """Read-Write group metadata"""
@@ -293,7 +293,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('Body is not supported for this resource type.')
+            raise RuntimeError('Body is not supported for this resource type.')
 
     #
     # date_added
@@ -320,7 +320,7 @@ class GroupObject(object):
         if self._resource_type in [ResourceType.DOCUMENTS, ResourceType.SIGNATURES]:
             self._contents = data
         else:
-            raise AttributeError('Contents is not supported for this resource type.')
+            raise RuntimeError('Contents is not supported for this resource type.')
 
     #
     # event_date (incident specific)
@@ -331,7 +331,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.INCIDENTS:
             return self._event_date
         else:
-            raise AttributeError('Event Date is not supported for this resource type.')
+            raise RuntimeError('Event Date is not supported for this resource type.')
 
     def set_event_date(self, data, update=True):
         """Read-Write group metadata"""
@@ -340,7 +340,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('Event Date is not supported for this resource type.')
+            raise RuntimeError('Event Date is not supported for this resource type.')
 
     #
     # file name (document/signature specific)
@@ -352,7 +352,7 @@ class GroupObject(object):
         if self._resource_type in [ResourceType.DOCUMENTS, ResourceType.SIGNATURES]:
             return self._file_name
         else:
-            raise AttributeError('File Name is not supported for this resource type.')
+            raise RuntimeError('File Name is not supported for this resource type.')
 
     def set_file_name(self, data, update=True):
         """Read-Write group metadata"""
@@ -361,7 +361,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('File Name is not supported for this resource type.')
+            raise RuntimeError('File Name is not supported for this resource type.')
 
     #
     # file size (document specific)
@@ -372,7 +372,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.DOCUMENTS:
             return self._file_size
         else:
-            raise AttributeError('File Size is not supported for this resource type.')
+            raise RuntimeError('File Size is not supported for this resource type.')
 
     def set_file_size(self, data, update=True):
         """Read-Write group metadata"""
@@ -381,7 +381,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('File Size is not supported for this resource type.')
+            raise RuntimeError('File Size is not supported for this resource type.')
 
     #
     # file text (signature specific)
@@ -392,7 +392,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.SIGNATURES:
             return self._file_text
         else:
-            raise AttributeError('File Text is not supported for this resource type.')
+            raise RuntimeError('File Text is not supported for this resource type.')
 
     def set_file_text(self, data, update=True):
         """Read-Write group metadata"""
@@ -401,7 +401,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('File Text is not supported for this resource type.')
+            raise RuntimeError('File Text is not supported for this resource type.')
 
     #
     # file type (signature specific)
@@ -412,7 +412,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.SIGNATURES:
             return self._file_type
         else:
-            raise AttributeError('File Type is not supported for this resource type.')
+            raise RuntimeError('File Type is not supported for this resource type.')
 
     def set_file_type(self, data, update=True):
         """Read-Write group metadata"""
@@ -421,7 +421,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('File Type is not supported for this resource type.')
+            raise RuntimeError('File Type is not supported for this resource type.')
 
     #
     # from_address (email specific)
@@ -432,7 +432,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.EMAILS:
             return self._from_address
         else:
-            raise AttributeError('From is not supported for this resource type.')
+            raise RuntimeError('From is not supported for this resource type.')
 
     def set_from_address(self, data, update=True):
         """Read-Write group metadata"""
@@ -441,7 +441,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('From is not supported for this resource type.')
+            raise RuntimeError('From is not supported for this resource type.')
 
     #
     # header (email specific)
@@ -452,7 +452,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.EMAILS:
             return self._header
         else:
-            raise AttributeError('Header is not supported for this resource type.')
+            raise RuntimeError('Header is not supported for this resource type.')
 
     def set_header(self, data, update=True):
         """Read-Write group metadata"""
@@ -461,7 +461,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('Header is not supported for this resource type.')
+            raise RuntimeError('Header is not supported for this resource type.')
 
     #
     # id
@@ -479,7 +479,7 @@ class GroupObject(object):
             if update:
                 self._phase = 2
         else:
-            raise AttributeError(ErrorCodes.e10020.value.format(data))
+            raise RuntimeError(ErrorCodes.e10020.value.format(data))
 
     #
     # matched filters
@@ -529,7 +529,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.EMAILS:
             return self._score
         else:
-            raise AttributeError('Score is not supported for this resource type.')
+            raise RuntimeError('Score is not supported for this resource type.')
 
     def set_score(self, data, update=True):
         """Read-Write group metadata"""
@@ -538,7 +538,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('Score is not supported for this resource type.')
+            raise RuntimeError('Score is not supported for this resource type.')
 
     #
     # subject (email specific)
@@ -549,7 +549,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.EMAILS:
             return self._subject
         else:
-            raise AttributeError('Subject is not supported for this resource type.')
+            raise RuntimeError('Subject is not supported for this resource type.')
 
     def set_subject(self, data, update=True):
         """Read-Write group metadata"""
@@ -558,7 +558,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('Subject is not supported for this resource type.')
+            raise RuntimeError('Subject is not supported for this resource type.')
 
     #
     # to (email specific)
@@ -569,7 +569,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.EMAILS:
             return self._to
         else:
-            raise AttributeError('To is not supported for this resource type.')
+            raise RuntimeError('To is not supported for this resource type.')
 
     def set_to(self, data, update=True):
         """Read-Write group metadata"""
@@ -578,7 +578,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('To is not supported for this resource type.')
+            raise RuntimeError('To is not supported for this resource type.')
 
     #
     # type
@@ -1085,7 +1085,7 @@ class GroupObjectAdvanced(GroupObject):
             prop = self._resource_properties['signature_download']
         else:
             self._tc.tcl.error('Download requested for wrong resource type.')
-            raise AttributeError('Download is not support for this Resource Type.')
+            raise RuntimeError('Download is not support for this Resource Type.')
 
         ro = RequestObject()
         ro.set_description('download {0} for "{1}"'.format(self.resource_type.name.lower(), self._name))
@@ -1264,7 +1264,7 @@ class GroupObjectAdvanced(GroupObject):
             prop = self._resource_properties['signature_upload']
         else:
             self._tc.tcl.error('Upload requested for wrong resource type.')
-            raise AttributeError('Upload is not support for this Resource Type.')
+            raise RuntimeError('Upload is not support for this Resource Type.')
 
         ro = RequestObject()
         ro.set_body(body)

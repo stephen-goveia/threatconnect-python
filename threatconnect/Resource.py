@@ -2,6 +2,7 @@
 import dateutil.parser
 import time
 import uuid
+from threatconnect.BatchJobObject import BatchJobObject
 
 """ custom """
 from threatconnect.GroupObject import GroupObject
@@ -76,12 +77,16 @@ class Resource(object):
 
         if self._resource_type == ResourceType.VICTIMS:
             resource_object = VictimObject()
+        elif self._resource_type == ResourceType.BATCH_JOBS:
+            resource_object = BatchJobObject()
         else:
             resource_object = GroupObject(self._resource_type)
 
         resource_object.set_id(resource_id, False)  # set resource id
-        resource_object.set_owner_name(owner)  # set resource name
-        resource_object.set_name(resource_name, False)  # set resource name
+        if owner is not None:
+            resource_object.set_owner_name(owner)  # set resource name
+        if resource_name is not None:
+            resource_object.set_name(resource_name, False)  # set resource name
         resource_object.set_phase(1)  # set resource api action
 
         # return resource object
@@ -91,6 +96,8 @@ class Resource(object):
         # resource object
         if self._resource_type == ResourceType.VICTIMS:
             resource_obj = VictimObject()
+        elif self._resource_type == ResourceType.BATCH_JOBS:
+            resource_object = BatchJobObject()
         else:
             resource_obj = GroupObject(self._resource_type)
 

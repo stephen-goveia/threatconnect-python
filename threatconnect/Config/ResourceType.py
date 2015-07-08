@@ -40,3 +40,6 @@ class ResourceType(Enum):
     VICTIM_PHONES = 1035
     VICTIM_SOCIAL_NETWORKS = 1045
     VICTIM_WEBSITES = 1055
+
+    # batch jobs
+    BATCH_JOBS = 1075

@@ -30,6 +30,7 @@ from threatconnect.IndicatorObject import parse_indicator
 from threatconnect.GroupObject import parse_group
 from threatconnect.OwnerObject import parse_owner
 from threatconnect.VictimObject import parse_victim
+from threatconnect.Resources.BatchJobs import BatchJobs, parse_batch_job
 
 from threatconnect.ReportEntry import ReportEntry
 from threatconnect.Report import Report
@@ -122,10 +123,10 @@ class ThreatConnect:
     def api_filter_handler(self, resource_obj, filter_objs):
         """ """
         data_set = None
-        default_request_object = resource_obj.default_request_object
 
         if not filter_objs:
             # build api call (no filters)
+            default_request_object = resource_obj.default_request_object
             data_set = self.api_response_handler(resource_obj, default_request_object)
         else:
             #
@@ -153,7 +154,7 @@ class ThreatConnect:
                                 ro.set_owner(o)
                             results = self.api_response_handler(resource_obj, ro)
 
-                            if ro.resource_type not in [ResourceType.OWNERS, ResourceType.VICTIMS]:
+                            if ro.resource_type not in [ResourceType.OWNERS, ResourceType.VICTIMS, ResourceType.BATCH_JOBS]:
                                 # TODO: should this be done?
                                 # post filter owners
                                 for obj in results:
@@ -592,6 +593,18 @@ class ThreatConnect:
                         obj_list.append(parse_victim(item, resource_obj, ro.description, ro.request_uri))
 
                 #
+                # BatchJobs
+                #
+                elif ro.resource_type == ResourceType.BATCH_JOBS:
+                    data = api_response_dict['data']['batchStatus']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        # victims data comes back with no owner, manually add owner here
+                        item['owner'] = ro.owner
+                        obj_list.append(parse_batch_job(item, resource_obj, ro.description, ro.request_uri))
+
+                #
                 # memory testing
                 #
                 self.print_mem('pagination - {0:d} objects'.format(len(obj_list)))
@@ -606,7 +619,8 @@ class ThreatConnect:
                 # get the number of results returned by the api
                 if ro.result_start == 0:
                     ro.set_remaining_results(api_response_dict['data']['resultCount'] - ro.result_limit)
-
+                else:
+                    ro.set_remaining_results(ro.remaining_results - ro.result_limit)
                 # increment the start position
                 ro.set_result_start(ro.result_start + ro.result_limit)
             else:
@@ -765,3 +779,6 @@ class ThreatConnect:
     def victims(self):
         """ return a victim container object """
         return Victims(self)
+
+    def batchJobs(self):
+        return BatchJobs(self)

@@ -42,6 +42,9 @@ class RequestObject(object):
         """ add a key value pair to payload """
         self._payload[key] = self._uni(val)
 
+    def empty_payload(self):
+        self._payload = {}
+
     def add_header(self, key, val):
         """ add a key value pair to header """
         self._headers[key] = self._uni(val)
