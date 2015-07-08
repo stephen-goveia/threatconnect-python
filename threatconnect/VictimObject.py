@@ -12,6 +12,7 @@ from threatconnect.VictimAssetObject import parse_victim_asset
 
 from threatconnect import ApiProperties
 from threatconnect.Config.ResourceType import ResourceType
+from threatconnect.ErrorCodes import ErrorCodes
 from threatconnect.RequestObject import RequestObject
 
 
@@ -162,8 +163,10 @@ class VictimObject(object):
         """ """
         if data is None or isinstance(data, (int, list, long, dict)):
             return data
+        elif isinstance(data, unicode):
+            return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
         elif not isinstance(data, unicode):
-            return unicode(data, errors='ignore')
+            return unicode(data, 'utf-8', errors='ignore')
         else:
             return data
 
@@ -382,52 +385,52 @@ class VictimObject(object):
     def __str__(self):
         """allow object to be displayed with print"""
 
-        printable_string = '\n{0:_^80}\n'.format('Resource Object Properties')
+        printable_string = '\n{0!s:_^80}\n'.format('Resource Object Properties')
 
         #
         # retrievable methods
         #
-        printable_string += '{0:40}\n'.format('Retrievable Methods')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('id', self.id))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('name', self.name))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('owner_name', self.owner_name))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('resource_type', self.resource_type))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('description', self.description))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('org', self.org))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('nationality', self.nationality))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('suborg', self.suborg))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('work_location', self.work_location))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('weblink', self.weblink))
+        printable_string += '{0!s:40}\n'.format('Retrievable Methods')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('id', self.id))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('name', self.name))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('owner_name', self.owner_name))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('resource_type', self.resource_type))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('description', self.description))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('org', self.org))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('nationality', self.nationality))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('suborg', self.suborg))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('work_location', self.work_location))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('weblink', self.weblink))
 
         #
         # writable properties
         #
-        printable_string += '\n{0:40}\n'.format('Writable Properties')
+        printable_string += '\n{0!s:40}\n'.format('Writable Properties')
         for prop, values in sorted(self._properties.items()):
-            printable_string += ('  {0:<28}: {1:<50}\n'.format(
-                values['api_field'], '{0} (Required: {1})'.format(values['method'], str(values['required']))))
+            printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format(
+                values['api_field'], '{0!s} (Required: {1!s})'.format(values['method'], str(values['required']))))
 
         #
         # object information
         #
-        printable_string += '\n{0:40}\n'.format('Object Information')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('phase', self.phase))
+        printable_string += '\n{0!s:40}\n'.format('Object Information')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('phase', self.phase))
 
         #
         # matched filter
         #
         if len(self.matched_filters) > 0:
-            printable_string += '\n{0:40}\n'.format('Matched Filters')
+            printable_string += '\n{0!s:40}\n'.format('Matched Filters')
             for item in sorted(self.matched_filters):
-                printable_string += ('  {0:<28}: {1:<50}\n'.format('matched filter', item))
+                printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('matched filter', item))
 
         #
         # request uri's
         #
         if len(self.request_uris) > 0:
-            printable_string += '\n{0:40}\n'.format('Request URI\'s')
+            printable_string += '\n{0!s:40}\n'.format('Request URI\'s')
             for item in sorted(self.request_uris):
-                printable_string += ('  {0:<28}: {1:<50}\n'.format('', item))
+                printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('', item))
 
         return printable_string
 
@@ -529,7 +532,7 @@ class VictimObjectAdvanced(VictimObject):
                         r_id = api_response_dict['data'][resource_key]['id']
             else:
                 self._tc.tcl.debug('Resource Object'.format(self))
-                raise RuntimeError('Cannot commit incomplete resource object')
+                raise AttributeError(ErrorCodes.e10040.value)
         elif self.phase == 2:
             prop = self._resource_properties['update']
             ro.set_description('update indicator "{0}".'.format(self._name))
@@ -630,7 +633,6 @@ class VictimObjectAdvanced(VictimObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
-        print(ro)
 
     def disassociate_group(self, resource_type, resource_id):
         """ disassociate group from victim """

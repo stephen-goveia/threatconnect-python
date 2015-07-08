@@ -111,11 +111,12 @@ class ThreatConnect:
         """ """
         timestamp = int(time.time())
         signature = "{0}:{1}:{2}".format(ro.path_url, ro.http_method, timestamp)
-        hmac_signature = hmac.new(self._api_sec, signature, digestmod=hashlib.sha256).digest()
-        authorization = 'TC {0}:{1}'.format(self._api_aid, base64.b64encode(hmac_signature))
+        # python 2.7, does not work on 3.x and not tested on 2.6
+        # hmac_signature = hmac.new(self._api_sec, signature, digestmod=hashlib.sha256).digest()
+        # authorization = 'TC {0}:{1}'.format(self._api_aid, base64.b64encode(hmac_signature))
         # python 3.x
-        # hmac_signature = hmac.new(self._api_sec.encode(), signature.encode(), digestmod=hashlib.sha256).digest()
-        # authorization = 'TC {0}:{1}'.format(self._api_aid, base64.b64encode(hmac_signature).decode())
+        hmac_signature = hmac.new(self._api_sec.encode(), signature.encode(), digestmod=hashlib.sha256).digest()
+        authorization = 'TC {0}:{1}'.format(self._api_aid, base64.b64encode(hmac_signature).decode())
 
         ro.add_header('Timestamp', timestamp)
         ro.add_header('Authorization', authorization)
@@ -146,7 +147,7 @@ class ThreatConnect:
 
                 # iterate through all owners
                 for o in owners:
-                    self.tcl.debug('owner: {0}'.format(o))
+                    self.tcl.debug('owner: {0!s}'.format(o))
                     if len(filter_obj) > 0:
                         # request object are for api filters
                         for ro in filter_obj:
@@ -181,9 +182,9 @@ class ThreatConnect:
                     # post filters
                     #
                     pf_obj_set = set(obj_list)
-                    self.tcl.debug('count before post filter: {0}'.format(len(obj_list)))
+                    self.tcl.debug('count before post filter: {0:d}'.format(len(obj_list)))
                     for pfo in filter_obj.post_filters:
-                        self.tcl.debug('pfo: {0}'.format(pfo))
+                        self.tcl.debug('pfo: {0!s}'.format(pfo))
 
                         #
                         # Report Entry
@@ -205,7 +206,7 @@ class ThreatConnect:
                     if filter_obj.post_filters_len > 0:
                         obj_list = list(pf_obj_set)
 
-                    self.tcl.debug('count after post filter: {0}'.format(len(obj_list)))
+                    self.tcl.debug('count after post filter: {0:d}'.format(len(obj_list)))
 
                     # no need to join or intersect on first run
                     if first_run:
@@ -248,7 +249,7 @@ class ThreatConnect:
         #
         # prepare request
         #
-        url = '{0}{1}'.format(self._api_url, ro.request_uri)
+        url = '{0!s}{1!s}'.format(self._api_url, ro.request_uri)
         api_request = Request(ro.http_method, url, data=ro.body, params=ro.payload)
         request_prepped = api_request.prepare()
 
@@ -262,9 +263,9 @@ class ThreatConnect:
         #
         # Debug
         #
-        self.tcl.debug('request_object: {0}'.format(ro))
-        self.tcl.debug('url: {0}'.format(url))
-        self.tcl.debug('path url: {0}'.format(request_prepped.path_url))
+        self.tcl.debug('request_object: {0!s}'.format(ro))
+        self.tcl.debug('url: {0!s}'.format(url))
+        self.tcl.debug('path url: {0!s}'.format(request_prepped.path_url))
 
         #
         # api request (gracefully handle temporary communications issues with the API)
@@ -276,26 +277,26 @@ class ThreatConnect:
                     proxies=self._proxies, stream=False)
                 break
             except exceptions.ReadTimeout as e:
-                self.tcl.error('Error: {0}'.format(e))
+                self.tcl.error('Error: {0!s}'.format(e))
                 self.tcl.error('The server may be experiencing delays at the moment.')
-                self.tcl.info('Pausing for {0} seconds to give server time to catch up.'.format(self._api_sleep))
+                self.tcl.info('Pausing for {0!s} seconds to give server time to catch up.'.format(self._api_sleep))
                 time.sleep(self._api_sleep)
-                self.tcl.info('Retry {0} ....'.format(i))
+                self.tcl.info('Retry {0!s} ....'.format(i))
 
                 if i == self._api_retries:
-                    self.tcl.critical('Exiting: {0}'.format(e))
+                    self.tcl.critical('Exiting: {0!s}'.format(e))
                     raise RuntimeError(e)
             except exceptions.ConnectionError as e:
-                self.tcl.error('Error: {0}'.format(e))
+                self.tcl.error('Error: {0!s}'.format(e))
                 self.tcl.error('Connection Error. The server may be down.')
-                self.tcl.info('Pausing for {0} seconds to give server time to catch up.'.format(self._api_sleep))
+                self.tcl.info('Pausing for {0!s} seconds to give server time to catch up.'.format(self._api_sleep))
                 time.sleep(self._api_sleep)
-                self.tcl.info('Retry {0} ....'.format(i))
+                self.tcl.info('Retry {0!s} ....'.format(i))
                 if i == self._api_retries:
-                    self.tcl.critical('Exiting: {0}'.format(e))
+                    self.tcl.critical('Exiting: {0!s}'.format(e))
                     raise RuntimeError(e)
             except socket.error as e:
-                self.tcl.critical('Exiting: {0}'.format(e))
+                self.tcl.critical('Exiting: {0!s}'.format(e))
                 raise RuntimeError(e)
 
         #
@@ -310,10 +311,10 @@ class ThreatConnect:
         # raise exception on *critical* errors
         #
         non_critical_errors = [
-            'The MD5 for this File is invalid, a File with this MD5 already exists',  # 400 (application/json)
-            'The requested resource was not found',  # 404 (application/json)
-            'Could not find resource for relative',  # 500 (text/plain)
-            'The requested Security Label was not removed - access was denied',  # 401 (application/json)
+            b'The MD5 for this File is invalid, a File with this MD5 already exists',  # 400 (application/json)
+            b'The requested resource was not found',  # 404 (application/json)
+            b'Could not find resource for relative',  # 500 (text/plain)
+            b'The requested Security Label was not removed - access was denied',  # 401 (application/json)
         ]
 
         #
@@ -333,8 +334,8 @@ class ThreatConnect:
 
             # raise error on bad status codes that are not defined as nce
             if not nce_found:
-                self.tcl.critical('Status Code: {0}'.format(api_response.status_code))
-                self.tcl.critical('Failed API Response: {0}'.format(api_response.content))
+                self.tcl.critical('Status Code: {0:d}'.format(api_response.status_code))
+                self.tcl.critical('Failed API Response: {0!s}'.format(api_response.content))
                 raise RuntimeError(api_response.content)
 
         #
@@ -356,7 +357,7 @@ class ThreatConnect:
         #
         self.report.add_api_call()  # count api calls
         self.report.add_request_time(datetime.now() - start)
-        self.tcl.debug('Request Time: {0}'.format(datetime.now() - start))
+        self.tcl.debug('Request Time: {0!s}'.format(datetime.now() - start))
 
         if self._enable_report:
             report_entry = ReportEntry()
@@ -385,7 +386,7 @@ class ThreatConnect:
         #
         # debug
         #
-        self.tcl.debug('Results Limit: {0}'.format(self._api_result_limit))
+        self.tcl.debug('Results Limit: {0!s}'.format(self._api_result_limit))
 
         # only resource supports pagination
         if ro.resource_pagination:
@@ -397,9 +398,9 @@ class ThreatConnect:
             # api request
             #
             api_response = self.api_request(ro)
-            # self.tcl.debug('Results Content: {0}'.format(api_response.content))
-            self.tcl.debug('Status Code: {0}'.format(api_response.status_code))
-            self.tcl.debug('Content Type: {0}'.format(api_response.headers['content-type']))
+            # self.tcl.debug('Results Content: {0!s}'.format(api_response.content))
+            self.tcl.debug('Status Code: {0!s}'.format(api_response.status_code))
+            self.tcl.debug('Content Type: {0!s}'.format(api_response.headers['content-type']))
 
             #
             # Process API response
@@ -422,13 +423,13 @@ class ThreatConnect:
                             obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
 
                             if len(obj_list) % 500 == 0:
-                                self.tcl.debug('obj_list len: {0}'.format(len(obj_list)))
+                                self.tcl.debug('obj_list len: {0!s}'.format(len(obj_list)))
                                 self.print_mem('bulk process - {0:d} objects'.format(len(obj_list)))
 
                 elif api_response_dict['status'] == 'Failure':
                     # handle failed request (404 Resource not Found)
                     if 'message' in api_response_dict:
-                        self.tcl.error('{0} "{1}"'.format(api_response_dict['message'], ro.description))
+                        self.tcl.error('{0!s} "{1!s}"'.format(api_response_dict['message'], ro.description))
                     ro.set_remaining_results(0)
                     continue
 
@@ -610,7 +611,7 @@ class ThreatConnect:
                 self.print_mem('pagination - {0:d} objects'.format(len(obj_list)))
 
             elif api_response.headers['content-type'] == 'text/plain':
-                self.tcl.error('{0} "{1}"'.format(api_response.content, ro.description))
+                self.tcl.error('{0!s} "{1!s}"'.format(api_response.content, ro.description))
                 ro.set_remaining_results(0)
                 continue
 
@@ -621,12 +622,13 @@ class ThreatConnect:
                     ro.set_remaining_results(api_response_dict['data']['resultCount'] - ro.result_limit)
                 else:
                     ro.set_remaining_results(ro.remaining_results - ro.result_limit)
+
                 # increment the start position
                 ro.set_result_start(ro.result_start + ro.result_limit)
             else:
                 ro.set_remaining_results(0)
 
-        self.tcl.debug('Result Count: {0}'.format(len(obj_list)))
+        self.tcl.debug('Result Count: {0!s}'.format(len(obj_list)))
         self.report.add_unfiltered_results(len(obj_list))
         return obj_list
 
@@ -637,8 +639,8 @@ class ThreatConnect:
     def print_mem(self, msg):
         if self._memory_monitor:
             current_mem = self._p.memory_info().rss
-            self.tcl.info('Memory ({0}) - Delta {1:d} Bytes'.format(msg, current_mem - self._memory))
-            self.tcl.info('Memory ({0}) - RSS {1:d} Bytes'.format(msg, current_mem))
+            self.tcl.info('Memory ({0!s}) - Delta {1:d} Bytes'.format(msg, current_mem - self._memory))
+            self.tcl.info('Memory ({0!s}) - RSS {1:d} Bytes'.format(msg, current_mem))
             self._memory = current_mem
 
     def report_enable(self):
@@ -662,28 +664,28 @@ class ThreatConnect:
         if isinstance(data_int, int):
             self._api_request_timeout = data_int
         else:
-            raise AttributeError(ErrorCodes.e0101.value.format(data_int))
+            raise AttributeError(ErrorCodes.e0110.value.format(data_int))
 
     def set_api_retries(self, data):
         """ set the number of api retries before exception is raised """
         if isinstance(data, int):
             self._api_retries = data
         else:
-            raise AttributeError(ErrorCodes.e0101.value.format(data))
+            raise AttributeError(ErrorCodes.e0120.value.format(data))
 
     def set_api_sleep(self, data):
         """ set the amount of time between retries """
         if isinstance(data, int):
             self._api_sleep = data
         else:
-            raise AttributeError(ErrorCodes.e0102.value.format(data))
+            raise AttributeError(ErrorCodes.e0130.value.format(data))
 
     def set_api_result_limit(self, data_int):
         """ set the number of result to return per api request (500 max) """
         if isinstance(data_int, int):
             self._api_result_limit = data_int
         else:
-            raise AttributeError(ErrorCodes.e0100.value.format(data_int))
+            raise AttributeError(ErrorCodes.e0140.value.format(data_int))
 
     def set_proxies(self, proxy_address, proxy_port, proxy_user=None, proxy_pass=None):
         """ define proxy server to use with the requests module """
@@ -691,9 +693,9 @@ class ThreatConnect:
 
         # TODO: add validation
         if proxy_user is not None and proxy_pass is not None:
-            self._proxies['https'] = '{0}:{1}@{2}:{3}'.format(proxy_user, proxy_pass, proxy_address, proxy_port)
+            self._proxies['https'] = '{0!s}:{1!s}@{2!s}:{3!s}'.format(proxy_user, proxy_pass, proxy_address, proxy_port)
         else:
-            self._proxies['https'] = '{0}:{1}'.format(proxy_address, proxy_port)
+            self._proxies['https'] = '{0!s}:{1!s}'.format(proxy_address, proxy_port)
 
     def set_tcl_file(self, fqpn, level='info'):
         """ set the log file destination and log level """

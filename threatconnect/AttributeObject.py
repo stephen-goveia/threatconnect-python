@@ -64,8 +64,10 @@ class AttributeObject(object):
         """ """
         if isinstance(data, (int, list, dict)):
             return data
+        elif isinstance(data, unicode):
+            return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
         elif not isinstance(data, unicode):
-            return unicode(data, errors='ignore')
+            return unicode(data, 'utf-8', errors='ignore')
         else:
             return data
 
@@ -169,17 +171,17 @@ class AttributeObject(object):
     def __str__(self):
         """allow object to be displayed with print"""
 
-        printable_string = '\n{0:_^80}\n'.format('Attribute Object Properties')
+        printable_string = '\n{0!s:_^80}\n'.format('Attribute Object Properties')
 
         #
         # retrievable methods
         #
-        printable_string += '{0:40}\n'.format('Retrievable Methods')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('id', self.id))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('type', self.type))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('value', self.value))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('displayed', self.displayed))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('date_added', self.date_added))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('last_modified', self.last_modified))
+        printable_string += '{0!s:40}\n'.format('Retrievable Methods')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('id', self.id))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('type', self.type))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('value', self.value))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('displayed', self.displayed))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('date_added', self.date_added))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('last_modified', self.last_modified))
 
         return printable_string

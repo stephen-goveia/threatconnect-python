@@ -150,32 +150,32 @@ class ReportEntry(object):
     def __str__(self):
         """ add print method to object """
 
-        printable_string = '\n{0:_^80}\n'.format('Report Entry')
+        printable_string = '\n{0!s:_^80}\n'.format('Report Entry')
 
         #
         # status
         #
-        printable_string += '\n{0:40}\n'.format('Properties')
-        printable_string += ('{0:<30}: {1:<50}\n'.format('Status Code', self.status_code))
+        printable_string += '\n{0!s:40}\n'.format('Properties')
+        printable_string += ('{0!s:<30}: {1!s:<50}\n'.format('Status Code', self.status_code))
         if self.failure_msg is not None:
-            printable_string += ('{0:<30}: {1:<50}\n'.format('Fail Msg', self.failure_msg))
-        printable_string += ('{0:<30}: {1:<50}\n'.format('Description', self.description))
-        printable_string += ('{0:<30}: {1:<50}\n'.format('Resource Type', self.resource_type))
+            printable_string += ('{0!s:<30}: {1!s:<50}\n'.format('Fail Msg', self.failure_msg))
+        printable_string += ('{0!s:<30}: {1!s:<50}\n'.format('Description', self.description))
+        printable_string += ('{0!s:<30}: {1!s:<50}\n'.format('Resource Type', self.resource_type))
 
         #
         # http settings
         #
-        printable_string += '\n{0:40}\n'.format('HTTP Settings')
-        printable_string += '  {0:<29}{1:<50}\n'.format('HTTP Method', self.http_method)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Request URI', self.request_uri)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Request URL', self.request_url)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Content Type', self.content_type)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Body', self.body)
+        printable_string += '\n{0!s:40}\n'.format('HTTP Settings')
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('HTTP Method', self.http_method)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Request URI', self.request_uri)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Request URL', self.request_url)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Content Type', self.content_type)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Body', self.body)
 
         #
         # payload
         #
-        printable_string += '\n{0:40}\n'.format('Payload')
-        printable_string += '  {0:<29}{1:<50}\n'.format('Payload', self.payload)
+        printable_string += '\n{0!s:40}\n'.format('Payload')
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Payload', self.payload)
 
         return printable_string

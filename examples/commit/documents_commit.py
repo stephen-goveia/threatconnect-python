@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """ standard """
 from random import randint
 import re
@@ -38,13 +40,13 @@ def main():
         filter1 = resources.add_filter()
         filter1.add_owner(owner)  # filter on owner
     except AttributeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     try:
         resources.retrieve()
     except RuntimeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     for res in resources:
@@ -54,13 +56,13 @@ def main():
             #
             # once a resource is matched any metadata on that resource can be updated
             #
-            res.set_name('LU Document #{0}'.format(rn))
-            res.set_file_name('Loop Update {0}.txt'.format(rn))
+            res.set_name('LU Document #{0:d}'.format(rn))
+            res.set_file_name('Loop Update {0:d}.txt'.format(rn))
 
             #
             # update document contents
             #
-            contents = 'Loop update file content #{0}.'.format(rn)
+            contents = 'Loop bracey update file content #{0:d}.'.format(rn)
             res.upload(contents)
 
             #
@@ -114,10 +116,10 @@ def main():
                     res.delete_attribute(attribute.id)
                 # add update flag to all attributes that have 'update' in the value.
                 if re.findall('update', attribute.value):
-                    res.update_attribute(attribute.id, 'updated attribute #{0}'.format(rn))
+                    res.update_attribute(attribute.id, 'updated attribute #{0:d}'.format(rn))
 
             # attributes can be added to a resource by providing the attribute type and value
-            res.add_attribute('Description', 'test attribute #{0}'.format(rn))
+            res.add_attribute('Description', 'test attribute #{0:d}'.format(rn))
 
             #
             # working with tags
@@ -131,14 +133,14 @@ def main():
                     res.delete_tag(tag.name)
 
             # tags can be added to a resource by providing the tags value
-            res.add_tag('DELETE #{0}'.format(rn))
+            res.add_tag('DELETE #{0:d}'.format(rn))
 
             # (Required) commit this resource
             try:
-                print('Updating resource {0}.'.format(res.name))
+                print('Updating resource {0!s}.'.format(res.name))
                 res.commit()
             except RuntimeError as e:
-                print('Error: {0}'.format(e))
+                print('Error: {0!s}'.format(e))
                 sys.exit(1)
 
         #
@@ -148,10 +150,10 @@ def main():
         # delete to any resource that has 'DELETE' in the name.
         elif re.findall('DELETE', res.name):
             try:
-                print('Deleting resource {0}.'.format(res.name))
+                print('Deleting resource {0!s}.'.format(res.name))
                 res.delete()  # this action is equivalent to commit
             except RuntimeError as e:
-                print('Error: {0}'.format(e))
+                print('Error: {0!s}'.format(e))
                 sys.exit(1)
 
     #
@@ -159,31 +161,33 @@ def main():
     #
 
     # new resources can be added with the resource add method
-    resource = resources.add('DELETE #{0}'.format(rn), owner)
+    resource = resources.add('DELETE #{0:d}'.format(rn), owner)
 
     # add REQUIRED field for new resource
-    resource.set_file_name('New File {0}.txt'.format(rn))
+    resource.set_file_name('Sample Zip {0:d}.zip'.format(rn))
 
     # file contents can be defined or read from file
-    # contents = open('./sample_upload.txt', 'rb').retrieve()
-    contents = 'This is a newly created file content #{0}.'.format(rn)
+    fh = open('./sample1.zip', 'rb')
+    contents = fh.read()
+
+    # contents = 'This is a newly created file content #{0:d}.'.format(rn)
     resource.upload(contents)
 
     # attributes can be added to the new resource
-    resource.add_attribute('Description', 'Delete Example #{0}'.format(rn))
+    resource.add_attribute('Description', 'Delete Example #{0:d}'.format(rn))
 
     # tags can be added to the new resource
-    resource.add_tag('TAG #{0}'.format(rn))
+    resource.add_tag('TAG #{0:d}'.format(rn))
 
     # the security label can be set on the new resource
     resource.set_security_label('TLP Green')
 
     # commit this resource and add attributes, tags and security labels
     try:
-        print('Adding resource {0}.'.format(resource.name))
+        print('Adding resource {0!s}.'.format(resource.name))
         resource.commit()
     except RuntimeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     #
@@ -191,15 +195,15 @@ def main():
     #
 
     # existing resources can also be updated with the resource add method
-    resource = resources.add('MU Document #{0}'.format(rn), owner)  # this will overwrite exising resource name
+    resource = resources.add('MU Document #{0:d}'.format(rn), owner)  # this will overwrite exising resource name
     resource.set_id(mu_id)  # set the id to the existing resource
 
     # existing fields can be updated
-    resource.set_file_name('Manual Update {0}.txt'.format(rn))
+    resource.set_file_name('Manual Update {0:d}.txt'.format(rn))
 
     # existing file contents can be updated
     # contents = open('./sample_upload.txt', 'rb').retrieve()
-    contents = 'Manual update file content #{0}.'.format(rn)
+    contents = 'Manual update file content #{0:d}.'.format(rn)
     resource.upload(contents)
 
     # existing attributes can be loaded for modification or deletion
@@ -209,7 +213,7 @@ def main():
             resource.delete_attribute(attribute.id)
 
     # attributes can be added to the existing resource
-    resource.add_attribute('Description', 'Manual Update Example #{0}'.format(rn))
+    resource.add_attribute('Description', 'Manual Update Example #{0:d}'.format(rn))
 
     # existing tags can be loaded for modification or deletion
     resource.load_tags()
@@ -217,14 +221,14 @@ def main():
         resource.delete_tag(tag.name)
 
     # tags can be added to the existing resource
-    resource.add_tag('TAG #{0}'.format(rn))
+    resource.add_tag('TAG #{0:d}'.format(rn))
 
     # commit this resource and add attributes, tags and security labels
     try:
-        print('Updating resource {0}.'.format(resource.name))
+        print('Updating resource {0!s}.'.format(resource.name))
         resource.commit()
     except RuntimeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     #

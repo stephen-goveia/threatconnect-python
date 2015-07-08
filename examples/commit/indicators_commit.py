@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """ standard """
 from random import randint
 from datetime import datetime
@@ -39,14 +41,14 @@ def main():
         filter1 = resources.add_filter()
         filter1.add_owner(owner)
     except AttributeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     # (Optional) retrieve all results
     try:
         resources.retrieve()
     except RuntimeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     # (Optional) iterate through all results if retrieve was used above
@@ -59,7 +61,7 @@ def main():
             #
             res.set_confidence(rn)
             res.set_rating(randint(0, 5))
-            res.set_description('Test Description {0}'.format(randint(0, 5)))
+            res.set_description('Test Description {0:d}'.format(randint(0, 5)))
             res.delete_security_label('TLP Red')
             res.set_security_label('TLP Red')
 
@@ -116,15 +118,15 @@ def main():
                 if re.findall('DELETE', tag.name):
                     res.delete_tag(tag.name)
             # (Optional) add tag to resource
-            res.add_tag('DELETE {0}'.format(rn))
+            res.add_tag('DELETE {0:d}'.format(rn))
             res.add_tag('EXAMPLE')
 
             # commit changes
             try:
-                print('Updating resource {0}.'.format(res.indicator))
+                print('Updating resource {0!s}.'.format(res.indicator))
                 res.commit()
             except RuntimeError as e:
-                print('Error: {0}'.format(e))
+                print('Error: {0!s}'.format(e))
                 sys.exit(1)
 
         #
@@ -135,13 +137,13 @@ def main():
         if isinstance(res.indicator, dict):
             for k, v in res.indicator.items():
                 if v is not None and re.findall(prefixes['file'], v):
-                    print('Delete resource {0}.'.format(res.indicator))
+                    print('Delete resource {0!s}.'.format(res.indicator))
                     res.delete()
                     break
         else:
             for k, v in prefixes.items():
                 if re.findall(v, res.indicator):
-                    print('Delete resource {0}.'.format(res.indicator))
+                    print('Delete resource {0!s}.'.format(res.indicator))
                     res.delete()
                     break
 
@@ -150,25 +152,25 @@ def main():
     #
 
     # this requires that the resource was instantiated at the beginning of the script.
-    resource = resources.add('4.3.254.{0}'.format(rn), owner)
+    resource = resources.add('4.3.254.{0:d}'.format(rn), owner)
     resource.set_confidence(rn)
     resource.set_rating(randint(1, 5))
 
     # (Optional) add attribute to newly created resource
-    resource.add_attribute('Description', 'TEST attribute #{0}'.format(rn))
+    resource.add_attribute('Description', 'TEST attribute #{0:d}'.format(rn))
 
     # (Optional) add tag to newly created resource
-    resource.add_tag('TAG #{0}'.format(rn))
+    resource.add_tag('TAG #{0:d}'.format(rn))
     resource.add_tag('EXAMPLE')
 
     # (Optional) set security label to newly created resource
     resource.set_security_label('TLP Green')
 
     try:
-        print('Adding resource {0}.'.format(resource.indicator))
+        print('Adding resource {0!s}.'.format(resource.indicator))
         resource.commit()
     except RuntimeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     #
@@ -176,25 +178,25 @@ def main():
     #
 
     # this requires that the resource was instantiated at the beginning of the script.
-    resource = resources.add('{0}_{1}@badguysareus.com'.format(prefixes['email'], str(rn).zfill(3)), owner)
+    resource = resources.add('{0!s}_{1!s}@badguysareus.com'.format(prefixes['email'], str(rn).zfill(3)), owner)
     resource.set_confidence(rn)
     resource.set_rating(randint(1, 5))
 
     # (Optional) add attribute to newly created resource
-    resource.add_attribute('Description', 'TEST attribute #{0}'.format(rn))
+    resource.add_attribute('Description', 'TEST attribute #{0:d}'.format(rn))
 
     # (Optional) add tag to newly created resource
-    resource.add_tag('TAG #{0}'.format(rn))
+    resource.add_tag('TAG #{0:d}'.format(rn))
     resource.add_tag('EXAMPLE')
 
     # (Optional) set security label to newly created resource
     resource.set_security_label('TLP Green')
 
     try:
-        print('Adding resource {0}.'.format(resource.indicator))
+        print('Adding resource {0!s}.'.format(resource.indicator))
         resource.commit()
     except RuntimeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     #
@@ -202,34 +204,34 @@ def main():
     #
 
     # this requires that the resource was instantiated at the beginning of the script.
-    resource = resources.add('{0}1ba81f1dc6d3637589ffa04366{1}'.format(
+    resource = resources.add('{0!s}1ba81f1dc6d3637589ffa04366{1!s}'.format(
         prefixes['file'], str(rn).zfill(3)), owner)
-    resource.set_indicator('{0}530f8e0104d4521958309eb9852e073150{1}'.format(
+    resource.set_indicator('{0!s}530f8e0104d4521958309eb9852e073150{1!s}'.format(
         prefixes['file'], str(rn).zfill(3)))
-    resource.set_indicator('{0}10a665da94445f5b505c828d532886541900373d29042cc46c3300a186{1}'.format(
+    resource.set_indicator('{0!s}10a665da94445f5b505c828d532886541900373d29042cc46c3300a186{1!s}'.format(
         prefixes['file'], str(rn).zfill(3)))
 
     resource.set_confidence(rn)
     resource.set_rating(randint(1, 5))
     resource.set_size(rn)
     fo_date = (datetime.isoformat(datetime(2015, randint(1, 12), randint(1, 29)))) + 'Z'
-    resource.add_file_occurrence('badfile_{0}.exe'.format(rn), 'C:\windows', fo_date)
+    resource.add_file_occurrence('badfile_{0!s}.exe'.format(rn), 'C:\windows', fo_date)
 
     # (Optional) add attribute to newly created resource
-    resource.add_attribute('Description', 'TEST attribute #{0}'.format(rn))
+    resource.add_attribute('Description', 'TEST attribute #{0:d}'.format(rn))
 
     # (Optional) add tag to newly created resource
-    resource.add_tag('TAG #{0}'.format(rn))
+    resource.add_tag('TAG #{0:d}'.format(rn))
     resource.add_tag('EXAMPLE')
 
     # (Optional) set security label to newly created resource
     resource.set_security_label('TLP Green')
 
     try:
-        print('Adding resource {0}.'.format(resource.indicator))
+        print('Adding resource {0!s}.'.format(resource.indicator))
         resource.commit()
     except RuntimeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     #
@@ -237,26 +239,26 @@ def main():
     #
 
     # this requires that the resource was instantiated at the beginning of the script.
-    resource = resources.add('{0}_{1}.com'.format(prefixes['host'], str(rn).zfill(3)), owner)
+    resource = resources.add('{0!s}_{1!s}.com'.format(prefixes['host'], str(rn).zfill(3)), owner)
 
     resource.set_confidence(rn)
     resource.set_rating(randint(1, 5))
 
     # (Optional) add attribute to newly created resource
-    resource.add_attribute('Description', 'TEST attribute #{0}'.format(rn))
+    resource.add_attribute('Description', 'TEST attribute #{0:d}'.format(rn))
 
     # (Optional) add tag to newly created resource
-    resource.add_tag('TAG #{0}'.format(rn))
+    resource.add_tag('TAG #{0:d}'.format(rn))
     resource.add_tag('EXAMPLE')
 
     # (Optional) set security label to newly created resource
     resource.set_security_label('TLP Green')
 
     try:
-        print('Adding resource {0}.'.format(resource.indicator))
+        print('Adding resource {0!s}.'.format(resource.indicator))
         resource.commit()
     except RuntimeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     #
@@ -264,27 +266,27 @@ def main():
     #
 
     # this requires that the resource was instantiated at the beginning of the script.
-    resource = resources.add('{0}_{1}.com/clickme.html'.format(
+    resource = resources.add('{0!s}_{1!s}.com/clickme.html'.format(
         prefixes['url'], str(rn).zfill(3)), owner)
 
     resource.set_confidence(rn)
     resource.set_rating(randint(1, 5))
 
     # (Optional) add attribute to newly created resource
-    resource.add_attribute('Description', 'TEST attribute #{0}'.format(rn))
+    resource.add_attribute('Description', 'TEST attribute #{0:d}'.format(rn))
 
     # (Optional) add tag to newly created resource
-    resource.add_tag('TAG #{0}'.format(rn))
+    resource.add_tag('TAG #{0:d}'.format(rn))
     resource.add_tag('EXAMPLE')
 
     # (Optional) set security label to newly created resource
     resource.set_security_label('TLP Green')
 
     try:
-        print('Adding resource {0}.'.format(resource.indicator))
+        print('Adding resource {0!s}.'.format(resource.indicator))
         resource.commit()
     except RuntimeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     # (Optional) display a commit report of all API actions performed

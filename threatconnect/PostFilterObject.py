@@ -1,6 +1,8 @@
 """ custom """
 from threatconnect import SharedMethods
 from threatconnect.Config.FilterOperator import FilterOperator
+from threatconnect.ErrorCodes import ErrorCodes
+
 
 class PostFilterObject(object):
     """ object to store post filter values for processing after api request """
@@ -28,7 +30,7 @@ class PostFilterObject(object):
         if isinstance(data_enum, FilterOperator):
             self._operator = data_enum
         else:
-            raise AttributeError('Invalid post filter operator.')
+            raise AttributeError(ErrorCodes.e1010.value.format(data_enum))
 
     @property
     def description(self):
@@ -53,15 +55,15 @@ class PostFilterObject(object):
     def __str__(self):
         """ allow object to be displayed with print """
 
-        printable_string = '\n{0:_^80}\n'.format('Post Filter Object')
+        printable_string = '\n{0!s:_^80}\n'.format('Post Filter Object')
 
         #
         # filter properties
         #
-        printable_string += '{0:40}\n'.format('Filter Properties')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('description', self.description))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('filter', self.filter))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('method', self.method))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('operator', self.operator))
+        printable_string += '{0!s:40}\n'.format('Filter Properties')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('description', self.description))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('filter', self.filter))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('method', self.method))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('operator', self.operator))
 
         return printable_string

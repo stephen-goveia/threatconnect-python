@@ -37,7 +37,7 @@ def add_document_id(self, data_int):
     """ filter api results by document id """
     # validation of data input
     if not isinstance(data_int, int):
-        raise AttributeError(ErrorCodes.e4010.value.format(data_int))
+        raise AttributeError(ErrorCodes.e4020.value.format(data_int))
 
     prop = self._resource_properties['groups']
     ro = RequestObject()
@@ -54,7 +54,7 @@ def add_email_id(self, data_int):
     """ filter api results by email id """
     # validation of data input
     if not isinstance(data_int, int):
-        raise AttributeError(ErrorCodes.e4010.value.format(data_int))
+        raise AttributeError(ErrorCodes.e4030.value.format(data_int))
 
     prop = self._resource_properties['groups']
     ro = RequestObject()
@@ -71,7 +71,7 @@ def add_incident_id(self, data_int):
     """ filter api results by incident id """
     # validation of data input
     if not isinstance(data_int, int):
-        raise AttributeError(ErrorCodes.e4030.value.format(data_int))
+        raise AttributeError(ErrorCodes.e4040.value.format(data_int))
 
     prop = self._resource_properties['groups']
     ro = RequestObject()
@@ -98,10 +98,11 @@ def add_indicator(self, data):
     ro = RequestObject()
     ro.set_description('api filter by indicator id {0}'.format(data))
     ro.set_owner_allowed(prop['owner_allowed'])
-    if indicator_type == ResourceType.INDICATORS:
+    # TODO: Check this logic
+    if self._resource_type == ResourceType.INDICATORS:
         ro.set_request_uri(prop['uri'], [indicator_uri_attribute, SharedMethods.urlsafe(data)])
     else:
-        ro.set_request_uri(prop['uri'], [indicator_uri_attribute, SharedMethods.urlsafe(data)])
+        ro.set_request_uri(prop['uri'], [SharedMethods.urlsafe(data)])
     ro.set_resource_pagination(prop['pagination'])
     ro.set_resource_type(indicator_type)
     self._add_request_objects(ro)
@@ -111,7 +112,7 @@ def add_security_label(self, data):
     """ filter api results by security label """
     # validation of data input
     if not isinstance(data, str):
-        raise AttributeError(ErrorCodes.e4070.value.format(data))
+        raise AttributeError(ErrorCodes.e4050.value.format(data))
 
     prop = self._resource_properties['security_labels']
     ro = RequestObject()
@@ -127,7 +128,7 @@ def add_signature_id(self, data_int):
     """ filter api results by signature id """
     # validation of data input
     if not isinstance(data_int, int):
-        raise AttributeError(ErrorCodes.e4040.value.format(data_int))
+        raise AttributeError(ErrorCodes.e4060.value.format(data_int))
 
     prop = self._resource_properties['groups']
     ro = RequestObject()
@@ -144,7 +145,7 @@ def add_tag(self, data):
     """ filter api results by tag """
     # validation of data input
     if not isinstance(data, str):
-        raise AttributeError(ErrorCodes.e4080.value.format(data))
+        raise AttributeError(ErrorCodes.e4070.value.format(data))
 
     prop = self._resource_properties['tags']
     ro = RequestObject()
@@ -160,7 +161,7 @@ def add_threat_id(self, data_int):
     """ filter api results by threat id """
     # validation of data input
     if not isinstance(data_int, int):
-        raise AttributeError(ErrorCodes.e4050.value.format(data_int))
+        raise AttributeError(ErrorCodes.e4080.value.format(data_int))
 
     prop = self._resource_properties['groups']
     ro = RequestObject()
@@ -177,7 +178,7 @@ def add_victim_id(self, data_int):
     """ filter api results by victim id """
     # validation of data input
     if not isinstance(data_int, int):
-        raise AttributeError(ErrorCodes.e4060.value.format(data_int))
+        raise AttributeError(ErrorCodes.e4090.value.format(data_int))
 
     prop = self._resource_properties['victims']
     ro = RequestObject()
@@ -247,7 +248,8 @@ def add_pf_last_modified(self, data_date, operator=FilterOperator.EQ):
     last_modified_seconds = int(time.mktime(last_modified.timetuple()))
 
     post_filter = PostFilterObject()
-    post_filter.set_description('post filter by last modified {0} {1} seconds'.format(operator.name, last_modified_seconds))
+    post_filter.set_description('post filter by last modified {0} {1} seconds'.format(
+        operator.name, last_modified_seconds))
     post_filter.set_method('filter_last_modified')
     post_filter.set_filter(last_modified_seconds)
     post_filter.set_operator(operator)

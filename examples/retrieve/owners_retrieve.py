@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """ standard """
 
 """ custom"""
@@ -14,25 +16,25 @@ enable_example3 = False
 def show_data(result_obj):
     """  """
     for obj in result_obj:
-        print('\n{0:_^80}'.format(obj.name))
-        print('{0:<20}{1:<50}'.format('ID', obj.id))
-        print('{0:<20}{1:<50}'.format('Type', obj.type))
+        print('\n{0!s:_^80}'.format(obj.name))
+        print('{0!s:<20}{1!s:<50}'.format('ID', obj.id))
+        print('{0!s:<20}{1!s:<50}'.format('Type', obj.type))
 
         #
         # api_uris
         #
         if len(obj.request_uris) > 0:
-            print('\n{0:-^40}'.format(' Request URIs '))
+            print('\n{0!s:-^40}'.format(' Request URIs '))
             for request_uri in obj.request_uris:
-                print('{0:<20}{1:<50}'.format('URI', request_uri))
+                print('{0!s:<20}{1!s:<50}'.format('URI', request_uri))
 
         #
         # matched filters
         #
         if len(obj.matched_filters) > 0:
-            print('\n{0:-^40}'.format(' API Matched Filters '))
+            print('\n{0!s:-^40}'.format(' API Matched Filters '))
             for api_filter in obj.matched_filters:
-                print('{0:<20}{1:<50}'.format('Filter', api_filter))
+                print('{0!s:<20}{1!s:<50}'.format('Filter', api_filter))
 
     #
     # print report
@@ -58,7 +60,7 @@ def main():
         try:
             owners.retrieve()
         except RuntimeError as e:
-            print('Error: {0}'.format(e))
+            print('Error: {0!s}'.format(e))
             sys.exit(1)
 
         # show owner data
@@ -77,14 +79,14 @@ def main():
             filter1.add_pf_name('Example Community')
             filter1.add_pf_type('Community')  # Organization, Community, Source
         except AttributeError as e:
-            print('Error: {0}'.format(e))
+            print('Error: {0!s}'.format(e))
             sys.exit(1)
 
         # retrieve owners
         try:
             owners.retrieve()
         except RuntimeError as e:
-            print('Error: {0}'.format(e))
+            print('Error: {0!s}'.format(e))
             sys.exit(1)
 
         # show owner data
@@ -104,7 +106,7 @@ def main():
             filter1 = owners.add_filter()
             filter1.add_indicator('10.20.30.40')
         except AttributeError as e:
-            print('Error: {0}'.format(e))
+            print('Error: {0!s}'.format(e))
             sys.exit(1)
 
         try:
@@ -112,14 +114,14 @@ def main():
             filter2.add_filter_operator(FilterSetOperator.AND)
             filter2.add_indicator('notsobad@gmail.com')
         except AttributeError as e:
-            print('Error: {0}'.format(e))
+            print('Error: {0!s}'.format(e))
             sys.exit(1)
 
         # retrieve owners
         try:
             owners.retrieve()
         except AttributeError as e:
-            print('Error: {0}'.format(e))
+            print('Error: {0!s}'.format(e))
             sys.exit(1)
 
         # show owner data

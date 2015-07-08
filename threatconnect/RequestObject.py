@@ -1,3 +1,7 @@
+
+from threatconnect import ErrorCodes
+
+
 class RequestObject(object):
     """ """
     def __init__(self):
@@ -33,8 +37,10 @@ class RequestObject(object):
         """ """
         if data is None or isinstance(data, (int, list, dict)):
             return data
+        elif isinstance(data, unicode):
+            return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
         elif not isinstance(data, unicode):
-            return unicode(data, errors='ignore')
+            return unicode(data, 'utf-8', errors='ignore')
         else:
             return data
 
@@ -81,7 +87,7 @@ class RequestObject(object):
             if self._content_type is None and data in ['POST', 'PUT']:
                 self._headers['Content-Type'] = 'application/json'
         else:
-            raise AttributeError('{0} is not a valid HTTP method.'.format(data))
+            raise AttributeError(ErrorCodes.e6000.value.format(data))
 
     def set_modified_since(self, data):
         """ set modified since for indicator requests """
@@ -211,45 +217,45 @@ class RequestObject(object):
 
     def __str__(self):
         """ """
-        printable_string = '\n{0:_^80}\n'.format('Request Object')
-        printable_string += '{0:40}\n'.format('Metadata')
-        printable_string += '  {0:<29}{1:<50}\n'.format('Description', self.description)
+        printable_string = '\n{0!s:_^80}\n'.format('Request Object')
+        printable_string += '{0!s:40}\n'.format('Metadata')
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Description', self.description)
 
         #
         # request settings
         #
-        printable_string += '\n{0:40}\n'.format('Request Settings')
-        printable_string += '  {0:<29}{1:<50}\n'.format('Owner', self.owner)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Owner Allowed', self.owner_allowed)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Resource Pagination', self.resource_pagination)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Resource Type', self.resource_type)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Remaining Results', self.remaining_results)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Result Limit', self.result_limit)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Result Start', self.result_start)
+        printable_string += '\n{0!s:40}\n'.format('Request Settings')
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Owner', self.owner)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Owner Allowed', self.owner_allowed)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Resource Pagination', self.resource_pagination)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Resource Type', self.resource_type)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Remaining Results', self.remaining_results)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Result Limit', self.result_limit)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Result Start', self.result_start)
 
         #
         # http settings
         #
-        printable_string += '\n{0:40}\n'.format('HTTP Settings')
-        printable_string += '  {0:<29}{1:<50}\n'.format('HTTP Method', self.http_method)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Request URI', self.request_uri)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Content Type', self.content_type)
-        printable_string += '  {0:<29}{1:<50}\n'.format('Body', self.body)
+        printable_string += '\n{0!s:40}\n'.format('HTTP Settings')
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('HTTP Method', self.http_method)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Request URI', self.request_uri)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Content Type', self.content_type)
+        printable_string += '  {0!s:<29}{1!s:<50}\n'.format('Body', self.body)
 
         #
         # headers
         #
         if len(self.headers) > 0:
-            printable_string += '\n{0:40}\n'.format('Headers')
+            printable_string += '\n{0!s:40}\n'.format('Headers')
             for k, v in self.headers.items():
-                printable_string += '  {0:<29}{1:<50}\n'.format(k, v)
+                printable_string += '  {0!s:<29}{1!s:<50}\n'.format(k, v)
 
         #
         # payload
         #
         if len(self.payload) > 0:
-            printable_string += '\n{0:40}\n'.format('Payload')
+            printable_string += '\n{0!s:40}\n'.format('Payload')
             for k, v in self.payload.items():
-                printable_string += '  {0:<29}{1:<50}\n'.format(k, v)
+                printable_string += '  {0!s:<29}{1!s:<50}\n'.format(k, v)
 
         return printable_string
