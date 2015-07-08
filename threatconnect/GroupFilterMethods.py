@@ -53,7 +53,7 @@ def add_email_id(self, data_int):
     """ filter api results by email id """
     # validation of data input
     if not isinstance(data_int, int):
-        raise AttributeError(ErrorCodes.e4010.value.format(data_int))
+        raise AttributeError(ErrorCodes.e4020.value.format(data_int))
 
     prop = self._resource_properties['groups']
     ro = RequestObject()
@@ -70,7 +70,7 @@ def add_id(self, data_int):
     """ """
     # validation of data input
     if not isinstance(data_int, int):
-        raise AttributeError(ErrorCodes.e4020.value.format(data_int))
+        raise AttributeError(ErrorCodes.e4030.value.format(data_int))
 
     prop = self._resource_properties['id']
     ro = RequestObject()
@@ -87,7 +87,7 @@ def add_incident_id(self, data_int):
     """ filter api results by incident id """
     # validation of data input
     if not isinstance(data_int, int):
-        raise AttributeError(ErrorCodes.e4030.value.format(data_int))
+        raise AttributeError(ErrorCodes.e4040.value.format(data_int))
 
     prop = self._resource_properties['groups']
     ro = RequestObject()
@@ -123,7 +123,7 @@ def add_indicator(self, data):
 def add_security_label(self, data):
     """ """
     if not isinstance(data, str):
-        raise AttributeError(ErrorCodes.e4070.value.format(data))
+        raise AttributeError(ErrorCodes.e4050.value.format(data))
 
     prop = self._resource_properties['security_labels']
     ro = RequestObject()
@@ -139,7 +139,7 @@ def add_signature_id(self, data_int):
     """ """
     # validation of data input
     if not isinstance(data_int, int):
-        raise AttributeError(ErrorCodes.e4040.value.format(data_int))
+        raise AttributeError(ErrorCodes.e4060.value.format(data_int))
 
     prop = self._resource_properties['groups']
     ro = RequestObject()
@@ -155,7 +155,7 @@ def add_signature_id(self, data_int):
 def add_tag(self, data):
     """ """
     if not isinstance(data, str):
-        raise AttributeError(ErrorCodes.e4080.value.format(data))
+        raise AttributeError(ErrorCodes.e4070.value.format(data))
 
     prop = self._resource_properties['tags']
     ro = RequestObject()
@@ -170,7 +170,7 @@ def add_tag(self, data):
 def add_threat_id(self, data_int):
     """ """
     if not isinstance(data_int, int):
-        raise AttributeError(ErrorCodes.e4050.value.format(data_int))
+        raise AttributeError(ErrorCodes.e4080.value.format(data_int))
 
     prop = self._resource_properties['groups']
     ro = RequestObject()
@@ -186,7 +186,7 @@ def add_threat_id(self, data_int):
 def add_victim_id(self, data_int):
     """ """
     if not isinstance(data_int, int):
-        raise AttributeError(ErrorCodes.e4060.value.format(data_int))
+        raise AttributeError(ErrorCodes.e4090.value.format(data_int))
 
     prop = self._resource_properties['victims']
     ro = RequestObject()

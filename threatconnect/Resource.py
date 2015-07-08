@@ -484,7 +484,6 @@ class Resource(object):
 
     def _method_wrapper(self, obj):
         """ """
-        print('this should not print method wrapper')
         pass
 
     def __iter__(self):

@@ -1,5 +1,6 @@
 """ standard """
 import json
+from threatconnect.ErrorCodes import ErrorCodes
 
 """ custom """
 from threatconnect.Config.ResourceType import ResourceType
@@ -100,8 +101,10 @@ class VictimAssetObject(object):
         """ """
         if data is None or isinstance(data, (int, list, dict)):
             return data
+        elif isinstance(data, unicode):
+            return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
         elif not isinstance(data, unicode):
-            return unicode(data, errors='ignore')
+            return unicode(data, 'utf-8', errors='ignore')
         else:
             return data
 
@@ -116,14 +119,14 @@ class VictimAssetObject(object):
         if self._resource_type in [ResourceType.VICTIM_NETWORK_ACCOUNTS, ResourceType.VICTIM_SOCIAL_NETWORKS]:
             return self._account
         else:
-            raise AttributeError('Account is not support by this Resource Type.')
+            raise AttributeError(ErrorCodes.e10500.value)
 
     def set_account(self, data):
         """Read-Write victim asset metadata"""
         if self._resource_type in [ResourceType.VICTIM_NETWORK_ACCOUNTS, ResourceType.VICTIM_SOCIAL_NETWORKS]:
             self._account = data
         else:
-            raise AttributeError('Account is not support by this Resource Type.')
+            raise AttributeError(ErrorCodes.e10500.value)
 
     #
     # address (emailAddress specific)
@@ -134,14 +137,14 @@ class VictimAssetObject(object):
         if self._resource_type == ResourceType.VICTIM_EMAIL_ADDRESSES:
             return self._address
         else:
-            raise AttributeError('Address is not support by this Resource Type.')
+            raise AttributeError(ErrorCodes.e10510.value)
 
     def set_address(self, data):
         """Read-Write victim asset metadata"""
         if self._resource_type == ResourceType.VICTIM_EMAIL_ADDRESSES:
             self._address = data
         else:
-            raise AttributeError('Address is not support by this Resource Type.')
+            raise AttributeError(ErrorCodes.e10510.value)
 
     #
     # address_type (emailAddress specific)
@@ -152,14 +155,14 @@ class VictimAssetObject(object):
         if self._resource_type == ResourceType.VICTIM_EMAIL_ADDRESSES:
             return self._address_type
         else:
-            raise AttributeError('Address Type is not support by this Resource Type.')
+            raise AttributeError(ErrorCodes.e10520.value)
 
     def set_address_type(self, data):
         """Read-Only victim asset metadata"""
         if self._resource_type == ResourceType.VICTIM_EMAIL_ADDRESSES:
             self._address_type = data
         else:
-            raise AttributeError('Address is not support by this Resource Type.')
+            raise AttributeError(ErrorCodes.e10520.value)
 
     @property
     def gen_body(self):
@@ -203,14 +206,14 @@ class VictimAssetObject(object):
         if self._resource_type in [ResourceType.VICTIM_NETWORK_ACCOUNTS, ResourceType.VICTIM_SOCIAL_NETWORKS]:
             return self._network
         else:
-            raise AttributeError('Network is not support by this Resource Type.')
+            raise AttributeError(ErrorCodes.e10530.value)
 
     def set_network(self, data):
         """Read-Write victim asset metadata"""
         if self._resource_type in [ResourceType.VICTIM_NETWORK_ACCOUNTS, ResourceType.VICTIM_SOCIAL_NETWORKS]:
             self._network = data
         else:
-            raise AttributeError('Network is not support by this Resource Type.')
+            raise AttributeError(ErrorCodes.e10530.value)
 
     #
     # phone_type (phoneType specific)
@@ -221,14 +224,14 @@ class VictimAssetObject(object):
         if self._resource_type == ResourceType.VICTIM_PHONES:
             return self._phone_type
         else:
-            raise AttributeError('Phone Type is not support by this Resource Type.')
+            raise AttributeError(ErrorCodes.e10540.value)
 
     def set_phone_type(self, data):
         """Read-Only victim asset metadata"""
         if self._resource_type == ResourceType.VICTIM_PHONES:
             self._phone_type = data
         else:
-            raise AttributeError('Phone Type is not support by this Resource Type.')
+            raise AttributeError(ErrorCodes.e10540.value)
 
     #
     # resource type
@@ -314,7 +317,7 @@ class VictimAssetObject(object):
                 'required': True,
             }
         else:
-            raise AttributeError('Invalid Victim Asset Type ({0})'.format(data))
+            raise AttributeError(ErrorCodes.e10550.value.format(data))
 
     #
     # uri attribute
@@ -345,14 +348,14 @@ class VictimAssetObject(object):
         if self._resource_type == ResourceType.VICTIM_WEBSITES:
             return self._website
         else:
-            raise AttributeError('Phone Type is not support by this Resource Type.')
+            raise AttributeError(ErrorCodes.e10560.value)
 
     def set_website(self, data):
         """Read-Only victim asset metadata"""
         if self._resource_type == ResourceType.VICTIM_WEBSITES:
             self._website = data
         else:
-            raise AttributeError('Phone Type is not support by this Resource Type.')
+            raise AttributeError(ErrorCodes.e10560.value)
 
     #
     # add print method
@@ -360,28 +363,28 @@ class VictimAssetObject(object):
     def __str__(self):
         """allow object to be displayed with print"""
 
-        printable_string = '\n{0:_^80}\n'.format('Victim Asset Object Properties')
+        printable_string = '\n{0!s:_^80}\n'.format('Victim Asset Object Properties')
 
         #
         # retrievable methods
         #
-        printable_string += '{0:40}\n'.format('Retrievable Methods')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('id', self.id))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('name', self.name))
+        printable_string += '{0!s:40}\n'.format('Retrievable Methods')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('id', self.id))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('name', self.name))
         for prop in sorted(self._properties.keys()):
             value = getattr(self, prop)
-            printable_string += ('  {0:<28}: {1:<50}\n'.format(prop, value))
+            printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format(prop, value))
 
 
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('type', self.type))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('weblink', self.weblink))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('type', self.type))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('weblink', self.weblink))
 
         #
         # writable properties
         #
-        printable_string += '\n{0:40}\n'.format('Writable Properties')
+        printable_string += '\n{0!s:40}\n'.format('Writable Properties')
         for prop, values in sorted(self._properties.items()):
-            printable_string += ('  {0:<28}: {1:<50}\n'.format(
-                values['api_field'], '{0} (Required: {1})'.format(values['method'], str(values['required']))))
+            printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format(
+                values['api_field'], '{0!s} (Required: {1!s})'.format(values['method'], str(values['required']))))
 
         return printable_string

@@ -45,8 +45,10 @@ class TagObject(object):
         """ """
         if isinstance(data, (int, list, dict)):
             return data
+        elif isinstance(data, unicode):
+            return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
         elif not isinstance(data, unicode):
-            return unicode(data, errors='ignore')
+            return unicode(data, 'utf-8', errors='ignore')
         else:
             return data
 
@@ -62,7 +64,7 @@ class TagObject(object):
 
     def set_name(self, data):
         """Read-Write tag metadata"""
-        self._name = data
+        self._name = self._uni(data)
 
     #
     # weblink
@@ -99,13 +101,13 @@ class TagObject(object):
     def __str__(self):
         """allow object to be displayed with print"""
 
-        printable_string = '\n{0:_^80}\n'.format('Tag Object Properties')
+        printable_string = '\n{0!s:_^80}\n'.format('Tag Object Properties')
 
         #
         # retrievable methods
         #
-        printable_string += '{0:40}\n'.format('Retrievable Methods')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('name', self.name))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('weblink', self.weblink))
+        printable_string += '{0!s:40}\n'.format('Retrievable Methods')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('name', self.name))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('weblink', self.weblink))
 
         return printable_string

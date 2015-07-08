@@ -11,6 +11,10 @@ setup(
         'threatconnect',
         'threatconnect/Config',
         'threatconnect/Resources'],
+    py_modules=[
+        'threatconnect',
+        'threatconnect/Config',
+        'threatconnect/Resources'],
     # test_suite = '',
     url='https://github.com/ThreatConnect-Inc/threatconnect-python',
     license='GPLv3',

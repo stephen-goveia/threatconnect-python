@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """ standard """
 from pprint import pprint
 import json
@@ -7,7 +9,7 @@ from examples.working_init import *
 from threatconnect.RequestObject import RequestObject
 
 """ Toggle the Boolean to enable specific examples """
-enable_example1 = True
+enable_example1 = False
 enable_example2 = False
 
 if enable_example1:
@@ -48,10 +50,10 @@ if enable_example1:
         ro.set_owner('Example Community')
         ro.set_owner_allowed(True)
         ro.set_resource_pagination(False)
-        ro.set_request_uri('/v2/groups/documents/{0}/upload'.format(document_id))
+        ro.set_request_uri('/v2/groups/documents/{0:d}/upload'.format(document_id))
 
         #
         # retrieve and display the results
         #
         results = tc.api_request(ro)
-        print('Status Code: {0}'.format(results.status_code))
+        print('Status Code: {0:d}'.format(results.status_code))

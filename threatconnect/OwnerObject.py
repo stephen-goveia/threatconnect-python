@@ -85,8 +85,10 @@ class OwnerObject(object):
         """ """
         if data is None or isinstance(data, (int, list, dict)):
             return data
+        elif isinstance(data, unicode):
+            return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
         elif not isinstance(data, unicode):
-            return unicode(data, errors='ignore')
+            return unicode(data, 'utf-8', errors='ignore')
         else:
             return data
 
@@ -195,29 +197,29 @@ class OwnerObject(object):
     def __str__(self):
         """allow object to be displayed with print"""
 
-        printable_string = '\n{0:_^80}\n'.format('Owner Resource Object Properties')
+        printable_string = '\n{0!s:_^80}\n'.format('Owner Resource Object Properties')
 
         #
         # retrievable methods
         #
-        printable_string += '{0:40}\n'.format('Retrievable Methods')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('id', self.id))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('name', self.name))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('type', self.type))
+        printable_string += '{0!s:40}\n'.format('Retrievable Methods')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('id', self.id))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('name', self.name))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('type', self.type))
 
         #
         # object information
         #
-        printable_string += '\n{0:40}\n'.format('Object Information')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('phase', self.phase))
+        printable_string += '\n{0!s:40}\n'.format('Object Information')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('phase', self.phase))
 
         #
         # request uri's
         #
         if len(self.request_uris) > 0:
-            printable_string += '\n{0:40}\n'.format('Request URI\'s')
+            printable_string += '\n{0!s:40}\n'.format('Request URI\'s')
             for item in sorted(self.request_uris):
-                printable_string += ('  {0:<28}: {1:<50}\n'.format('', item))
+                printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('', item))
 
         return printable_string
 

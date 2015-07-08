@@ -99,48 +99,48 @@ class Report(object):
     @property
     def stats(self):
         """ """
-        report = '\n{0:_^80}\n'.format('Stats')
+        report = '\n{0!s:_^80}\n'.format('Stats')
 
         #
         # api stats
         #
-        report += '\n{0:40}\n'.format('API Stats')
-        report += '  {0:<29}{1:<50}\n'.format('API Calls', self.api_calls)
-        report += '  {0:<29}{1:<50}\n'.format('Unfiltered Results', self.results_unfiltered)
-        report += '  {0:<29}{1:<50}\n'.format('Filtered Results', self.results_filtered)
+        report += '\n{0!s:40}\n'.format('API Stats')
+        report += '  {0!s:<29}{1!s:<50}\n'.format('API Calls', self.api_calls)
+        report += '  {0!s:<29}{1!s:<50}\n'.format('Unfiltered Results', self.results_unfiltered)
+        report += '  {0!s:<29}{1!s:<50}\n'.format('Filtered Results', self.results_filtered)
 
         #
         # filter counts
         #
-        report += '\n{0:40}\n'.format('Filters')
-        report += '  {0:<29}{1:<50}\n'.format('API Filters', self._filter_count_api)
-        report += '  {0:<29}{1:<50}\n'.format('Post Filters', self._filter_count_post)
-        report += '  {0:<29}{1:<50}\n'.format('Total Filters', self._filter_count)
+        report += '\n{0!s:40}\n'.format('Filters')
+        report += '  {0!s:<29}{1!s:<50}\n'.format('API Filters', self._filter_count_api)
+        report += '  {0!s:<29}{1!s:<50}\n'.format('Post Filters', self._filter_count_post)
+        report += '  {0!s:<29}{1!s:<50}\n'.format('Total Filters', self._filter_count)
 
         #
         # http methods
         #
         if len(self._http_method_idx.items()) > 0:
-            report += '\n{0:40}\n'.format('HTTP Methods')
+            report += '\n{0!s:40}\n'.format('HTTP Methods')
             for k, v in self._http_method_idx.items():
-                report += '  {0:<29}{1:<50}\n'.format(k, len(v))
+                report += '  {0!s:<29}{1!s:<50}\n'.format(k, len(v))
 
         #
         # status codes
         #
         if len(self._status_code_idx.items()) > 0:
-            report += '\n{0:40}\n'.format('Status Codes')
+            report += '\n{0!s:40}\n'.format('Status Codes')
             for k, v in self._status_code_idx.items():
-                report += '  {0:<29}{1:<50}\n'.format(k, len(v))
+                report += '  {0!s:<29}{1!s:<50}\n'.format(k, len(v))
 
         #
         # performance
         #
-        report += '\n{0:40}\n'.format('Performance Stats')
+        report += '\n{0!s:40}\n'.format('Performance Stats')
         if self.request_time is not None:
-            report += '  {0:<29}{1:<50}\n'.format('Request Time', self.request_time)
-            report += '  {0:<29}{1:<50}\n'.format('Processing Time', (self.runtime - self.request_time))
-        report += '  {0:<29}{1:<50}\n'.format('Run Time', self.runtime)
+            report += '  {0!s:<29}{1!s:<50}\n'.format('Request Time', self.request_time)
+            report += '  {0!s:<29}{1!s:<50}\n'.format('Processing Time', (self.runtime - self.request_time))
+        report += '  {0!s:<29}{1!s:<50}\n'.format('Run Time', self.runtime)
 
         return report
 

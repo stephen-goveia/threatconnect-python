@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """ standard """
 from random import randint
 import re
@@ -38,13 +40,13 @@ def main():
         filter1 = resources.add_filter()
         filter1.add_owner(owner)  # filter on owner
     except AttributeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     try:
         resources.retrieve()
     except RuntimeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     for res in resources:
@@ -53,11 +55,11 @@ def main():
             #
             # once a resource is matched any metadata on that resource can be updated
             #
-            res.set_name('LU Victim #{0}'.format(rn))
-            res.set_nationality('Nationality #{0}'.format(rn))
-            res.set_org('Org #{0}'.format(rn))
-            res.set_suborg('Sub Org #{0}'.format(rn))
-            res.set_work_location('Location #{0}'.format(rn))
+            res.set_name('LU Victim #{0:n}'.format(rn))
+            res.set_nationality('Nationality #{0:n}'.format(rn))
+            res.set_org('Org #{0:n}'.format(rn))
+            res.set_suborg('Sub Org #{0:n}'.format(rn))
+            res.set_work_location('Location #{0:n}'.format(rn))
 
             #
             # resource assets (assets are automatically loaded for victims)
@@ -67,7 +69,7 @@ def main():
                 if asset_obj.type == 'EmailAddress' and re.findall('victim', asset_obj.name):
                     # existing email address assets can be updated
                     asset = VictimAssetObject(ResourceType.VICTIM_EMAIL_ADDRESSES)
-                    asset.set_address('victim_{0}@victimsareus.com'.format(rn))
+                    asset.set_address('victim_{0:n}@victimsareus.com'.format(rn))
                     asset.set_address_type('Personal')
                     res.update_asset(asset_obj.id, asset)
                 if asset_obj.type == 'SocialNetwork' and re.findall('victim_', asset_obj.name):
@@ -76,7 +78,7 @@ def main():
 
             # social network assets can be added to a victim
             asset = VictimAssetObject(ResourceType.VICTIM_SOCIAL_NETWORKS)
-            asset.set_account('victim_{0}'.format(rn))
+            asset.set_account('victim_{0:n}'.format(rn))
             asset.set_network('Twitter')
             res.add_asset(asset)
 
@@ -110,10 +112,10 @@ def main():
 
             # (Required) commit this resource
             try:
-                print('Updating resource {0}.'.format(res.name))
+                print('Updating resource {0!s}.'.format(res.name))
                 res.commit()
             except RuntimeError as e:
-                print('Error: {0}'.format(e))
+                print('Error: {0!s}'.format(e))
                 sys.exit(1)
 
         #
@@ -123,10 +125,10 @@ def main():
         # delete to any resource that has 'DELETE' in the name.
         elif re.findall('DELETE', res.name):
             try:
-                print('Deleting resource {0}.'.format(res.name))
+                print('Deleting resource {0!s}.'.format(res.name))
                 res.delete()  # this action is equivalent to commit
             except RuntimeError as e:
-                print('Error: {0}'.format(e))
+                print('Error: {0!s}'.format(e))
                 sys.exit(1)
 
     #
@@ -134,48 +136,48 @@ def main():
     #
 
     # new resources can be added with the resource add method
-    resource = resources.add('DELETE #{0}'.format(rn), owner)
+    resource = resources.add('DELETE #{0:d}'.format(rn), owner)
 
     # properties can be added
-    resource.set_nationality('Nationality #{0}'.format(rn))
-    resource.set_org('Org #{0}'.format(rn))
-    resource.set_suborg('Sub Org #{0}'.format(rn))
-    resource.set_work_location('Location #{0}'.format(rn))
+    resource.set_nationality('Nationality #{0:d}'.format(rn))
+    resource.set_org('Org #{0:d}'.format(rn))
+    resource.set_suborg('Sub Org #{0:d}'.format(rn))
+    resource.set_work_location('Location #{0:d}'.format(rn))
 
     # email address assets can be added to new victim
     asset = VictimAssetObject(ResourceType.VICTIM_EMAIL_ADDRESSES)
-    asset.set_address('victim_{0}@victimsareus.com'.format(rn))
+    asset.set_address('victim_{0:d}@victimsareus.com'.format(rn))
     asset.set_address_type('Personal')
     resource.add_asset(asset)
 
     # network account assets can be added to new victim
     asset = VictimAssetObject(ResourceType.VICTIM_NETWORK_ACCOUNTS)
-    asset.set_account('victim_{0}'.format(rn))
+    asset.set_account('victim_{0:d}'.format(rn))
     asset.set_network('victimsareus Active Directory')
     resource.add_asset(asset)
 
     # phone assets can be added to new victim
     asset = VictimAssetObject(ResourceType.VICTIM_PHONES)
-    asset.set_phone_type('555-5{0}'.format(rn))
+    asset.set_phone_type('555-5{0:d}'.format(rn))
     resource.add_asset(asset)
 
     # social network assets can be added to new victim
     asset = VictimAssetObject(ResourceType.VICTIM_SOCIAL_NETWORKS)
-    asset.set_account('victim_{0}'.format(rn))
+    asset.set_account('victim_{0:d}'.format(rn))
     asset.set_network('Twitter')
     resource.add_asset(asset)
 
     # website assets can be added to new victim
     asset = VictimAssetObject(ResourceType.VICTIM_WEBSITES)
-    asset.set_website('www.victimsareus_{0}.com'.format(rn))
+    asset.set_website('www.victimsareus_{0:d}.com'.format(rn))
     resource.add_asset(asset)
 
     # commit this resource and add attributes, tags and security labels
     try:
-        print('Adding resource {0}.'.format(resource.name))
+        print('Adding resource {0!s}.'.format(resource.name))
         resource.commit()
     except RuntimeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     #
@@ -183,21 +185,21 @@ def main():
     #
 
     # existing resources can also be updated with the resource add method
-    resource = resources.add('MU Victim #{0}'.format(rn), owner)  # this will overwrite exising resource name
+    resource = resources.add('MU Victim #{0:d}'.format(rn), owner)  # this will overwrite exising resource name
     resource.set_id(mu_id)  # set the id to the existing resource
 
     # existing properties can be updated
-    resource.set_nationality('Nationality #{0}'.format(rn))
-    resource.set_org('Org #{0}'.format(rn))
-    resource.set_suborg('Sub Org #{0}'.format(rn))
-    resource.set_work_location('Location #{0}'.format(rn))
+    resource.set_nationality('Nationality #{0:d}'.format(rn))
+    resource.set_org('Org #{0:d}'.format(rn))
+    resource.set_suborg('Sub Org #{0:d}'.format(rn))
+    resource.set_work_location('Location #{0:d}'.format(rn))
 
     # commit this resource and add attributes, tags and security labels
     try:
-        print('Updating resource {0}.'.format(resource.name))
+        print('Updating resource {0!s}.'.format(resource.name))
         resource.commit()
     except RuntimeError as e:
-        print('Error: {0}'.format(e))
+        print('Error: {0!s}'.format(e))
         sys.exit(1)
 
     #

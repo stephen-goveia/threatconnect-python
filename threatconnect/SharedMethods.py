@@ -76,7 +76,7 @@ def uni(data):
     if data is None or isinstance(data, (int, list, dict)):
         return data
     elif not isinstance(data, unicode):
-        return unicode(data, errors='ignore')
+        return unicode(data, 'utf-8', errors='ignore')
     else:
         return data
 

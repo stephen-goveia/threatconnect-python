@@ -38,8 +38,10 @@ class FileOccurrenceObject(object):
         """ """
         if isinstance(data, (int, list, dict)):
             return data
+        elif isinstance(data, unicode):
+            return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
         elif not isinstance(data, unicode):
-            return unicode(data, errors='ignore')
+            return unicode(data, 'utf-8', errors='ignore')
         else:
             return data
 
@@ -87,14 +89,14 @@ class FileOccurrenceObject(object):
     def __str__(self):
         """allow object to be displayed with print"""
 
-        printable_string = '\n{0:_^80}\n'.format('File Occurrence Object Properties')
+        printable_string = '\n{0!s:_^80}\n'.format('File Occurrence Object Properties')
 
         #
         # retrievable methods
         #
-        printable_string += '{0:40}\n'.format('Retrievable Methods')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('file_name', self.file_name))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('date', self.date))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('path', self.path))
+        printable_string += '{0!s:40}\n'.format('Retrievable Methods')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('file_name', self.file_name))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('date', self.date))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('path', self.path))
 
         return printable_string

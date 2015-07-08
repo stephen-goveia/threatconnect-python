@@ -38,6 +38,8 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     #
     # optional values
     #
+    if 'type' in indicator_dict:
+        indicator.set_type(indicator_dict['type'])  # set type before indicator
     if 'confidence' in indicator_dict:
         indicator.set_confidence(indicator_dict['confidence'], update=False)
     if 'description' in indicator_dict:
@@ -54,20 +56,18 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
         indicator.set_threat_assess_confidence(indicator_dict['threatAssessConfidence'])
     if 'threatAssessRating' in indicator_dict:
         indicator.set_threat_assess_rating(indicator_dict['threatAssessRating'])
-    if 'type' in indicator_dict:
-        indicator.set_type(indicator_dict['type'])
 
     #
     # address
     #
     if 'ip' in indicator_dict:
-        indicator.set_indicator(indicator_dict['ip'])
+        indicator.set_indicator(indicator_dict['ip'], ResourceType.ADDRESSES)
 
     #
     # email address
     #
     if 'address' in indicator_dict:
-        indicator.set_indicator(indicator_dict['address'])
+        indicator.set_indicator(indicator_dict['address'], ResourceType.EMAIL_ADDRESSES)
 
     #
     # files
@@ -88,7 +88,7 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     # hosts
     #
     if 'hostName' in indicator_dict:
-        indicator.set_indicator(indicator_dict['hostName'])
+        indicator.set_indicator(indicator_dict['hostName'], ResourceType.HOSTS)
 
     if 'dnsActive' in indicator_dict:
         indicator.set_dns_active(indicator_dict['dnsActive'], update=False)
@@ -100,7 +100,7 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     # urls
     #
     if 'text' in indicator_dict:
-        indicator.set_indicator(indicator_dict['text'])
+        indicator.set_indicator(indicator_dict['text'], ResourceType.URLS)
 
     if 'source' in indicator_dict:
         indicator.set_source(indicator_dict['source'], update=False)
@@ -239,8 +239,10 @@ class IndicatorObject(object):
         """ """
         if data is None or isinstance(data, (int, list, dict)):
             return data
+        elif isinstance(data, unicode):
+            return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
         elif not isinstance(data, unicode):
-            return unicode(data, errors='ignore')
+            return unicode(data, 'utf-8', errors='ignore')
         else:
             return data
 
@@ -312,14 +314,14 @@ class IndicatorObject(object):
         if self._resource_type == ResourceType.HOSTS:
             return self._dns_active
         else:
-            raise AttributeError('DNS Active is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10100.value)
 
     def set_dns_active(self, data, update=True):
         """ """
         if self._resource_type == ResourceType.HOSTS:
             self._dns_active = self._uni(data)
         else:
-            raise AttributeError('DNS Active is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10100.value)
 
         if update and self._phase == 0:
             self._phase = 2
@@ -333,7 +335,7 @@ class IndicatorObject(object):
         if self._resource_type == ResourceType.HOSTS:
             return self._dns_resolutions
         else:
-            raise AttributeError('DNS Resolutions is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10110.value)
 
     def add_dns_resolution(self, data_obj):
         """Read-Only indicator metadata"""
@@ -344,7 +346,7 @@ class IndicatorObject(object):
                 self._dns_resolutions.append(data_obj)
 
         else:
-            raise AttributeError('DNS Resolutions is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10110.value)
 
     #
     # file_occurrences (file indicator type specific)
@@ -355,14 +357,14 @@ class IndicatorObject(object):
         if self._resource_type == ResourceType.FILES:
             return self._file_occurrences
         else:
-            raise AttributeError('File Occurrences is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10120.value)
 
     def add_file_occurrence(self, data_obj):
         """Read-Only indicator metadata"""
         if self._resource_type == ResourceType.FILES:
             self._file_occurrences.append(data_obj)
         else:
-            raise AttributeError('File Occurrences is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10120.value)
 
     #
     # id
@@ -400,15 +402,20 @@ class IndicatorObject(object):
         elif self._resource_type == ResourceType.URLS:
             return self._text
         else:
-            raise AttributeError(ErrorCodes.e10030)
+            raise AttributeError(ErrorCodes.e10030.value)
 
     def set_indicator(self, data, resource_type=None):
         """Read-Write indicator metadata"""
-        if resource_type is None:
-            resource_type = get_resource_type(data)
+        if self._resource_type is None:
+            if resource_type is None:
+                # get resource type using regex
+                self._resource_type = get_resource_type(data)
+            else:
+                self._resource_type = resource_type
 
-        # set/update object resource type
-        self._resource_type = resource_type
+        # if get_resource_type return None error.
+        if self._resource_type is None:
+            raise AttributeError(ErrorCodes.e10030.value)
 
         #
         # address
@@ -578,14 +585,14 @@ class IndicatorObject(object):
         if self._resource_type == ResourceType.FILES:
             return self._size
         else:
-            raise AttributeError('Size is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10130.value)
 
     def set_size(self, data, update=True):
         """ """
         if self._resource_type == ResourceType.FILES:
             self._size = self._uni(str(data))
         else:
-            raise AttributeError('Size is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10130.value)
 
         if update and self._phase == 0:
             self._phase = 2
@@ -663,14 +670,14 @@ class IndicatorObject(object):
         if self._resource_type == ResourceType.HOSTS:
             return self._dns_active
         else:
-            raise AttributeError('WhoIs Active is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10140.value)
 
     def set_whois_active(self, data, update=True):
         """ """
         if self._resource_type == ResourceType.HOSTS:
             self._whois_active = self._uni(data)
         else:
-            raise AttributeError('WhoIs Active is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10140.value)
 
         if update and self._phase == 0:
             self._phase = 2
@@ -782,62 +789,62 @@ class IndicatorObject(object):
     def __str__(self):
         """allow object to be displayed with print"""
 
-        printable_string = '\n{0:_^80}\n'.format('Resource Object Properties')
+        printable_string = '\n{0!s:_^80}\n'.format('Resource Object Properties')
 
         #
         # retrievable methods
         #
-        printable_string += '{0:40}\n'.format('Retrievable Methods')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('id', self.id))
+        printable_string += '{0!s:40}\n'.format('Retrievable Methods')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('id', self.id))
         if isinstance(self.indicator, dict):
-            printable_string += ('  {0:<28} {1:<50}\n'.format('indicator', ''))
-            printable_string += ('   {0:<10}: {0:<70}\n'.format('md5', self.indicator['md5']))
-            printable_string += ('   {0:<10}: {0:<70}\n'.format('sha1', self.indicator['sha1']))
-            printable_string += ('   {0:<10}: {0:<70}\n'.format('sha256', self.indicator['sha256']))
+            printable_string += ('  {0!s:<28} {1!s:<50}\n'.format('indicator', ''))
+            printable_string += ('   {0!s:<10}: {1!s:<70}\n'.format('md5', self.indicator['md5']))
+            printable_string += ('   {0!s:<10}: {1!s:<70}\n'.format('sha1', self.indicator['sha1']))
+            printable_string += ('   {0!s:<10}: {1!s:<70}\n'.format('sha256', self.indicator['sha256']))
         else:
-            printable_string += ('  {0:<28}: {1:<50}\n'.format('indicator', self.indicator))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('resource_type', self.resource_type))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('owner_name', self.owner_name))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('date_added', self.date_added))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('last_modified', self.last_modified))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('description', self.description))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('confidence', self.confidence))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('rating', self.rating))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('threat_assess_confidence', self.threat_assess_confidence))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('threat_assess_rating', self.threat_assess_rating))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('security_label', self.security_label))
-        # printable_string += ('  {0:<28}: {1:<50}\n'.format('type', self.type))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('weblink', self.weblink))
+            printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('indicator', self.indicator))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('resource_type', self.resource_type))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('owner_name', self.owner_name))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('date_added', self.date_added))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('last_modified', self.last_modified))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('description', self.description))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('confidence', self.confidence))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('rating', self.rating))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('threat_assess_confidence', self.threat_assess_confidence))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('threat_assess_rating', self.threat_assess_rating))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('security_label', self.security_label))
+        # printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('type', self.type))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('weblink', self.weblink))
 
         #
         # writable methods
         #
-        printable_string += '\n{0:40}\n'.format('Writable Properties')
+        printable_string += '\n{0!s:40}\n'.format('Writable Properties')
         for prop, values in sorted(self._properties.items()):
-            printable_string += ('  {0:<28}: {1:<50}\n'.format(
-                values['api_field'], '{0} (Required: {1})'.format(values['method'], str(values['required']))))
+            printable_string += ('  {0!s:<28}: {1:<50}\n'.format(
+                values['api_field'], '{0!s} (Required: {1!s})'.format(values['method'], str(values['required']))))
 
         #
         # object information
         #
-        printable_string += '\n{0:40}\n'.format('Object Information')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('phase', self.phase))
+        printable_string += '\n{0!s:40}\n'.format('Object Information')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('phase', self.phase))
 
         #
         # matched filter
         #
         if len(self.matched_filters) > 0:
-            printable_string += '\n{0:40}\n'.format('Matched Filters')
+            printable_string += '\n{0!s:40}\n'.format('Matched Filters')
             for item in sorted(self.matched_filters):
-                printable_string += ('  {0:<28}: {1:<50}\n'.format('matched filter', item))
+                printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('matched filter', item))
 
         #
         # request uri's
         #
         if len(self.request_uris) > 0:
-            printable_string += '\n{0:40}\n'.format('Request URI\'s')
+            printable_string += '\n{0!s:40}\n'.format('Request URI\'s')
             for item in sorted(self.request_uris):
-                printable_string += ('  {0:<28}: {1:<50}\n'.format('', item))
+                printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('', item))
 
         return printable_string
 
@@ -921,7 +928,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
     def add_file_occurrence(self, fo_file_name, fo_path, fo_date):
         """ add an file occurrence to an indicator """
         if self._resource_type != ResourceType.FILES:
-            raise AttributeError('File Occurrences is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10150.value)
 
         prop = self._resource_properties['file_occurrence_add']
         ro = RequestObject()
@@ -1073,7 +1080,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
                         r_id = api_response_dict['data'][resource_key]['id']
             else:
                 self._tc.tcl.debug('Resource Object'.format(self))
-                raise RuntimeError('Cannot commit incomplete resource object')
+                raise AttributeError(ErrorCodes.e10040.value)
         elif self.phase == 2:
             prop = self._resource_properties['update']
             ro.set_description('update indicator {0}.'.format(self._reference_indicator))
@@ -1386,7 +1393,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
     def load_dns_resolutions(self):
         """ retrieve dns resolution for this indicator """
         if self._resource_type != ResourceType.HOSTS:
-            raise AttributeError('DNS Resolutions is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10110.value)
 
         prop = self._resource_properties['dns_resolution']
         ro = RequestObject()
@@ -1404,12 +1411,13 @@ class IndicatorObjectAdvanced(IndicatorObject):
             if api_response_dict['status'] == 'Success':
                 data = api_response_dict['data']['dnsResolution']
                 for item in data:
-                    self._resource_obj.add_dns_resolution(parse_dns_resolution(item))  # add to main resource object
+                    if 'addresses' in item:  # don't process dns resolutions that have no addresses
+                        self._resource_obj.add_dns_resolution(parse_dns_resolution(item))  # add to main resource object
 
     def load_file_occurrence(self):
         """ retrieve file occurrence for this indicator """
         if self._resource_type != ResourceType.FILES:
-            raise AttributeError('File Occurrences is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10120.value)
 
         prop = self._resource_properties['file_occurrences']
         ro = RequestObject()
@@ -1519,3 +1527,4 @@ class IndicatorObjectAdvanced(IndicatorObject):
                 data = api_response_dict['data']['victim']
                 for item in data:
                     yield parse_victim(item, api_filter=ro.description, request_uri=ro.request_uri)
+

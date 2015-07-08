@@ -11,6 +11,7 @@ from threatconnect import SharedMethods
 from threatconnect import ApiProperties
 from threatconnect.Config.IndicatorType import IndicatorType
 from threatconnect.Config.ResourceType import ResourceType
+from threatconnect.ErrorCodes import ErrorCodes
 from threatconnect.FilterObject import FilterObject
 from threatconnect.IndicatorObject import IndicatorObject, IndicatorObjectAdvanced
 from threatconnect.RequestObject import RequestObject
@@ -50,7 +51,7 @@ class Indicators(Resource):
             # return object for modification
             return self._method_wrapper(resource_obj)
         else:
-            raise AttributeError('({0}) is an invalid indicator.'.format(indicator))
+            raise AttributeError(ErrorCodes.e10050.name.format(indicator))
 
     def update(self, id, owner=None):
         """ add indicator to resource container """

@@ -248,8 +248,10 @@ class GroupObject(object):
         """ """
         if data is None or isinstance(data, (int, list, dict)):
             return data
+        elif isinstance(data, unicode):
+            return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
         elif not isinstance(data, unicode):
-            return unicode(data, errors='ignore')
+            return unicode(data, 'utf-8', errors='ignore')
         else:
             return data
 
@@ -284,7 +286,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.EMAILS:
             return self._body
         else:
-            raise AttributeError('Body is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10200.value)
 
     def set_body(self, data, update=True):
         """Read-Write group metadata"""
@@ -293,7 +295,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('Body is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10200.value)
 
     #
     # date_added
@@ -313,14 +315,17 @@ class GroupObject(object):
     @property
     def contents(self):
         """ """
-        return self._contents
+        if self._resource_type in [ResourceType.DOCUMENTS, ResourceType.SIGNATURES]:
+            return self._contents
+        else:
+            raise AttributeError(ErrorCodes.e10210.value)
 
     def set_contents(self, data):
         """Read-Only group metadata"""
         if self._resource_type in [ResourceType.DOCUMENTS, ResourceType.SIGNATURES]:
             self._contents = data
         else:
-            raise AttributeError('Contents is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10210.value)
 
     #
     # event_date (incident specific)
@@ -331,7 +336,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.INCIDENTS:
             return self._event_date
         else:
-            raise AttributeError('Event Date is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10220.value)
 
     def set_event_date(self, data, update=True):
         """Read-Write group metadata"""
@@ -340,7 +345,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('Event Date is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10220.value)
 
     #
     # file name (document/signature specific)
@@ -348,11 +353,10 @@ class GroupObject(object):
     @property
     def file_name(self):
         """ """
-        print(self._resource_type)
         if self._resource_type in [ResourceType.DOCUMENTS, ResourceType.SIGNATURES]:
             return self._file_name
         else:
-            raise AttributeError('File Name is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10230.value)
 
     def set_file_name(self, data, update=True):
         """Read-Write group metadata"""
@@ -361,7 +365,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('File Name is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10230.value)
 
     #
     # file size (document specific)
@@ -372,7 +376,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.DOCUMENTS:
             return self._file_size
         else:
-            raise AttributeError('File Size is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10240.value)
 
     def set_file_size(self, data, update=True):
         """Read-Write group metadata"""
@@ -381,7 +385,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('File Size is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10240.value)
 
     #
     # file text (signature specific)
@@ -392,7 +396,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.SIGNATURES:
             return self._file_text
         else:
-            raise AttributeError('File Text is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10250.value)
 
     def set_file_text(self, data, update=True):
         """Read-Write group metadata"""
@@ -401,7 +405,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('File Text is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10250.value)
 
     #
     # file type (signature specific)
@@ -412,7 +416,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.SIGNATURES:
             return self._file_type
         else:
-            raise AttributeError('File Type is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10260.value)
 
     def set_file_type(self, data, update=True):
         """Read-Write group metadata"""
@@ -421,7 +425,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('File Type is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10260.value)
 
     #
     # from_address (email specific)
@@ -432,7 +436,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.EMAILS:
             return self._from_address
         else:
-            raise AttributeError('From is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10270.value)
 
     def set_from_address(self, data, update=True):
         """Read-Write group metadata"""
@@ -441,7 +445,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('From is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10270.value)
 
     #
     # header (email specific)
@@ -452,7 +456,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.EMAILS:
             return self._header
         else:
-            raise AttributeError('Header is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10280.value)
 
     def set_header(self, data, update=True):
         """Read-Write group metadata"""
@@ -461,7 +465,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('Header is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10280.value)
 
     #
     # id
@@ -500,7 +504,7 @@ class GroupObject(object):
     @property
     def name(self):
         """ """
-        return self._name
+        return self._uni(self._name)
 
     def set_name(self, data, update=True):
         """Read-Write group metadata"""
@@ -529,7 +533,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.EMAILS:
             return self._score
         else:
-            raise AttributeError('Score is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10290.value)
 
     def set_score(self, data, update=True):
         """Read-Write group metadata"""
@@ -538,7 +542,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('Score is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10290.value)
 
     #
     # subject (email specific)
@@ -549,7 +553,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.EMAILS:
             return self._subject
         else:
-            raise AttributeError('Subject is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10300.value)
 
     def set_subject(self, data, update=True):
         """Read-Write group metadata"""
@@ -558,7 +562,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('Subject is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10300.value)
 
     #
     # to (email specific)
@@ -569,7 +573,7 @@ class GroupObject(object):
         if self._resource_type == ResourceType.EMAILS:
             return self._to
         else:
-            raise AttributeError('To is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10310.value)
 
     def set_to(self, data, update=True):
         """Read-Write group metadata"""
@@ -578,7 +582,7 @@ class GroupObject(object):
             if update and self._phase == 0:
                 self._phase = 2
         else:
-            raise AttributeError('To is not supported for this resource type.')
+            raise AttributeError(ErrorCodes.e10310.value)
 
     #
     # type
@@ -680,51 +684,51 @@ class GroupObject(object):
     def __str__(self):
         """allow object to be displayed with print"""
 
-        printable_string = '\n{0:_^80}\n'.format('Group Resource Object Properties')
+        printable_string = '\n{0!s:_^80}\n'.format('Group Resource Object Properties')
 
         #
         # retrievable methods
         #
-        printable_string += '{0:40}\n'.format('Retrievable Methods')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('id', self.id))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('name', self.name))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('resource_type', self.resource_type))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('owner_name', self.owner_name))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('date_added', self.date_added))
+        printable_string += '{0!s:40}\n'.format('Retrievable Methods')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('id', self.id))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('name', self.name))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('resource_type', self.resource_type))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('owner_name', self.owner_name))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('date_added', self.date_added))
         if self.security_label is not None:
-            printable_string += ('  {0:<28}: {1:<50}\n'.format('security_label', self.security_label.name))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('type', self.type))
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('weblink', self.weblink))
+            printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('security_label', self.security_label.name))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('type', self.type))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('weblink', self.weblink))
 
         #
         # writable properties
         #
-        printable_string += '\n{0:40}\n'.format('Writable Properties')
+        printable_string += '\n{0!s:40}\n'.format('Writable Properties')
         for prop, values in sorted(self._properties.items()):
-            printable_string += ('  {0:<28}: {1:<50}\n'.format(
-                values['api_field'], '{0} (Required: {1})'.format(values['method'], str(values['required']))))
+            printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format(
+                values['api_field'], '{0!s} (Required: {1!s})'.format(values['method'], str(values['required']))))
 
         #
         # object information
         #
-        printable_string += '\n{0:40}\n'.format('Object Information')
-        printable_string += ('  {0:<28}: {1:<50}\n'.format('phase', self.phase))
+        printable_string += '\n{0!s:40}\n'.format('Object Information')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('phase', self.phase))
 
         #
         # matched filter
         #
         if len(self.matched_filters) > 0:
-            printable_string += '\n{0:40}\n'.format('Matched Filters')
+            printable_string += '\n{0!s:40}\n'.format('Matched Filters')
             for item in sorted(self.matched_filters):
-                printable_string += ('  {0:<28}: {1:<50}\n'.format('matched filter', item))
+                printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('matched filter', item))
 
         #
         # request uri's
         #
         if len(self.request_uris) > 0:
-            printable_string += '\n{0:40}\n'.format('Request URI\'s')
+            printable_string += '\n{0!s:40}\n'.format('Request URI\'s')
             for item in sorted(self.request_uris):
-                printable_string += ('  {0:<28}: {1:<50}\n'.format('', item))
+                printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('', item))
 
         return printable_string
 
@@ -892,7 +896,7 @@ class GroupObjectAdvanced(GroupObject):
                         r_id = api_response_dict['data'][resource_key]['id']
             else:
                 self._tc.tcl.debug('Resource Object'.format(self))
-                raise RuntimeError('Cannot commit incomplete resource object')
+                raise AttributeError(ErrorCodes.e10040.value)
         elif self.phase == 2:
             prop = self._resource_properties['update']
             ro.set_description('update group "{0}".'.format(self._name))
@@ -1085,7 +1089,7 @@ class GroupObjectAdvanced(GroupObject):
             prop = self._resource_properties['signature_download']
         else:
             self._tc.tcl.error('Download requested for wrong resource type.')
-            raise AttributeError('Download is not support for this Resource Type.')
+            raise AttributeError(ErrorCodes.e10320.value)
 
         ro = RequestObject()
         ro.set_description('download {0} for "{1}"'.format(self.resource_type.name.lower(), self._name))
@@ -1264,7 +1268,7 @@ class GroupObjectAdvanced(GroupObject):
             prop = self._resource_properties['signature_upload']
         else:
             self._tc.tcl.error('Upload requested for wrong resource type.')
-            raise AttributeError('Upload is not support for this Resource Type.')
+            raise AttributeError(ErrorCodes.e10330.value)
 
         ro = RequestObject()
         ro.set_body(body)
