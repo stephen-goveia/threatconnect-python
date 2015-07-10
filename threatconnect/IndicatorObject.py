@@ -127,7 +127,8 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     if resource_obj is not None:
         # store the resource object in the master resource object list
         # must be submitted after parameters are set for indexing to work
-        roi = resource_obj.add_master_resource_obj(indicator, indicator_dict['id'])
+        # roi = resource_obj.add_master_resource_obj(indicator, indicator_dict['id'])
+        roi = resource_obj.add_master_resource_obj(indicator, indicator.indicator)
 
         # retrieve the resource object and update data
         return resource_obj.get_resource_by_identity(roi)
@@ -925,17 +926,21 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
 
-    def add_file_occurrence(self, fo_file_name, fo_path, fo_date):
+    def add_file_occurrence(self, fo_file_name=None, fo_path=None, fo_date=None):
         """ add an file occurrence to an indicator """
         if self._resource_type != ResourceType.FILES:
             raise AttributeError(ErrorCodes.e10150.value)
 
         prop = self._resource_properties['file_occurrence_add']
         ro = RequestObject()
-        ro.set_body(json.dumps({
-            'fileName': fo_file_name,
-            'path': fo_path,
-            'date': fo_date}))
+        json_dict = {}
+        if fo_file_name is not None:
+            json_dict['fileName'] = fo_file_name
+        if fo_path is not None:
+            json_dict['path'] = fo_path
+        if fo_date is not None:
+            json_dict['date'] = fo_date
+        ro.set_body(json.dumps(json_dict))
         ro.set_description('add file occurrence - file "{0}" to "{1}"'.format(fo_file_name, self._reference_indicator))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])

@@ -175,12 +175,17 @@ class Resource(object):
         # update master resource object id index
         self._master_object_id_idx.setdefault(id(data_obj), data_obj)
 
-        if index not in self._master_res_id_idx:
-            self._master_objects.append(data_obj)
-            self._master_res_id_idx.setdefault(index, data_obj)
-            duplicate = False
-        else:
-            resource_object_id = id(self._master_res_id_idx[index])
+        # handle file hashed by making all index a dict
+        if not isinstance(index, dict):
+            index = {'index': index}
+
+        for indx in index.values():
+            if indx not in self._master_res_id_idx:
+                self._master_objects.append(data_obj)
+                self._master_res_id_idx.setdefault(indx, data_obj)
+                duplicate = False
+            else:
+                resource_object_id = id(self._master_res_id_idx[indx])
 
         #
         # post filters indexes
@@ -443,18 +448,18 @@ class Resource(object):
     def get_resource_by_id(self, data):
         """ """
         if data in self._master_res_id_idx:
-            return self._master_res_id_idx[data]
+            return self._method_wrapper(self._master_res_id_idx[data])
         else:
             self.tcl.warning(ErrorCodes.e10012.value.format(data))
-            return []
+            return None
 
     def get_resource_by_name(self, data):
         """ """
         if data in self._master_res_id_idx:
-            return self._master_res_id_idx[data]
+            return self._method_wrapper(self._master_res_id_idx[data])
         else:
             self.tcl.warning(ErrorCodes.e10013.value.format(data))
-            return []
+            return None
 
     def retrieve(self):
         """ """
