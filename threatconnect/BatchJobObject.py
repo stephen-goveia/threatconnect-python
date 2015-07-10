@@ -21,6 +21,7 @@ class BatchJobObject(object):
         '_haltOnError',
         '_attributeWriteType',
         '_action',
+        '_owner',
         '_phase',
         '_properties',
         '_request_uris',
@@ -39,6 +40,7 @@ class BatchJobObject(object):
         self._haltOnError = None
         self._attributeWriteType = None
         self._action = None
+        self._owner = None
         self._errors = None
         self._status = None
         self._errorCount = None
@@ -62,7 +64,11 @@ class BatchJobObject(object):
                 'method': 'set_action',
                 'required': True,
             },
-
+            '_owner': {
+                'api_field': 'owner',
+                'method': 'set_owner',
+                'required': True,
+            },
         }
         self._phase = 0
         self._request_uris = []
@@ -120,6 +126,16 @@ class BatchJobObject(object):
 
     def set_action(self, action):
         self._action = action
+
+    #
+    # owner
+    #
+    @property
+    def owner(self):
+        return self._owner
+
+    def set_owner(self, owner):
+        self._owner = owner
 
     #
     # validate

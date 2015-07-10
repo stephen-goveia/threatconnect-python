@@ -33,7 +33,3 @@ class BatchJobTest(unittest.TestCase):
         batchJob.upload('test upload')
 
         batchJob.commit()
-
-
-
-
