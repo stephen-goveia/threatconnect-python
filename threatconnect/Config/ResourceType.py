@@ -43,3 +43,5 @@ class ResourceType(Enum):
 
     # batch jobs
     BATCH_JOBS = 1075
+
+    DNS_RESOLUTIONS = 1080

@@ -7,7 +7,7 @@ import sys
 
 """ custom """
 from threatconnect.AttributeObject import parse_attribute
-from threatconnect.DnsResolutionObject import parse_dns_resolution
+from threatconnect.DnsResolutionObject import parse_dns_resolution, DnsResolutionObject
 from threatconnect.FileOccurrenceObject import parse_file_occurrence
 import threatconnect.GroupObject
 from threatconnect.SecurityLabelObject import parse_security_label
@@ -1408,16 +1408,11 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_request_uri(prop['uri'].format(self._reference_indicator))
         ro.set_owner(self.owner_name)
-        ro.set_resource_type(self._resource_type)
-        api_response = self._tc.api_request(ro)
+        ro.set_resource_type(ResourceType.DNS_RESOLUTIONS)
 
-        if api_response.headers['content-type'] == 'application/json':
-            api_response_dict = api_response.json()
-            if api_response_dict['status'] == 'Success':
-                data = api_response_dict['data']['dnsResolution']
-                for item in data:
-                    if 'addresses' in item:  # don't process dns resolutions that have no addresses
-                        self._resource_obj.add_dns_resolution(parse_dns_resolution(item))  # add to main resource object
+        data = self._tc.api_response_handler(self, ro)
+        for item in data:
+                self._resource_obj.add_dns_resolution(item)  # add to main resource object
 
     def load_file_occurrence(self):
         """ retrieve file occurrence for this indicator """

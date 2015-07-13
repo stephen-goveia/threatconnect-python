@@ -8,6 +8,7 @@ import os
 import re
 import socket
 import time
+from threatconnect.DnsResolutionObject import parse_dns_resolution
 
 """ third-party """
 from requests import (exceptions, packages, Request, Session)
@@ -527,6 +528,16 @@ class ThreatConnect:
                     for item in data:
                         obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
 
+                #
+                # DNSResolutions
+                #
+                elif ro.resource_type == ResourceType.DNS_RESOLUTIONS:
+                    data = api_response_dict['data']['dnsResolution']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        if 'addresses' in item:  # don't process dns resolutions that have no addresses
+                            obj_list.append(parse_dns_resolution(item))
                 #
                 # INCIDENTS
                 #

@@ -441,7 +441,7 @@ def i_properties(indicator_uri):
             'http_method': 'GET',
             'uri': '/v2/indicators/hosts/{0}/dnsResolutions',  # indicator value
             'owner_allowed': True,
-            'pagination': False,
+            'pagination': True,
         }
 
     return properties

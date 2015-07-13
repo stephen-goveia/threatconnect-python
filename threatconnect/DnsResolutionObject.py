@@ -1,4 +1,5 @@
 """ standard """
+from threatconnect.Config.ResourceType import ResourceType
 
 """ custom """
 from threatconnect.ErrorCodes import ErrorCodes
@@ -12,7 +13,7 @@ def parse_dns_resolution(dr_dict):
     # standard values
     #
     for address in dr_dict['addresses']:
-        dr = FileOccurrenceObject()
+        dr = DnsResolutionObject()
         dr.set_ip(address['ip'])
         dr.set_resolution_date(dr_dict['resolutionDate'])
         dr.set_owner_name(address['ownerName'])
@@ -22,12 +23,13 @@ def parse_dns_resolution(dr_dict):
     return dr_list
 
 
-class FileOccurrenceObject(object):
+class DnsResolutionObject(object):
     __slots__ = (
         '_ip',
         '_owner_name',
         '_resolution_date',
         '_weblink',
+        'resource_type'
     )
 
     def __init__(self):
@@ -35,6 +37,7 @@ class FileOccurrenceObject(object):
         self._owner_name = None
         self._resolution_date = None
         self._weblink = None
+        self.resource_type = ResourceType.DNS_RESOLUTIONS
 
     #
     # unicode
