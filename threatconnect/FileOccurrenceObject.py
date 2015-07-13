@@ -13,7 +13,8 @@ def parse_file_occurrence(fo_dict):
     #
     fo.set_date(fo_dict['date'])
     fo.set_file_name(fo_dict['fileName'])
-    fo.set_path(fo_dict['path'])
+    if 'path' in fo_dict:
+        fo.set_path(fo_dict['path'])
 
     return fo
 
