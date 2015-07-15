@@ -6,7 +6,7 @@ from StringIO import StringIO
 import sys
 
 """ custom """
-from threatconnect.AttributeObject import parse_attribute
+from threatconnect.AttributeObject import parse_attribute, AttributeObject
 import threatconnect.IndicatorObject
 from threatconnect.SecurityLabelObject import parse_security_label
 from threatconnect.TagObject import parse_tag
@@ -803,6 +803,11 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
+        attribute = AttributeObject()
+        attribute.set_type(attr_type)
+        attribute.set_value(attr_value)
+        attribute.set_displayed(attr_displayed)
+        self._resource_obj.add_attribute(attribute)
 
     def add_tag(self, tag):
         """ add a tag to an indicator """
@@ -924,7 +929,7 @@ class GroupObjectAdvanced(GroupObject):
                 if self.phase == 1 and self.id != r_id:
                     request_uri = str(ro.request_uri.replace(str(self.id), str(r_id)))
                     ro.set_request_uri(request_uri)
-                self._tc.tcl.debug('Replacing {0} with {1}'.format(self.id, str(r_id)))
+                    self._tc.tcl.debug('Replacing {0} with {1}'.format(self.id, str(r_id)))
 
                 api_response2 = self._tc.api_request(ro)
                 if 'content-type' in api_response2.headers:
@@ -1183,6 +1188,7 @@ class GroupObjectAdvanced(GroupObject):
             api_response_dict = api_response.json()
             if api_response_dict['status'] == 'Success':
                 data = api_response_dict['data']['attribute']
+                self._resource_obj._attributes = []
                 for item in data:
                     self._resource_obj.add_attribute(parse_attribute(item))  # add to main resource object
 
@@ -1306,3 +1312,12 @@ class GroupObjectAdvanced(GroupObject):
                 data = api_response_dict['data']['victim']
                 for item in data:
                     yield parse_victim(item, api_filter=ro.description, request_uri=ro.request_uri)
+
+
+    #
+    # attributes
+    #
+    @property
+    def attributes(self):
+        """ """
+        return self._resource_obj._attributes
