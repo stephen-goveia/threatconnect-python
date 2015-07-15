@@ -176,16 +176,27 @@ class Resource(object):
         self._master_object_id_idx.setdefault(id(data_obj), data_obj)
 
         # handle file hashed by making all index a dict
-        if not isinstance(index, dict):
-            index = {'index': index}
+        if isinstance(index, dict):
+            init = True
+            for indx in index.values():
+                if indx is None:
+                    continue
 
-        for indx in index.values():
-            if indx not in self._master_res_id_idx:
+                if indx.upper() not in self._master_res_id_idx:
+                    if init:  # only add file indicator one time
+                        self._master_objects.append(data_obj)
+                        init = False
+                    self._master_res_id_idx.setdefault(indx.upper(), data_obj)
+                    duplicate = False
+                else:
+                    resource_object_id = id(self._master_res_id_idx[indx])
+        else:
+            if index not in self._master_res_id_idx:
                 self._master_objects.append(data_obj)
-                self._master_res_id_idx.setdefault(indx, data_obj)
+                self._master_res_id_idx.setdefault(index, data_obj)
                 duplicate = False
             else:
-                resource_object_id = id(self._master_res_id_idx[indx])
+                resource_object_id = id(self._master_res_id_idx[index])
 
         #
         # post filters indexes
@@ -449,6 +460,8 @@ class Resource(object):
         """ """
         if data in self._master_res_id_idx:
             return self._method_wrapper(self._master_res_id_idx[data])
+        elif data.upper() in self._master_res_id_idx:
+            return self._method_wrapper(self._master_res_id_idx[data.upper()])
         else:
             self.tcl.warning(ErrorCodes.e10012.value.format(data))
             return None

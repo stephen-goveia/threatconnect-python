@@ -313,6 +313,8 @@ class ThreatConnect:
         #
         non_critical_errors = [
             b'The MD5 for this File is invalid, a File with this MD5 already exists',  # 400 (application/json)
+            b'The SHA-1 for this File is invalid, a File with this SHA-1 already exists',  # 400 (application/json)
+            b'The SHA-256 for this File is invalid, a File with this SHA-256 already exists',  # 400 (application/json)
             b'The requested resource was not found',  # 404 (application/json)
             b'Could not find resource for relative',  # 500 (text/plain)
             b'The requested Security Label was not removed - access was denied',  # 401 (application/json)
