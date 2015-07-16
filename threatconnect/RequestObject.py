@@ -30,6 +30,7 @@ class RequestObject(object):
         self._result_limit = 0
         self._result_start = 0
         self._track = False
+        self._failure_callback = None
 
     # unicode
     @staticmethod
@@ -135,6 +136,10 @@ class RequestObject(object):
         self._payload['resultStart'] = self._uni(data)
         self._result_start = self._uni(data)
 
+    def set_failure_callback(self, callback):
+        """ position to start retrieving results """
+        self._failure_callback = callback
+
     @property
     def body(self):
         """ """
@@ -214,6 +219,11 @@ class RequestObject(object):
     def track(self):
         """ """
         return self._track
+
+    @property
+    def failure_callback(self):
+        """ """
+        return self._failure_callback
 
     def __str__(self):
         """ """

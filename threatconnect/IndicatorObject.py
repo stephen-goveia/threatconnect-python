@@ -6,7 +6,7 @@ from StringIO import StringIO
 import sys
 
 """ custom """
-from threatconnect.AttributeObject import parse_attribute
+from threatconnect.AttributeObject import parse_attribute, AttributeObject
 from threatconnect.DnsResolutionObject import parse_dns_resolution, DnsResolutionObject
 from threatconnect.FileOccurrenceObject import parse_file_occurrence
 import threatconnect.GroupObject
@@ -183,6 +183,7 @@ class IndicatorObject(object):
         '_type',
         '_weblink',
         '_whois_active',  # host indicator type specific
+        '_reload_attributes',
     )
 
     def __init__(self, resource_type_enum=None):
@@ -204,6 +205,7 @@ class IndicatorObject(object):
         self._md5 = None  # file indicator type specific
         self._owner_name = None
         self._phase = 0
+        self._reload_attributes = False
         self._properties = {
             '_confidence': {
                 'api_field': 'confidence',
@@ -924,7 +926,20 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_request_uri(prop['uri'].format(self._reference_indicator))
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
+        callback = lambda status: self.__add_attribute_failure(attr_type, attr_value)
+        ro.set_failure_callback(callback)
         self._resource_container.add_commit_queue(self.id, ro)
+        attribute = AttributeObject(self)
+        attribute.set_type(attr_type)
+        attribute.set_value(attr_value)
+        attribute.set_displayed(attr_displayed)
+        self.add_attribute(attribute)
+
+    def __add_attribute_failure(self, attr_type, attr_value):
+        for attribute in self._attributes:
+            if attribute.type == attr_type and attribute.value == attr_value:
+                self._attributes.remove(attribute)
+                break
 
     def add_file_occurrence(self, fo_file_name=None, fo_path=None, fo_date=None):
         """ add an file occurrence to an indicator """
@@ -1118,6 +1133,9 @@ class IndicatorObjectAdvanced(IndicatorObject):
         self._resource_container.clear_commit_queue_id(self.id)
 
         self.set_phase(0)
+
+        if self._reload_attributes:
+            self.load_attributes(automatically_reload=True)
 
         # return object
         return self
@@ -1370,7 +1388,8 @@ class IndicatorObjectAdvanced(IndicatorObject):
             leef_version, leef_device_vendor, leef_device_product,
             leef_product_version, leef_event_id, leef_extension)
 
-    def load_attributes(self):
+    def load_attributes(self, automatically_reload=False):
+        self._reload_attributes = automatically_reload
         """ retrieve attributes for this indicator """
         prop = self._resource_properties['attributes']
         ro = RequestObject()
@@ -1387,8 +1406,9 @@ class IndicatorObjectAdvanced(IndicatorObject):
             api_response_dict = api_response.json()
             if api_response_dict['status'] == 'Success':
                 data = api_response_dict['data']['attribute']
+                self._resource_obj._attributes = []
                 for item in data:
-                    self._resource_obj.add_attribute(parse_attribute(item))  # add to main resource object
+                    self._resource_obj.add_attribute(parse_attribute(item, self))  # add to main resource object
 
     def load_data(self, resource_obj):
         """ load data from resource object to self """
@@ -1528,3 +1548,10 @@ class IndicatorObjectAdvanced(IndicatorObject):
                 for item in data:
                     yield parse_victim(item, api_filter=ro.description, request_uri=ro.request_uri)
 
+    #
+    # attributes
+    #
+    @property
+    def attributes(self):
+        """ """
+        return self._resource_obj._attributes

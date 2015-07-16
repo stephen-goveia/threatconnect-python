@@ -334,12 +334,21 @@ class ThreatConnect:
                 # api_response_dict['message'] not in non_critical_errors:
                 if re.findall(nce, api_response.content):
                     nce_found = True
+                    break
+
+            if ro.failure_callback is not None:
+                ro.failure_callback(api_response.status_code)
+
 
             # raise error on bad status codes that are not defined as nce
             if not nce_found:
                 self.tcl.critical('Status Code: {0:d}'.format(api_response.status_code))
                 self.tcl.critical('Failed API Response: {0!s}'.format(api_response.content))
+                if ro.failure_callback is not None:
+                    ro.failure_callback(api_response.status_code)
                 raise RuntimeError(api_response.content)
+
+
 
         #
         # set response encoding (best guess)

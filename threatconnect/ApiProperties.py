@@ -338,6 +338,12 @@ def i_properties(indicator_uri):
             'pagination': False,
             'uri': '/v2/indicators/' + indicator_uri + '/{0}',  # indicator value
         },
+        'id': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + indicator_uri + '/{0}',  # indicator value
+        },
         'security_label_add': {
             'http_method': 'POST',
             'owner_allowed': True,
@@ -737,6 +743,29 @@ batch_job_properties = {
     ]
 }
 
+#
+# attributes
+#
+attribute_properties = {
+    'load_security_labels': {
+        'http_method': 'GET',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '{0}/attributes/{1}/securityLabels'
+    },
+    'delete_security_label': {
+        'http_method': 'DELETE',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '{0}/attributes/{1}/securityLabels/{2}'
+    },
+    'add_security_label': {
+        'http_method': 'POST',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '{0}/attributes/{1}/securityLabels/{2}'
+    },
+}
 
 api_properties = {
     'ADDRESSES': {
@@ -828,5 +857,10 @@ api_properties = {
         'properties': batch_job_properties,
         'resource_key': 'batchJob',
         'uri_attribute': 'batchJobs'
+    },
+    'ATTRIBUTES': {
+        'properties': attribute_properties,
+        'resource_key': 'attribute',
+        'uri_attribute': 'attributes'
     }
 }

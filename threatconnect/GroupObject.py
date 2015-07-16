@@ -144,6 +144,7 @@ class GroupObject(object):
         '_to',  # email specific
         '_type',
         '_weblink',
+        '_reload_attributes'
     )
 
     def __init__(self, resource_type_enum=None):
@@ -163,6 +164,7 @@ class GroupObject(object):
         self._name = None
         self._owner_name = None
         self._phase = 0
+        self._reload_attributes = False
         self._properties = {
             '_name': {
                 'api_field': 'name',
@@ -802,12 +804,20 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_request_uri(prop['uri'].format(self._id))
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
+        callback = lambda status: self.__add_attribute_failure(attr_type, attr_value)
+        ro.set_failure_callback(callback)
         self._resource_container.add_commit_queue(self.id, ro)
-        attribute = AttributeObject()
+        attribute = AttributeObject(self)
         attribute.set_type(attr_type)
         attribute.set_value(attr_value)
         attribute.set_displayed(attr_displayed)
         self._resource_obj.add_attribute(attribute)
+
+    def __add_attribute_failure(self, attr_type, attr_value):
+        for attribute in self._attributes:
+            if attribute.type == attr_type and attribute.value == attr_value:
+                self._attributes.remove(attribute)
+                break
 
     def add_tag(self, tag):
         """ add a tag to an indicator """
@@ -952,6 +962,9 @@ class GroupObjectAdvanced(GroupObject):
 
         # clear phase
         self.set_phase(0)
+
+        if self._reload_attributes:
+            self.load_attributes(automatically_reload=True)
 
         # return object
         return self
@@ -1171,7 +1184,8 @@ class GroupObjectAdvanced(GroupObject):
 
         return keyval_str
 
-    def load_attributes(self):
+    def load_attributes(self, automatically_reload=False):
+        self._reload_attributes = automatically_reload
         """ retrieve attributes for this group """
         prop = self._resource_properties['attributes']
         ro = RequestObject()

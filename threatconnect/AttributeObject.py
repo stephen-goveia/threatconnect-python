@@ -1,17 +1,20 @@
 """ standard """
+from threatconnect import ApiProperties
+from threatconnect.RequestObject import RequestObject
+from threatconnect.SecurityLabelObject import parse_security_label, SecurityLabelObject
 
 """ custom """
 from threatconnect.ErrorCodes import ErrorCodes
 
 
-def parse_attribute(attribute_dict):
+def parse_attribute(attribute_dict, container):
     """ """
     # store the resource object in the master resource object list
     # roi = resource_obj.add_master_resource_obj(AttributeObject(), attribute_dict['id'])
 
     # retrieve the resource object and update data
     # attribute = resource_obj.get_resource_by_identity(roi)
-    attribute = AttributeObject()
+    attribute = AttributeObject(container)
 
     #
     # standard values
@@ -37,9 +40,13 @@ class AttributeObject(object):
         '_value',
         '_validated',
         '_writable_attrs',
+        '_resource_properties',
+        '_security_labels',
+        '_container'
     )
 
-    def __init__(self):
+    def __init__(self, container):
+        self._resource_properties = ApiProperties.api_properties['ATTRIBUTES']['properties']
         self._date_added = None
         self._displayed = None
         self._id = None
@@ -47,6 +54,8 @@ class AttributeObject(object):
         self._required_attrs = ['type', 'value']
         self._type = None
         self._value = None
+        self._security_labels = []
+        self._container = container
         self._writable_attrs = {
             '_displayed': 'set_displayed',
             '_type': 'set_type',
@@ -164,6 +173,86 @@ class AttributeObject(object):
                 return
 
         self._validated = True
+
+    def load_security_labels(self):
+        """ retrieve attributes for this indicator """
+        prop = self._resource_properties['load_security_labels']
+        ro = RequestObject()
+        ro.set_description('load security labels for attribute {0} of object {1}'.format(self.id, self._container.id))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        resource_uri = self._container._resource_properties['id']['uri']
+        try:
+            resource_uri = resource_uri.format(self._container.indicator)
+        except AttributeError:
+            resource_uri = resource_uri.format(self._container.id)
+        ro.set_request_uri(prop['uri'].format(resource_uri, self.id))
+        ro.set_resource_pagination(prop['pagination'])
+        api_response = self._container._tc.api_request(ro)
+
+        if api_response.headers['content-type'] == 'application/json':
+            api_response_dict = api_response.json()
+            if api_response_dict['status'] == 'Success':
+                self._security_labels = []
+                data = api_response_dict['data']['securityLabel']
+                for item in data:
+                    self.__add_security_label(parse_security_label(item))  # add to main resource object
+
+    def delete_security_label(self, security_label_name):
+        """ retrieve attributes for this indicator """
+        prop = self._resource_properties['delete_security_label']
+        ro = RequestObject()
+        ro.set_description('deleting security label {0} for attribute {1} of object {2}'.format(security_label_name, self.id, self._container.id))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        resource_uri = self._container._resource_properties['id']['uri']
+        try:
+            resource_uri = resource_uri.format(self._container.indicator)
+        except AttributeError:
+            resource_uri = resource_uri.format(self._container.id)
+        ro.set_request_uri(prop['uri'].format(resource_uri, self.id, security_label_name))
+        ro.set_resource_pagination(prop['pagination'])
+
+        self._container._resource_container.add_commit_queue(self._container.id, ro)
+
+    def __add_security_label(self, security_label):
+        self._security_labels.append(security_label)
+
+    def add_security_label(self, security_label_name):
+        """ retrieve attributes for this indicator """
+        prop = self._resource_properties['add_security_label']
+        ro = RequestObject()
+        ro.set_description('deleting security label {0} for attribute {1} of object {2}'.format(security_label_name, self.id, self._container.id))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        resource_uri = self._container._resource_properties['id']['uri']
+        try:
+            resource_uri = resource_uri.format(self._container.indicator)
+        except AttributeError:
+            resource_uri = resource_uri.format(self._container.id)
+        ro.set_request_uri(prop['uri'].format(resource_uri, self.id, security_label_name))
+        ro.set_resource_pagination(prop['pagination'])
+        callback = lambda status: self.__failed_add_security_label(security_label_name)
+        ro.set_failure_callback(callback)
+        self._container._resource_container.add_commit_queue(self._container.id, ro)
+
+        security_label = SecurityLabelObject()
+        security_label.set_name(security_label_name)
+        self.__add_security_label(security_label)
+
+    def __failed_add_security_label(self, security_label_name):
+        for security_label in self._security_labels:
+            if security_label.name == security_label_name:
+                self._security_labels.remove(security_label)
+                break
+
+    #
+    # security_labels
+    #
+    @property
+    def security_labels(self):
+        """ """
+        return self._security_labels
 
     #
     # add print method
