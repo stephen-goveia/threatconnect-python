@@ -932,7 +932,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
         attribute.set_type(attr_type)
         attribute.set_value(attr_value)
         attribute.set_displayed(attr_displayed)
-        self.add_attribute(attribute)
+        self._resource_obj.add_attribute(attribute)
 
     def __add_attribute_failure(self, attr_type, attr_value):
         for attribute in self._attributes:
