@@ -1,0 +1,13 @@
+{
+  "status": "Success",
+  "data": {
+    "attribute": {
+      "id": 1597322,
+      "type": "Description",
+      "dateAdded": "2015-07-17T10:37:38-04:00",
+      "lastModified": "2015-07-17T10:37:38-04:00",
+      "displayed": true,
+      "value": "foobar"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "status": "Success",
+  "data": {
+    "host": {
+      "id": 646978,
+      "owner": {
+        "id": 1,
+        "name": "System",
+        "type": "Organization"
+      },
+      "dateAdded": "2015-07-13T15:04:54-04:00",
+      "lastModified": "2015-07-17T10:30:34-04:00",
+      "rating": 2,
+      "confidence": 74,
+      "webLink": "null/auth/indicators/details/host.xhtml?host=www.google.com&owner=System&owner=System",
+      "description": "foobar",
+      "hostName": "www.google.com",
+      "dnsActive": "false",
+      "whoisActive": "true"
+    }
+  }
+}

@@ -24,3 +24,13 @@ class IndicatorTests(unittest.TestCase):
         indicators.retrieve()
 
         assert(len(indicators) == 1)
+
+    def test_add_attribute(self):
+        indicators = self.threatconnect.indicators()
+        filter = indicators.add_filter()
+        filter.add_indicator('www.google.com')
+        indicators.retrieve()
+
+        for indicator in indicators:
+            indicator.add_attribute('Description', 'foobar')
+            assert len(indicator.attributes) == 1
