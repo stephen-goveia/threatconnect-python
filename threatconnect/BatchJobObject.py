@@ -1,14 +1,7 @@
 """ standard """
-import csv
 import json
-import urllib
-from StringIO import StringIO
-import sys
 
 """ custom """
-import threatconnect.GroupObject
-import threatconnect.IndicatorObject
-from threatconnect.VictimAssetObject import parse_victim_asset
 
 from threatconnect import ApiProperties
 from threatconnect.Config.ResourceType import ResourceType
@@ -18,8 +11,8 @@ from threatconnect.RequestObject import RequestObject
 class BatchJobObject(object):
     __slots__ = (
         '_id',
-        '_haltOnError',
-        '_attributeWriteType',
+        '_halt_on_error',
+        '_attribute_write_type',
         '_action',
         '_owner',
         '_phase',
@@ -28,35 +21,35 @@ class BatchJobObject(object):
         '_resource_type',
         '_errors',
         '_status',
-        '_errorCount',
-        '_successCount',
-        '_unprocessCount',
+        '_error_count',
+        '_success_count',
+        '_unprocess_count',
         '_matched_filters',
         '_request_uris'
     )
 
     def __init__(self):
         self._id = None
-        self._haltOnError = None
-        self._attributeWriteType = None
+        self._halt_on_error = None
+        self._attribute_write_type = None
         self._action = None
         self._owner = None
         self._errors = None
         self._status = None
-        self._errorCount = None
-        self._successCount = None
-        self._unprocessCount = None
+        self._error_count = None
+        self._success_count = None
+        self._unprocess_count = None
         self._matched_filters = []
         self._request_uris = []
         self._properties = {
-            '_haltOnError': {
+            '_halt_on_error': {
                 'api_field': 'haltOnError',
-                'method': 'set_haltOnError',
+                'method': 'set_halt_on_error',
                 'required': True,
             },
-            '_attributeWriteType': {
+            '_attribute_write_type': {
                 'api_field': 'attributeWriteType',
-                'method': 'set_attributeWriteType',
+                'method': 'set_attribute_write_type',
                 'required': True,
             },
             '_action': {
@@ -98,24 +91,24 @@ class BatchJobObject(object):
             self._phase = 2
 
     #
-    # haltOnError
+    # halt_on_error
     #
     @property
-    def haltOnError(self):
-        return self._haltOnError
+    def halt_on_error(self):
+        return self._halt_on_error
 
-    def set_haltOnError(self, haltOnError):
-        self._haltOnError = haltOnError
+    def set_halt_on_error(self, halt_on_error):
+        self._halt_on_error = halt_on_error
             
     #
-    # attributeWriteType
+    # attribute_write_type
     #
     @property
-    def attributeWriteType(self):
-        return self._haltOnError
+    def attribute_write_type(self):
+        return self._attribute_write_type
 
-    def set_attributeWriteType(self, attributeWriteType):
-        self._attributeWriteType = attributeWriteType
+    def set_attribute_write_type(self, attribute_write_type):
+        self._attribute_write_type = attribute_write_type
             
     #
     # action
@@ -181,31 +174,31 @@ class BatchJobObject(object):
         self._status = data
         
     #
-    # errorCount
+    # error_count
     #
-    def errorCount(self):
-        return self._errorCount
+    def error_count(self):
+        return self._error_count
 
-    def set_errorCount(self, data):
-        self._errorCount = data
-
-    #
-    # successCount
-    #
-    def successCount(self):
-        return self._successCount
-
-    def set_successCount(self, data):
-        self._successCount = data
+    def set_error_count(self, data):
+        self._error_count = data
 
     #
-    # unprocessCount
+    # success_count
     #
-    def unprocessCount(self):
-        return self._unprocessCount
+    def success_count(self):
+        return self._success_count
 
-    def set_unprocessCount(self, data):
-        self._unprocessCount = data
+    def set_success_count(self, data):
+        self._success_count = data
+
+    #
+    # unprocess_count
+    #
+    def unprocess_count(self):
+        return self._unprocess_count
+
+    def set_unprocess_count(self, data):
+        self._unprocess_count = data
 
     #
     # matched filters
@@ -255,7 +248,7 @@ class BatchJobObjectAdvanced(BatchJobObject):
         self._basic_structure = {
             'id': 'id',
             'haltOnError': 'haltOnError',
-            'attributeWriteType': 'attributeWriteType',
+            'attributeWriteType': 'attribute_write_type',
             'action': 'action'
         }
         self._structure = self._basic_structure.copy()

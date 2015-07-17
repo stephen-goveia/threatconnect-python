@@ -5,10 +5,10 @@ from TestUtilities import *
 class IndicatorTests(unittest.TestCase):
 
     def setUp(self):
-        testSetup(self)
+        test_setup(self)
 
     def tearDown(self):
-        testTeardown(self)
+        test_teardown(self)
 
     def test_retrieve(self):
         indicators = self.threatconnect.indicators()

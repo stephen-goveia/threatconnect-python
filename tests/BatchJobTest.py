@@ -5,31 +5,32 @@ from TestUtilities import *
 class BatchJobTest(unittest.TestCase):
 
     def setUp(self):
-        testSetup(self)
+        test_setup(self)
 
     def tearDown(self):
-        testTeardown(self)
+        test_teardown(self)
 
     def test_filter_by_id(self):
-        batchJobs = self.threatconnect.batchJobs()
-        filter = batchJobs.add_filter()
+        batch_jobs = self.threatconnect.batch_jobs()
+        filter = batch_jobs.add_filter()
         filter.add_id(32)
-        batchJobs.retrieve()
+        batch_jobs.retrieve()
 
-        assert(len(batchJobs) == 1)
+        assert(len(batch_jobs) == 1)
 
-    def test_create_batchjob(self):
-        batchJobs = self.threatconnect.batchJobs()
-        batchJob = batchJobs.add()
-        batchJob.set_haltOnError(False)
-        batchJob.set_attributeWriteType('Replace')
-        batchJob.set_action('Create')
+    def test_create_batch_job(self):
+        batch_jobs = self.threatconnect.batch_jobs()
+        batch_job = batch_jobs.add()
+        batch_job.set_halt_on_error(False)
+        batch_job.set_attribute_write_type('Replace')
+        batch_job.set_action('Create')
+        batch_job.set_owner('System')
 
-        batchJob.commit()
+        batch_job.commit()
 
     def test_upload(self):
-        batchJobs = self.threatconnect.batchJobs()
-        batchJob = batchJobs.update(32)
-        batchJob.upload('test upload')
+        batch_jobs = self.threatconnect.batch_jobs()
+        batch_job = batch_jobs.update(32)
+        batch_job.upload('test upload')
 
-        batchJob.commit()
+        batch_job.commit()

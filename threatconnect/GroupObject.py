@@ -3,7 +3,6 @@ import csv
 import json
 import urllib
 from StringIO import StringIO
-import sys
 
 """ custom """
 from threatconnect.AttributeObject import parse_attribute, AttributeObject
@@ -275,7 +274,7 @@ class GroupObject(object):
         """ """
         return self._attributes
 
-    def add_attribute(self, data_obj):
+    def add_attribute(self, data_obj, displayed=True):
         """collection of attributes objects"""
         self._attributes.append(data_obj)
 
@@ -790,7 +789,7 @@ class GroupObjectAdvanced(GroupObject):
             self._structure['fileText'] = 'file_text'
 
     def add_attribute(self, attr_type, attr_value, attr_displayed='true'):
-        """ add an attribute to an indicator """
+        """ add an attribute to a group """
         prop = self._resource_properties['attribute_add']
         ro = RequestObject()
         ro.set_body(json.dumps({
@@ -1326,7 +1325,6 @@ class GroupObjectAdvanced(GroupObject):
                 data = api_response_dict['data']['victim']
                 for item in data:
                     yield parse_victim(item, api_filter=ro.description, request_uri=ro.request_uri)
-
 
     #
     # attributes

@@ -3,7 +3,6 @@ import csv
 import json
 import urllib
 from StringIO import StringIO
-import sys
 
 """ custom """
 import threatconnect.GroupObject

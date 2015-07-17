@@ -375,7 +375,6 @@ class VictimAssetObject(object):
             value = getattr(self, prop)
             printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format(prop, value))
 
-
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('type', self.type))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('weblink', self.weblink))
 

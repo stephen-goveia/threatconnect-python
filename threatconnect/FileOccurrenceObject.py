@@ -1,9 +1,3 @@
-""" standard """
-
-""" custom """
-from threatconnect.ErrorCodes import ErrorCodes
-
-
 def parse_file_occurrence(fo_dict):
     """ """
     fo = FileOccurrenceObject()

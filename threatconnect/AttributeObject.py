@@ -202,7 +202,9 @@ class AttributeObject(object):
         """ retrieve attributes for this indicator """
         prop = self._resource_properties['delete_security_label']
         ro = RequestObject()
-        ro.set_description('deleting security label {0} for attribute {1} of object {2}'.format(security_label_name, self.id, self._container.id))
+        ro.set_description('deleting security label {0} for attribute {1} of object {2}'.format(security_label_name,
+                                                                                                self.id,
+                                                                                                self._container.id))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
         resource_uri = self._container._resource_properties['id']['uri']
@@ -222,7 +224,9 @@ class AttributeObject(object):
         """ retrieve attributes for this indicator """
         prop = self._resource_properties['add_security_label']
         ro = RequestObject()
-        ro.set_description('deleting security label {0} for attribute {1} of object {2}'.format(security_label_name, self.id, self._container.id))
+        ro.set_description('deleting security label {0} for attribute {1} of object {2}'.format(security_label_name,
+                                                                                                self.id,
+                                                                                                self._container.id))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
         resource_uri = self._container._resource_properties['id']['uri']

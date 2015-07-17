@@ -3,26 +3,18 @@ import csv
 import json
 import urllib
 from StringIO import StringIO
-import sys
 
 """ custom """
-from threatconnect.AttributeObject import parse_attribute
-import threatconnect.IndicatorObject
-from threatconnect.TagObject import parse_tag
-from threatconnect.VictimObject import parse_victim
 
 from threatconnect import ApiProperties
 from threatconnect.Config.ResourceType import ResourceType
 from threatconnect.ErrorCodes import ErrorCodes
 
-from threatconnect.RequestObject import RequestObject
-from threatconnect.SharedMethods import get_resource_group_type
-
 
 def parse_owner(owner_dict, resource_obj=None, api_filter=None, request_uri=None):
     """ """
     # group object
-    owner= OwnerObject()
+    owner = OwnerObject()
 
     #
     # standard values

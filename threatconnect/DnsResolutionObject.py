@@ -1,9 +1,6 @@
 """ standard """
 from threatconnect.Config.ResourceType import ResourceType
 
-""" custom """
-from threatconnect.ErrorCodes import ErrorCodes
-
 
 def parse_dns_resolution(dr_dict):
     """ """

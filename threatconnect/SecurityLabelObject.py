@@ -1,9 +1,3 @@
-""" standard """
-
-""" custom """
-from threatconnect.ErrorCodes import ErrorCodes
-
-
 def parse_security_label(sl_dict):
     """ """
     sl = SecurityLabelObject()

@@ -156,7 +156,9 @@ class ThreatConnect:
                                 ro.set_owner(o)
                             results = self.api_response_handler(resource_obj, ro)
 
-                            if ro.resource_type not in [ResourceType.OWNERS, ResourceType.VICTIMS, ResourceType.BATCH_JOBS]:
+                            if ro.resource_type not in [ResourceType.OWNERS,
+                                                        ResourceType.VICTIMS,
+                                                        ResourceType.BATCH_JOBS]:
                                 # TODO: should this be done?
                                 # post filter owners
                                 for obj in results:
@@ -339,7 +341,6 @@ class ThreatConnect:
             if ro.failure_callback is not None:
                 ro.failure_callback(api_response.status_code)
 
-
             # raise error on bad status codes that are not defined as nce
             if not nce_found:
                 self.tcl.critical('Status Code: {0:d}'.format(api_response.status_code))
@@ -347,8 +348,6 @@ class ThreatConnect:
                 if ro.failure_callback is not None:
                     ro.failure_callback(api_response.status_code)
                 raise RuntimeError(api_response.content)
-
-
 
         #
         # set response encoding (best guess)
@@ -804,5 +803,5 @@ class ThreatConnect:
         """ return a victim container object """
         return Victims(self)
 
-    def batchJobs(self):
+    def batch_jobs(self):
         return BatchJobs(self)

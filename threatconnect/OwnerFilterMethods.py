@@ -36,7 +36,9 @@ def add_indicator(self, data):
 
 
 def add_pf_name(self, data, operator=FilterOperator.EQ):
-    """ add post filter by name """
+    """ add post filter by name 
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by name {0} "{1}"'.format(operator.name, data))
     post_filter.set_method('filter_name')
@@ -46,7 +48,9 @@ def add_pf_name(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_type(self, data, operator=FilterOperator.EQ):
-    """ add post filter by type """
+    """ add post filter by type 
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by type {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_type')

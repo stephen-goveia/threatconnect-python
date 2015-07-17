@@ -38,7 +38,6 @@ class Documents(Resource):
         return request_object
 
 
-
 class DocumentFilterObject(FilterObject):
     """ """
 

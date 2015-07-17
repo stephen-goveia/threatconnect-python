@@ -1,6 +1,5 @@
 """ standard """
 import time
-import urllib
 
 """ third-party """
 import dateutil.parser

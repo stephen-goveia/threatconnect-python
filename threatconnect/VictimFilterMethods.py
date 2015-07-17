@@ -159,7 +159,9 @@ def add_threat_id(self, data_int):
 
 
 def add_pf_date_added(self, data_date, operator=FilterOperator.EQ):
-    """ add post filter by date """
+    """ add post filter by date 
+    :type operator: FilterOperator
+    """
     # properly format date
     date_added = data_date
     date_added = dateutil.parser.parse(date_added)

@@ -20,7 +20,6 @@ try:
     api_result_limit = int(config.get('threatconnect', 'api_result_limit'))
 except ConfigParser.NoOptionError:
     print('Could not retrieve configuration file.')
-    raise
     sys.exit(1)
 
 tc = ThreatConnect(api_access_id, api_secret_key, api_default_org, api_base_url)

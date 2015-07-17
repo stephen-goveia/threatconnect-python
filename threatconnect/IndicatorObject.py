@@ -3,11 +3,9 @@ import csv
 import json
 import urllib
 from StringIO import StringIO
-import sys
 
 """ custom """
 from threatconnect.AttributeObject import parse_attribute, AttributeObject
-from threatconnect.DnsResolutionObject import parse_dns_resolution, DnsResolutionObject
 from threatconnect.FileOccurrenceObject import parse_file_occurrence
 import threatconnect.GroupObject
 from threatconnect.SecurityLabelObject import parse_security_label
@@ -813,7 +811,8 @@ class IndicatorObject(object):
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('description', self.description))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('confidence', self.confidence))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('rating', self.rating))
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('threat_assess_confidence', self.threat_assess_confidence))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('threat_assess_confidence',
+                                                               self.threat_assess_confidence))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('threat_assess_rating', self.threat_assess_rating))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('security_label', self.security_label))
         # printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('type', self.type))

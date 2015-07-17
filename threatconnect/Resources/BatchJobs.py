@@ -14,49 +14,50 @@ from threatconnect.Resource import Resource
 def parse_batch_job(batch_job_dict, resource_obj=None, api_filter=None, request_uri=None):
     """ """
     # group object
-    batchJob = BatchJobObject()
+    batch_job = BatchJobObject()
 
     #
     # standard values
     #
-    batchJob.set_id(batch_job_dict['id'])
+    batch_job.set_id(batch_job_dict['id'])
 
     #
     # optional values
     #
     if 'status' in batch_job_dict:
-        batchJob.set_status(batch_job_dict['status'])
+        batch_job.set_status(batch_job_dict['status'])
     if 'errorCount' in batch_job_dict:
-        batchJob.set_errorCount(batch_job_dict['errorCount'])
+        batch_job.set_error_count(batch_job_dict['errorCount'])
     if 'successCount' in batch_job_dict:
-        batchJob.set_successCount(batch_job_dict['successCount'])
+        batch_job.set_success_count(batch_job_dict['successCount'])
     if 'unprocessCount' in batch_job_dict:
-        batchJob.set_unprocessCount(batch_job_dict['unprocessCount'], False)
+        batch_job.set_unprocess_count(batch_job_dict['unprocessCount'], False)
 
     #
     # handle both resource containers and individual objects
     #
     if resource_obj is not None:
         # store the resource object in the master resource object list
-        roi = resource_obj.add_master_resource_obj(batchJob, batch_job_dict['id'])
+        roi = resource_obj.add_master_resource_obj(batch_job, batch_job_dict['id'])
 
         # retrieve the resource object and update data
         # must be submitted after parameters are set for indexing to work
-        batchJob = resource_obj.get_resource_by_identity(roi)
+        batch_job = resource_obj.get_resource_by_identity(roi)
 
     #
     # filter (set after retrieving stored object)
     #
     if api_filter is not None:
-        batchJob.add_matched_filter(api_filter)
+        batch_job.add_matched_filter(api_filter)
 
     #
     # request_uri (set after retrieving stored object)
     #
     if request_uri is not None:
-        batchJob.add_request_uri(request_uri)
+        batch_job.add_request_uri(request_uri)
 
-    return batchJob
+    return batch_job
+
 
 class BatchJobs(Resource):
 
@@ -76,7 +77,7 @@ class BatchJobs(Resource):
         return BatchJobObjectAdvanced(self.tc, self, resource_object)
         # return resource_object
 
-    def add(self):
+    def add(self, resource_name=None, owner=None):
         return super(BatchJobs, self).add(resource_name=None, owner=None)
 
 

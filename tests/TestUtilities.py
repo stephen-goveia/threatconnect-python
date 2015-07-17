@@ -7,7 +7,7 @@ from mock import patch
 def fake_api_request(self, ro):
     resource_file = os.path.normpath('resources{0}.{1}'.format(ro._request_uri, ro._http_method))
 
-    class Api_Response:
+    class ApiResponse:
         def __init__(self):
             self.status_code = 200
             self.headers = {'content-type': 'application/json'}
@@ -18,12 +18,14 @@ def fake_api_request(self, ro):
         def close(self):
             return
 
-    return Api_Response()
+    return ApiResponse()
 
-def testSetup(self):
+
+def test_setup(self):
     self.patcher = patch('threatconnect.ThreatConnect.api_request', fake_api_request)
     self.patcher.start()
     self.threatconnect = ThreatConnect('accessId', 'secretKey', 'System', '//')
 
-def testTeardown(self):
+
+def test_teardown(self):
     self.patcher.stop()
