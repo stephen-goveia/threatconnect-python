@@ -1,0 +1,18 @@
+{
+  "status": "Success",
+  "data": {
+    "document": {
+      "id": 392,
+      "name": "file",
+      "owner": {
+        "id": 1,
+        "name": "System",
+        "type": "Organization"
+      },
+      "dateAdded": "2015-07-17T10:09:35-04:00",
+      "webLink": "null/auth/document/document.xhtml?document=392",
+      "fileName": "file.zip",
+      "status": "Awaiting Upload"
+    }
+  }
+}

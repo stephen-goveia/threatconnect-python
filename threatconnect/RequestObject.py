@@ -31,6 +31,7 @@ class RequestObject(object):
         self._result_start = 0
         self._track = False
         self._failure_callback = None
+        self._success_callback = None
 
     # unicode
     @staticmethod
@@ -137,8 +138,11 @@ class RequestObject(object):
         self._result_start = self._uni(data)
 
     def set_failure_callback(self, callback):
-        """ position to start retrieving results """
         self._failure_callback = callback
+
+    def set_success_callback(self, callback):
+        """ position to start retrieving results """
+        self._success_callback = callback
 
     @property
     def body(self):
@@ -224,6 +228,11 @@ class RequestObject(object):
     def failure_callback(self):
         """ """
         return self._failure_callback
+
+    @property
+    def success_callback(self):
+        """ """
+        return self._success_callback
 
     def __str__(self):
         """ """

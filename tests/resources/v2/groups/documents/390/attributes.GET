@@ -1,0 +1,24 @@
+{
+  "status": "Success",
+  "data": {
+    "resultCount": 2,
+    "attribute": [
+      {
+        "id": 1089,
+        "type": "Source",
+        "dateAdded": "2015-07-15T10:48:37-04:00",
+        "lastModified": "2015-07-15T10:48:37-04:00",
+        "displayed": true,
+        "value": "loader"
+      },
+      {
+        "id": 1081,
+        "type": "Archive Password",
+        "dateAdded": "2015-07-10T10:11:38-04:00",
+        "lastModified": "2015-07-10T10:11:38-04:00",
+        "displayed": false,
+        "value": "1234"
+      }
+    ]
+  }
+}

@@ -946,13 +946,20 @@ class GroupObjectAdvanced(GroupObject):
                         api_response_dict2 = api_response2.json()
                         if api_response_dict2['status'] != 'Success':
                             self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
+                        else:
+                            if ro.success_callback is not None:
+                                ro.success_callback(ro, api_response2)
                     elif api_response2.headers['content-type'] == 'application/octet-stream':
                         if api_response2.status_code in [200, 201, 202]:
                             self.set_contents(ro.body)
+                            if ro.success_callback is not None:
+                                ro.success_callback(ro, api_response2)
                 else:
                     # upload PUT response
                     if api_response2.status_code in [200, 201, 202]:
                         self.set_contents(ro.body)
+                        if ro.success_callback is not None:
+                            ro.success_callback(ro, api_response2)
 
             # clear the commit queue
             self._resource_container.clear_commit_queue_id(self.id)
@@ -1203,7 +1210,7 @@ class GroupObjectAdvanced(GroupObject):
                 data = api_response_dict['data']['attribute']
                 self._resource_obj._attributes = []
                 for item in data:
-                    self._resource_obj.add_attribute(parse_attribute(item))  # add to main resource object
+                    self._resource_obj.add_attribute(parse_attribute(item, self))  # add to main resource object
 
     def load_data(self, resource_obj):
         """ load data from resource object to self """
@@ -1302,7 +1309,8 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_request_uri(prop['uri'].format(self._id))
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
-
+        success_callback = lambda request, response: self.set_contents(request.body)
+        ro.set_success_callback(success_callback)
         self._resource_container.add_commit_queue(self.id, ro)
 
     @property
