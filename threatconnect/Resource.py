@@ -489,7 +489,7 @@ class Resource(object):
             for ro in self._commit_queue[resource_id]:
                 yield ro
 
-    def clear_commit_queue(self, request_obj):
+    def clear_commit_queue(self):
         """ clear request object """
         del self._commit_queue
         self._commit_queue = []
@@ -503,7 +503,7 @@ class Resource(object):
         """ store temporary id to api id mapping """
         self._id_mapping.setdefault(temp_id, api_id)
 
-    def clear_id_mapping(self, temp_id, api_id):
+    def clear_id_mapping(self):
         """ clear temporary id to api id mapping """
         del self._id_mapping
         self._id_mapping = {}

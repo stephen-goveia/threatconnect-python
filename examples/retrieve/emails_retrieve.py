@@ -157,6 +157,7 @@ def show_data(result_obj):
     for fail in tc.report.failures:
         print(fail)
 
+
 def main():
     """ """
     # set threat connect log (tcl) level

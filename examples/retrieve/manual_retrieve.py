@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 """ standard """
-from pprint import pprint
 import json
 
 """ custom """

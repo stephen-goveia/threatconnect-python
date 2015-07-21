@@ -53,10 +53,10 @@ class Indicators(Resource):
         else:
             raise AttributeError(ErrorCodes.e10050.name.format(indicator))
 
-    def update(self, id, owner=None):
+    def update(self, indicator, owner=None):
         """ add indicator to resource container """
         # generate unique temporary id
-        resource_id = id
+        resource_id = indicator
 
         # resource object
         resource_obj = IndicatorObject()
@@ -67,10 +67,10 @@ class Indicators(Resource):
         # return object for modification
         return self._method_wrapper(resource_obj)
 
-    def delete(self, id, owner=None):
+    def delete(self, indicator, owner=None):
         """ add indicator to resource container """
         # generate unique temporary id
-        resource_id = id
+        resource_id = indicator
 
         # resource object
         resource_obj = IndicatorObject()

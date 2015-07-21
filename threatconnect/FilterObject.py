@@ -80,12 +80,12 @@ class FilterObject(object):
     def filters(self):
         """ """
         filters = []
-        for filter in sorted(self._api_filter_names):
-            if re.findall('^add_', filter):
-                filters.append(filter)
-        for filter in sorted(self._post_filter_names):
-            if re.findall('^add_', filter):
-                filters.append(filter)
+        for resultFilter in sorted(self._api_filter_names):
+            if re.findall('^add_', resultFilter):
+                filters.append(resultFilter)
+        for resultFilter in sorted(self._post_filter_names):
+            if re.findall('^add_', resultFilter):
+                filters.append(resultFilter)
         return filters
 
     @property

@@ -42,6 +42,7 @@ class BulkFilterObject(FilterObject):
 
         # define properties for resource type
         # self._properties = BulkProperties(base_uri=self.base_uri)
+        self._properties = None
         self._resource_type = self._properties.resource_type
 
         # create default request object for filtered request with only owners

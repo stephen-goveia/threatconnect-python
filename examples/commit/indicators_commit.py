@@ -4,7 +4,6 @@
 from random import randint
 from datetime import datetime
 import re
-import sys
 
 """ custom """
 from examples.working_init import *
@@ -25,6 +24,7 @@ prefixes = {
     'host': 'www.badguy',
     'url': 'http://www.badguy'}
 rn = randint(1, 100)  # random number generator for testing
+
 
 def main():
     """ """

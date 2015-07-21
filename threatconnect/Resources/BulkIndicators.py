@@ -45,7 +45,7 @@ class BulkIndicators(Resource):
 class BulkIndicatorFilterObject(FilterObject):
     """ """
 
-    def __init__(self, tc_obj, indicator_type_enum=None):
+    def __init__(self, tc_obj):
         """ """
         super(BulkIndicatorFilterObject, self).__init__(tc_obj)
         self._owners = []

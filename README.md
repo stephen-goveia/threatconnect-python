@@ -23,7 +23,7 @@ python setup.py install --force
 
 To automatically pull prerequisites.
 ```
-pip setup.py install --force
+pip install setup.py  --force
 ```
 
 Documentation

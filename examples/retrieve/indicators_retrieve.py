@@ -5,7 +5,7 @@ from datetime import datetime
 
 """ custom """
 from examples.working_init import *
-from threatconnect.Config.FilterOperator import FilterOperator, FilterSetOperator
+from threatconnect.Config.FilterOperator import FilterSetOperator
 from threatconnect.Config.IndicatorType import IndicatorType
 from threatconnect.Config.ResourceType import ResourceType
 
@@ -16,6 +16,7 @@ enable_example3 = False
 enable_example4 = False
 enable_example5 = False
 owners = ['Example Community']
+
 
 # shared method to display results from examples below
 def show_data(result_obj):

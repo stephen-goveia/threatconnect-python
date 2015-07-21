@@ -3,7 +3,6 @@
 """ standard """
 from random import randint
 import re
-import sys
 
 """ custom """
 from examples.working_init import *
@@ -21,6 +20,7 @@ adversary_id = 5  # adversary resource id to associate with signature
 victim_id = 1  # victim resource id to associate with signature
 ip_address = '10.20.30.40'  # ip address to associate to signature
 rn = randint(1, 1000)  # random number generator for testing
+
 
 def main():
     """ """

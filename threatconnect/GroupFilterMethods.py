@@ -204,7 +204,9 @@ def add_victim_id(self, data_int):
 
 
 def add_pf_attribute(self, data, operator=FilterOperator.EQ):
-    """ add post filter by attribute """
+    """ add post filter by attribute
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by attribute {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_attribute')
@@ -214,7 +216,9 @@ def add_pf_attribute(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_date_added(self, data_date, operator=FilterOperator.EQ):
-    """ add post filter by date """
+    """ add post filter by date
+    :type operator: FilterOperator
+    """
     # properly format date
     date_added = data_date
     date_added = dateutil.parser.parse(date_added)
@@ -229,7 +233,9 @@ def add_pf_date_added(self, data_date, operator=FilterOperator.EQ):
 
 
 def add_pf_file_type(self, data, operator=FilterOperator.EQ):
-    """ add post filter by file type """
+    """ add post filter by file type
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by file type {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_file_type')
@@ -239,7 +245,9 @@ def add_pf_file_type(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_name(self, data, operator=FilterOperator.EQ):
-    """ add post filter by name """
+    """ add post filter by name
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by name {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_name')
@@ -249,7 +257,9 @@ def add_pf_name(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_type(self, data, operator=FilterOperator.EQ):
-    """ add post filter by type """
+    """ add post filter by type
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by type {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_type')

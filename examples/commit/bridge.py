@@ -1,13 +1,10 @@
 """ standard """
 import ConfigParser
 import logging
-from pprint import pprint
 import sys
 
 """ custom """
 from threatconnect import *
-from threatconnect.Config.ResourceType import ResourceType
-from threatconnect.SharedMethods import validate_indicator
 
 # basic logging
 logging.basicConfig(
@@ -57,6 +54,7 @@ except ConfigParser.NoOptionError:
 dst_tc = ThreatConnect(
     dst_api_access_id, dst_api_secret_key, dst_api_default_org, dst_api_base_url, dst_api_result_limit)
 dst_owners = ['Common Community Local']
+
 
 def main():
     """ """

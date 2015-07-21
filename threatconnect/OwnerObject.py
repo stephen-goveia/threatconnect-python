@@ -60,7 +60,7 @@ class OwnerObject(object):
         '_type',
     )
 
-    def __init__(self, resource_type_enum=None):
+    def __init__(self):
         self._id = None
         self._matched_filters = []
         self._name = None

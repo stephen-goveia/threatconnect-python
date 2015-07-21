@@ -195,7 +195,9 @@ def add_victim_id(self, data_int):
 
 
 def add_pf_attribute(self, data, operator=FilterOperator.EQ):
-    """ add post filter by attribute """
+    """ add post filter by attribute
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by attribute {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_attribute')
@@ -205,7 +207,9 @@ def add_pf_attribute(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_confidence(self, data, operator=FilterOperator.EQ):
-    """ add post filter by confidence """
+    """ add post filter by confidence
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by confidence {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_confidence')
@@ -215,7 +219,9 @@ def add_pf_confidence(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_date_added(self, data_date, operator=FilterOperator.EQ):
-    """ add post filter by date """
+    """ add post filter by date
+    :type operator: FilterOperator
+    """
     # properly format date
     date_added = data_date
     date_added = dateutil.parser.parse(date_added)
@@ -230,7 +236,9 @@ def add_pf_date_added(self, data_date, operator=FilterOperator.EQ):
 
 
 def add_pf_file_type(self, data, operator=FilterOperator.EQ):
-    """ add post filter by file type """
+    """ add post filter by file type
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by file type {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_file_type')
@@ -240,7 +248,9 @@ def add_pf_file_type(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_last_modified(self, data_date, operator=FilterOperator.EQ):
-    """ add post filter by last modified """
+    """ add post filter by last modified
+    :type operator: FilterOperator
+    """
     # properly format date
     last_modified = data_date
     last_modified = dateutil.parser.parse(last_modified)
@@ -256,7 +266,9 @@ def add_pf_last_modified(self, data_date, operator=FilterOperator.EQ):
 
 
 def add_pf_rating(self, data, operator=FilterOperator.EQ):
-    """ add post filter by rating """
+    """ add post filter by rating
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by rating {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_rating')
@@ -266,7 +278,9 @@ def add_pf_rating(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_threat_assess_confidence(self, data, operator=FilterOperator.EQ):
-    """ add post filter by threat assesses confidence """
+    """ add post filter by threat assesses confidence
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by threat assess confidence {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_threat_assess_confidence')
@@ -276,7 +290,9 @@ def add_pf_threat_assess_confidence(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_threat_assess_rating(self, data, operator=FilterOperator.EQ):
-    """ add post filter by threat assesses rating """
+    """ add post filter by threat assesses rating
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by threat assess rating {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_threat_assess_rating')
@@ -286,7 +302,9 @@ def add_pf_threat_assess_rating(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_tag(self, data, operator=FilterOperator.EQ):
-    """ add post filter by tag """
+    """ add post filter by tag
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by tag {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_tag')
@@ -296,7 +314,9 @@ def add_pf_tag(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_type(self, data, operator=FilterOperator.EQ):
-    """ add post filter by type """
+    """ add post filter by type 
+    :type operator: FilterOperator
+    """
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by type {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_type')

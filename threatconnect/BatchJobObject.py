@@ -310,7 +310,6 @@ class BatchJobObjectAdvanced(BatchJobObject):
                 if api_response.headers['content-type'] == 'application/json':
                     api_response_dict = api_response.json()
                     if api_response_dict['status'] == 'Success':
-                        resource_key = ApiProperties.api_properties[self.resource_type.name]['resource_key']
                         r_id = api_response_dict['data']['batchId']
             else:
                 self._tc.tcl.debug('Resource Object'.format(self))

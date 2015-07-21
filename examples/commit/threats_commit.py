@@ -3,7 +3,6 @@
 """ standard """
 from random import randint
 import re
-import sys
 
 """ custom """
 from examples.working_init import *
