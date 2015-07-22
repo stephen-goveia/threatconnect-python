@@ -162,7 +162,7 @@ class ThreatConnect:
                                 # TODO: should this be done?
                                 # post filter owners
                                 for obj in results:
-                                    if obj.owner_name != o:
+                                    if obj.owner_name.upper() != o.upper():
                                         results.remove(obj)
 
                             obj_list.extend(results)
