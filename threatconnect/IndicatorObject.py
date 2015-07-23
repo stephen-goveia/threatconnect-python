@@ -2,7 +2,10 @@
 import csv
 import json
 import urllib
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 """ custom """
 from threatconnect.AttributeObject import parse_attribute, AttributeObject
@@ -108,7 +111,7 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     #
     if 'attribute' in indicator_dict:
         for attribute_dict in indicator_dict['attribute']:
-            attribute = parse_attribute(attribute_dict)
+            attribute = parse_attribute(attribute_dict, indicator)
             indicator.add_attribute(attribute)
 
     #
