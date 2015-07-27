@@ -1130,7 +1130,8 @@ class IndicatorObjectAdvanced(IndicatorObject):
                 if api_response_dict2['status'] != 'Success':
                     self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
 
-        self.set_id(r_id)
+        if r_id is not None:
+            self.set_id(r_id)
 
         self._resource_container.clear_commit_queue_id(self.id)
 
