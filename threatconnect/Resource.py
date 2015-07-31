@@ -323,7 +323,7 @@ class Resource(object):
                     yield data_obj
         else:
             for key, data_obj_list in self._confidence_idx.items():
-                if operator.value(int(key), data):
+                if operator.value(int(key), int(data)):
                     for data_obj in data_obj_list:
                         data_obj.add_matched_filter(description)
                         yield data_obj
