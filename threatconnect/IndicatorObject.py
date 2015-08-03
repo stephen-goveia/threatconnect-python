@@ -958,7 +958,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
         if fo_date is not None:
             json_dict['date'] = fo_date
         ro.set_body(json.dumps(json_dict))
-        ro.set_description('add file occurrence - file "{0}" to "{1}"'.format(fo_file_name, self._reference_indicator))
+        ro.set_description('add file occurrence - file "{0}" to "{1}"'.format(fo_file_name.encode('ascii', 'ignore'), self._reference_indicator))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
         ro.set_request_uri(prop['uri'].format(self._reference_indicator))
