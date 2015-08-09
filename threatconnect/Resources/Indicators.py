@@ -116,14 +116,14 @@ class Indicators(Resource):
     def indicators(self):
         """ return indicator value """
         for obj in self._objects:
-            yield obj.get_indicator()
+            yield obj.indicator
 
     @property
     def indicators_list(self):
         """ return list of indicators """
         indicators = []
         for obj in self._objects:
-            indicators.append(obj.get_indicator())
+            indicators.append(obj.indicator)
         return indicators
 
     def set_modified_since(self, data):
