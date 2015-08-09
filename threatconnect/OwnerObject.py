@@ -2,7 +2,10 @@
 import csv
 import json
 import urllib
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 """ custom """
 

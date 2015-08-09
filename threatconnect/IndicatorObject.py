@@ -2,7 +2,10 @@
 import csv
 import json
 import urllib
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 """ custom """
 from threatconnect.AttributeObject import parse_attribute, AttributeObject
@@ -108,7 +111,7 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     #
     if 'attribute' in indicator_dict:
         for attribute_dict in indicator_dict['attribute']:
-            attribute = parse_attribute(attribute_dict)
+            attribute = parse_attribute(attribute_dict, indicator)
             indicator.add_attribute(attribute)
 
     #
@@ -955,7 +958,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
         if fo_date is not None:
             json_dict['date'] = fo_date
         ro.set_body(json.dumps(json_dict))
-        ro.set_description('add file occurrence - file "{0}" to "{1}"'.format(fo_file_name, self._reference_indicator))
+        ro.set_description('add file occurrence - file "{0}" to "{1}"'.format(fo_file_name.encode('ascii', 'ignore'), self._reference_indicator))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
         ro.set_request_uri(prop['uri'].format(self._reference_indicator))
@@ -1127,7 +1130,8 @@ class IndicatorObjectAdvanced(IndicatorObject):
                 if api_response_dict2['status'] != 'Success':
                     self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
 
-        self.set_id(r_id)
+        if r_id is not None:
+            self.set_id(r_id)
 
         self._resource_container.clear_commit_queue_id(self.id)
 

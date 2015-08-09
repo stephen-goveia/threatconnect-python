@@ -55,12 +55,9 @@ class Indicators(Resource):
 
     def update(self, indicator, owner=None):
         """ add indicator to resource container """
-        # generate unique temporary id
-        resource_id = indicator
-
         # resource object
         resource_obj = IndicatorObject()
-        resource_obj.set_id(int(resource_id))  # set temporary resource id
+        resource_obj.set_indicator(indicator)  # set temporary resource id
         resource_obj.set_owner_name(owner)
         resource_obj.set_phase(2)  # set resource api phase (1 = add)
 
