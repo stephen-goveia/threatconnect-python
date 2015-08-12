@@ -36,13 +36,13 @@ def parse_batch_job(batch_job_dict, resource_obj=None, api_filter=None, request_
     #
     # handle both resource containers and individual objects
     #
-    if resource_obj is not None:
-        # store the resource object in the master resource object list
-        roi = resource_obj.add_master_resource_obj(batch_job, batch_job_dict['id'])
-
-        # retrieve the resource object and update data
-        # must be submitted after parameters are set for indexing to work
-        batch_job = resource_obj.get_resource_by_identity(roi)
+    # if resource_obj is not None:
+    #     # store the resource object in the master resource object list
+    #     roi = resource_obj.add_master_resource_obj(batch_job, batch_job_dict['id'])
+    #
+    #     # retrieve the resource object and update data
+    #     # must be submitted after parameters are set for indexing to work
+    #     batch_job = resource_obj.get_resource_by_identity(roi)
 
     #
     # filter (set after retrieving stored object)

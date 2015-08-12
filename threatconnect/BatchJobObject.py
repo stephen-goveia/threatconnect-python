@@ -158,6 +158,7 @@ class BatchJobObject(object):
     #
     # Errors
     #
+    @property
     def errors(self):
         return self._errors
 
@@ -167,6 +168,7 @@ class BatchJobObject(object):
     #
     # status
     #
+    @property
     def status(self):
         return self._status
 
@@ -176,6 +178,7 @@ class BatchJobObject(object):
     #
     # error_count
     #
+    @property
     def error_count(self):
         return self._error_count
 
@@ -185,6 +188,7 @@ class BatchJobObject(object):
     #
     # success_count
     #
+    @property
     def success_count(self):
         return self._success_count
 
@@ -194,6 +198,7 @@ class BatchJobObject(object):
     #
     # unprocess_count
     #
+    @property
     def unprocess_count(self):
         return self._unprocess_count
 
