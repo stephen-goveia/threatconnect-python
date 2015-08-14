@@ -408,7 +408,7 @@ class IndicatorObject(object):
         else:
             raise AttributeError(ErrorCodes.e10030.value)
 
-    def set_indicator(self, data, resource_type=None):
+    def set_indicator(self, data, resource_type=None, update=True):
         """Read-Write indicator metadata"""
         if self._resource_type is None:
             if resource_type is None:
@@ -488,6 +488,9 @@ class IndicatorObject(object):
                 'method': 'set_size',
                 'required': False,
             }
+
+            if update and self._phase == 0:
+                self._phase = 2
 
         #
         # hosts
