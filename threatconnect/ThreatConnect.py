@@ -657,6 +657,32 @@ class ThreatConnect:
     # api / sdk settings
     #
 
+    def result_pagination(self, ro):
+        # bcs
+        data = {}
+
+        ro.set_result_limit(self._api_result_limit)
+        ro.set_result_start(0)
+
+        while ro.remaining_results > 0:
+            api_response = self.api_request(ro)
+
+            if api_response.headers['content-type'] == 'application/json':
+                api_response_dict = api_response.json()
+                if api_response_dict['status'] == 'Success':
+                    data.update(api_response_dict['data'])
+
+            # get the number of results returned by the api
+            if ro.result_start == 0:
+                ro.set_remaining_results(api_response_dict['data']['resultCount'] - ro.result_limit)
+            else:
+                ro.set_remaining_results(ro.remaining_results - ro.result_limit)
+
+            # increment the start position
+            ro.set_result_start(ro.result_start + ro.result_limit)
+
+        return data
+
     def print_mem(self, msg):
         if self._memory_monitor:
             current_mem = self._p.memory_info().rss

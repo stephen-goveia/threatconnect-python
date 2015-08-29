@@ -663,15 +663,9 @@ class VictimObjectAdvanced(VictimObject):
         # ro.set_owner(self.owner_name)
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
-        api_response = self._tc.api_request(ro)
 
-        if api_response.headers['content-type'] == 'application/json':
-            api_response_dict = api_response.json()
-            if api_response_dict['status'] == 'Success':
-                data = api_response_dict['data']['group']
-                for item in data:
-                    yield threatconnect.GroupObject.parse_group(
-                        item, api_filter=ro.description, request_uri=ro.request_uri)
+        for item in self._tc.result_pagination(ro)['group']:
+            yield threatconnect.GroupObject.parse_group(item, api_filter=ro.description, request_uri=ro.request_uri)
 
     @property
     def indicator_associations(self):
@@ -685,15 +679,10 @@ class VictimObjectAdvanced(VictimObject):
         ro.set_request_uri(prop['uri'].format(self._id))
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
-        api_response = self._tc.api_request(ro)
 
-        if api_response.headers['content-type'] == 'application/json':
-            api_response_dict = api_response.json()
-            if api_response_dict['status'] == 'Success':
-                data = api_response_dict['data']['indicator']
-                for item in data:
-                    yield threatconnect.IndicatorObject.parse_indicator(
-                        item, api_filter=ro.description, request_uri=ro.request_uri)
+        for item in self._tc.result_pagination(ro)['indicator']:
+            yield threatconnect.IndicatorObject.parse_indicator(
+                item, api_filter=ro.description, request_uri=ro.request_uri)
 
     @property
     def json(self):

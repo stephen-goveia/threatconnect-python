@@ -16,7 +16,7 @@ def g_properties(group_uri):
         'association_groups': {
             'http_method': 'GET',
             'owner_allowed': True,
-            'pagination': False,
+            'pagination': True,
             'uri': '/v2/groups/' + group_uri + '/{0}/groups',  # group id
         },
         'association_group_add': {
@@ -34,7 +34,7 @@ def g_properties(group_uri):
         'association_indicators': {
             'http_method': 'GET',
             'owner_allowed': True,
-            'pagination': False,
+            'pagination': True,
             'uri': '/v2/groups/' + group_uri + '/{0}/indicators',  # group id
         },
         'association_indicator_add': {
@@ -52,7 +52,7 @@ def g_properties(group_uri):
         'association_victims': {
             'http_method': 'GET',
             'owner_allowed': True,
-            'pagination': False,
+            'pagination': True,
             'uri': '/v2/groups/' + group_uri + '/{0}/victims',  # group id
         },
         'association_victim_add': {
@@ -242,7 +242,7 @@ def i_properties(indicator_uri):
         'association_groups': {
             'http_method': 'GET',
             'owner_allowed': True,
-            'pagination': False,
+            'pagination': True,
             'uri': '/v2/indicators/' + indicator_uri + '/{0}/groups',  # indicator value
         },
         'association_group_add': {
@@ -260,13 +260,13 @@ def i_properties(indicator_uri):
         'association_indicators': {
             'http_method': 'GET',
             'owner_allowed': True,
-            'pagination': False,
+            'pagination': True,
             'uri': '/v2/indicators/' + indicator_uri + '/{0}/indicators',  # indicator value
         },
         'association_victims': {
             'http_method': 'GET',
             'owner_allowed': True,
-            'pagination': False,
+            'pagination': True,
             'uri': '/v2/indicators/' + indicator_uri + '/{0}/victims',  # indicator value
         },
         'attributes': {
@@ -641,7 +641,7 @@ victims_properties = {
     'association_groups': {
         'http_method': 'GET',
         'owner_allowed': True,
-        'pagination': False,
+        'pagination': True,
         'uri': '/v2/victims/{0}/groups',  # victim id
     },
     'association_group_add': {
@@ -659,7 +659,7 @@ victims_properties = {
     'association_indicators': {
         'http_method': 'GET',
         'owner_allowed': True,
-        'pagination': False,
+        'pagination': True,
         'uri': '/v2/victims/{0}/indicators',  # victim id
     },
     'base': {
