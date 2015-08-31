@@ -1,16 +1,12 @@
 import sys
 from threatconnect.Config.IndicatorType import IndicatorType
-import threatconnect as tc
+from threatconnect.Config.ResourceType import ResourceType
 
-access_id = '25799320470045834725'
-secret_key = 'sT}7D$.(aw}DOrGq&k%`(S3^Af7%MM5czp/5@`O.@)YpJuo1GWRzB(J/l[]b>%Fh'
-default_org = 'System'
-base_url = 'https://127.0.0.1:8443/api'
+from examples.working_init import *
+tc.set_tcl_file('log/tc.log', 'critical')
+tc.set_tcl_console_level('debug')
 
-tc_api = tc.ThreatConnect(access_id, secret_key, default_org, base_url)
-
-indics = tc_api.indicators()
-
+indics = tc.indicators()
 
 def get_vt(hash):
     return 'blah'
@@ -52,7 +48,6 @@ for i in indics:
                 i.set_indicator('727C1EF3D72FE938A5E1DB58DC9BAD7EEFD8FACD70B9E8B60EB9DD123A35EEEE')
                 commit = True
 
-            i.set_size(257)
             # if vt is not None:
             #     if ind["md5"] is None:
             #         i.set_indicator(str(vt.md5), ResourceType.FILES)
