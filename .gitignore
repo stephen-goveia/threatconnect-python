@@ -57,17 +57,3 @@ target/
 .idea
 
 # ThreatConnect
-examples/tc-api-threatconnect-com.conf
-examples/bcs.py
-NOTES.txt
-ThreatConnect API Documentation 2.0.1.pdf
-examples/tc-tcdev-test.conf
-examples/write/screen1.png
-examples/write/sample_upload.txt
-examples/tc-sumx-us.conf
-examples/tcw-sumx-us.conf
-examples/read/tc.log.1
-examples/read/tc.log.2
-threatconnect/html_table.py
-examples/logs
-examples/tc.conf
