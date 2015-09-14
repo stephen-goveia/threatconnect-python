@@ -1143,7 +1143,7 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
 
-        for item in self._tc.result_pagination(ro)['group']:
+        for item in self._tc.result_pagination(ro, 'group'):
             yield parse_group(item, api_filter=ro.description, request_uri=ro.request_uri)
 
     @property
@@ -1160,7 +1160,7 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
 
-        for item in self._tc.result_pagination(ro)['indicator']:
+        for item in self._tc.result_pagination(ro, 'indicator'):
             yield threatconnect.IndicatorObject.parse_indicator(
                 item, api_filter=ro.description, request_uri=ro.request_uri)
 
@@ -1319,7 +1319,7 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
 
-        for item in self._tc.result_pagination(ro)['victim']:
+        for item in self._tc.result_pagination(ro, 'victim'):
             yield parse_victim(item, api_filter=ro.description, request_uri=ro.request_uri)
 
     #

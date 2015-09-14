@@ -657,9 +657,8 @@ class ThreatConnect:
     # api / sdk settings
     #
 
-    def result_pagination(self, ro):
-        # bcs
-        data = {}
+    def result_pagination(self, ro, identifier):
+        data = []
 
         ro.set_result_limit(self._api_result_limit)
         ro.set_result_start(0)
@@ -670,7 +669,7 @@ class ThreatConnect:
             if api_response.headers['content-type'] == 'application/json':
                 api_response_dict = api_response.json()
                 if api_response_dict['status'] == 'Success':
-                    data.update(api_response_dict['data'])
+                    data.extend(api_response_dict['data'][identifier])
 
             # get the number of results returned by the api
             if ro.result_start == 0:
