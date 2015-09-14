@@ -40,7 +40,7 @@ class Owners(Resource):
         """ return owner by id """
         if isinstance(data_int, int):
             for obj in self._objects:
-                if obj.get_id() == data_int:
+                if obj.id == data_int:
                     return obj
         else:
             return None
@@ -49,7 +49,7 @@ class Owners(Resource):
         """ return owner by name """
         if isinstance(data, (str, unicode)):
             for obj in self._objects:
-                if obj.get_name() == data:
+                if obj.name == data:
                     return obj
         else:
             return None
@@ -58,7 +58,7 @@ class Owners(Resource):
     def names(self):
         """ generator for owner names """
         for obj in self._objects:
-            yield obj.get_name()
+            yield obj.name
 
 
 class OwnerFilterObject(FilterObject):
