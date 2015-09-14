@@ -35,7 +35,7 @@ class Owners(Resource):
         request_object.set_resource_pagination(resource_properties['base']['pagination'])
         request_object.set_resource_type(self._resource_type)
         return request_object
-s
+
     def get_owner_by_id(self, data_int):
         """ return owner by id """
         if isinstance(data_int, int):
