@@ -24,4 +24,9 @@ setup(
     # convert_2to3_doctests = [''],
     # use_2to3_fixers = [''],
     use_2to3_exclude_fixers=['lib2to3.fixes.fix_print'],
+    entry_points={
+        'console_scripts': [
+            'stanchion=bin.stanchion:main'
+        ],
+    },
 )
