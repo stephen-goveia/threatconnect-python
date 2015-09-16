@@ -29,8 +29,8 @@ def main():
     log_path = working_dir
     arguments = ['--tc_log_path', log_path]
 
-    for argument_pair in config.defaults():
-        arguments.extend(list(argument_pair))
+    for argument, datum in config.defaults().items():
+        arguments.extend([argument, datum])
 
     command = ['python', args.target]
     command.extend(arguments)
