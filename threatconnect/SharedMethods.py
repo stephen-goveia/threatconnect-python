@@ -47,7 +47,8 @@ def get_resource_type(indicator):
     """ Get resource type enum from an indicator. """
     for indicator_type, regex in indicators_regex.items():
         for rex in regex:
-            if rex.match(indicator):
+            match = rex.match(indicator)
+            if match and match.group(0) == indicator:
                 return ResourceType[indicator_type]
     return None
 
