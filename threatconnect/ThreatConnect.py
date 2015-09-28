@@ -18,7 +18,7 @@ packages.urllib3.disable_warnings()
 #
 # memory testing
 #
-import psutil
+# import psutil
 
 """ custom """
 from threatconnect.ErrorCodes import ErrorCodes
@@ -105,8 +105,8 @@ class ThreatConnect:
         #
         # Memory Testing
         #
-        self._p = psutil.Process(os.getpid())
-        self._memory = self._p.memory_info().rss
+        # self._p = psutil.Process(os.getpid())
+        # self._memory = self._p.memory_info().rss
 
     def _api_request_headers(self, ro):
         """ """
@@ -437,7 +437,7 @@ class ThreatConnect:
 
                             if len(obj_list) % 500 == 0:
                                 self.tcl.debug('obj_list len: {0!s}'.format(len(obj_list)))
-                                self.print_mem('bulk process - {0:d} objects'.format(len(obj_list)))
+                                # self.print_mem('bulk process - {0:d} objects'.format(len(obj_list)))
 
                 elif api_response_dict['status'] == 'Failure':
                     # handle failed request (404 Resource not Found)
@@ -631,7 +631,7 @@ class ThreatConnect:
                 #
                 # memory testing
                 #
-                self.print_mem('pagination - {0:d} objects'.format(len(obj_list)))
+                # self.print_mem('pagination - {0:d} objects'.format(len(obj_list)))
 
             elif api_response.headers['content-type'] == 'text/plain':
                 self.tcl.error('{0!s} "{1!s}"'.format(api_response.content, ro.description))
@@ -684,12 +684,12 @@ class ThreatConnect:
 
         return data
 
-    def print_mem(self, msg):
-        if self._memory_monitor:
-            current_mem = self._p.memory_info().rss
-            self.tcl.info('Memory ({0!s}) - Delta {1:d} Bytes'.format(msg, current_mem - self._memory))
-            self.tcl.info('Memory ({0!s}) - RSS {1:d} Bytes'.format(msg, current_mem))
-            self._memory = current_mem
+    # def print_mem(self, msg):
+    #     if self._memory_monitor:
+    #         current_mem = self._p.memory_info().rss
+    #         self.tcl.info('Memory ({0!s}) - Delta {1:d} Bytes'.format(msg, current_mem - self._memory))
+    #         self.tcl.info('Memory ({0!s}) - RSS {1:d} Bytes'.format(msg, current_mem))
+    #         self._memory = current_mem
 
     def report_enable(self):
         """ """
