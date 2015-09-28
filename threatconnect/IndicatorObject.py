@@ -128,8 +128,11 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     if resource_obj is not None:
         # store the resource object in the master resource object list
         # must be submitted after parameters are set for indexing to work
-        # roi = resource_obj.add_master_resource_obj(indicator, indicator_dict['id'])
-        roi = resource_obj.add_master_resource_obj(indicator, indicator.indicator)
+        roi = resource_obj.add_master_resource_obj(indicator, indicator_dict['id'])
+
+        # BCS - This causes a bug on searching for a single indicator over multiple
+        #       owners, only 1 indicator is returned.
+        # roi = resource_obj.add_master_resource_obj(indicator, indicator.indicator)
 
         # retrieve the resource object and update data
         return resource_obj.get_resource_by_identity(roi)

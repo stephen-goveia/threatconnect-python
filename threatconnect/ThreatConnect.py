@@ -403,6 +403,8 @@ class ThreatConnect:
         if ro.resource_pagination:
             ro.set_result_limit(self._api_result_limit)
             ro.set_result_start(0)
+        else:
+            ro.set_remaining_results(1)
 
         while ro.remaining_results > 0:
             #
