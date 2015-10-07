@@ -41,6 +41,7 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     #
     if 'type' in indicator_dict:
         indicator.set_type(indicator_dict['type'])  # set type before indicator
+
     if 'confidence' in indicator_dict:
         indicator.set_confidence(indicator_dict['confidence'], update=False)
     if 'description' in indicator_dict:
@@ -63,24 +64,34 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     #
     if 'ip' in indicator_dict:
         indicator.set_indicator(indicator_dict['ip'], ResourceType.ADDRESSES)
+        if indicator.type is None:
+            indicator.set_type('Address')  # set type before indicator
 
     #
     # email address
     #
     if 'address' in indicator_dict:
         indicator.set_indicator(indicator_dict['address'], ResourceType.EMAIL_ADDRESSES)
+        if indicator.type is None:
+            indicator.set_type('EmailAddress')  # set type before indicator
 
     #
     # files
     #
     if 'md5' in indicator_dict:
         indicator.set_indicator(indicator_dict['md5'], ResourceType.FILES)
+        if indicator.type is None:
+            indicator.set_type('File')  # set type before indicator
 
     if 'sha1' in indicator_dict:
         indicator.set_indicator(indicator_dict['sha1'], ResourceType.FILES)
+        if indicator.type is None:
+            indicator.set_type('File')  # set type before indicator
 
     if 'sha256' in indicator_dict:
         indicator.set_indicator(indicator_dict['sha256'], ResourceType.FILES)
+        if indicator.type is None:
+            indicator.set_type('File')  # set type before indicator
 
     if 'size' in indicator_dict:
         indicator.set_size(indicator_dict['size'], update=False)
@@ -90,6 +101,8 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     #
     if 'hostName' in indicator_dict:
         indicator.set_indicator(indicator_dict['hostName'], ResourceType.HOSTS)
+        if indicator.type is None:
+            indicator.set_type('Host')  # set type before indicator
 
     if 'dnsActive' in indicator_dict:
         indicator.set_dns_active(indicator_dict['dnsActive'], update=False)
@@ -102,6 +115,8 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     #
     if 'text' in indicator_dict:
         indicator.set_indicator(indicator_dict['text'], ResourceType.URLS)
+        if indicator.type is None:
+            indicator.set_type('URL')  # set type before indicator
 
     if 'source' in indicator_dict:
         indicator.set_source(indicator_dict['source'], update=False)
@@ -128,8 +143,11 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     if resource_obj is not None:
         # store the resource object in the master resource object list
         # must be submitted after parameters are set for indexing to work
-        # roi = resource_obj.add_master_resource_obj(indicator, indicator_dict['id'])
-        roi = resource_obj.add_master_resource_obj(indicator, indicator.indicator)
+        roi = resource_obj.add_master_resource_obj(indicator, indicator_dict['id'])
+
+        # BCS - This causes a bug on searching for a single indicator over multiple
+        #       owners, only 1 indicator is returned.
+        # roi = resource_obj.add_master_resource_obj(indicator, indicator.indicator)
 
         # retrieve the resource object and update data
         return resource_obj.get_resource_by_identity(roi)
