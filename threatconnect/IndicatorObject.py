@@ -940,14 +940,23 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def add_attribute(self, attr_type, attr_value, attr_displayed='true'):
         """ add an attribute to an indicator """
+        attr_type = self._uni(attr_type)
+        attr_value = self._uni(attr_value)
         prop = self._resource_properties['attribute_add']
         ro = RequestObject()
         ro.set_body(json.dumps({
             'type': attr_type,
             'value': attr_value,
             'displayed': attr_displayed}))
-        ro.set_description('add attribute type "{0}" with value "{1}" to {2}'.format(
-            attr_type, attr_value, self._reference_indicator))
+        try:
+            ro.set_description('add attribute type "{}" with value "{}" to {}'.format(
+                attr_type,
+                attr_value.encode('ascii', 'ignore'),
+                self._reference_indicator.encode('utf-8', 'ignore')))
+        except:
+            ro.set_description('add attribute type "{}" with value "unencodable" to {}'.format(
+                attr_type,
+                self._reference_indicator.encode('utf-8', 'ignore')))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
         ro.set_request_uri(prop['uri'].format(self._reference_indicator))
@@ -1530,11 +1539,19 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def update_attribute(self, attr_id, attr_value):
         """ update indicator attribute by id """
+        attr_value = self._uni(attr_value)
         prop = self._resource_properties['attribute_update']
         ro = RequestObject()
         ro.set_body(json.dumps({'value': attr_value}))
-        ro.set_description('update attribute id {0} with value "{1}" on {2}'.format(
-            attr_id, attr_value, self._reference_indicator))
+        try:
+            ro.set_description('update attribute id {} with value "{}" on {}'.format(
+                attr_id,
+                attr_value,
+                self._reference_indicator))
+        except:
+            ro.set_description('update attribute id {} with value "unencodable" on {}'.format(
+                attr_id,
+                self._reference_indicator))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
         ro.set_request_uri(prop['uri'].format(
