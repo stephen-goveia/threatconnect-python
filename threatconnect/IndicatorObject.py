@@ -787,6 +787,10 @@ class IndicatorObject(object):
         """ """
         return self._resource_type
 
+    def set_resource_type(self, data):
+        """ """
+        self._resource_type = data
+
     #
     # validate
     #

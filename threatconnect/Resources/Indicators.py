@@ -33,11 +33,30 @@ class Indicators(Resource):
         """ return resource object as new object with additional methods """
         return IndicatorObjectAdvanced(self.tc, self, resource_object)
 
-    def add(self, indicator, owner=None):
+    def add(self, indicator, owner=None, type=None):
         """ add indicator to resource container """
 
-        # validate indicator
-        if SharedMethods.validate_indicator(indicator):
+        if type is not None:
+            if isinstance(type, IndicatorType):
+                # generate unique temporary id
+                resource_id = uuid.uuid4().int
+
+                # resource object
+                resource_obj = IndicatorObject()
+                resource_obj.set_id(int(resource_id))  # set temporary resource id
+                resource_obj.set_resource_type(ResourceType(type.value)) # set this before indicator
+                resource_obj.set_indicator(indicator)
+                resource_obj.set_owner_name(owner)
+                resource_obj.set_phase(1)  # set resource api phase (1 = add)
+
+                # return object for modification
+                return self._method_wrapper(resource_obj)
+            else:
+                raise AttributeError(ErrorCodes.e10060.name.format(indicator))
+
+        elif SharedMethods.validate_indicator(indicator):
+            # validate indicator
+
             # generate unique temporary id
             resource_id = uuid.uuid4().int
 
