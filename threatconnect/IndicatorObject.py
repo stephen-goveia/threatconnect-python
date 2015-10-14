@@ -23,7 +23,7 @@ from threatconnect.RequestObject import RequestObject
 from threatconnect.SharedMethods import get_resource_type, get_hash_type, get_resource_indicator_type
 
 
-def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_uri=None):
+def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_uri=None, indicators_regex=None):
     """ """
     # indicator object
     indicator = IndicatorObject()
@@ -53,7 +53,8 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     if 'rating' in indicator_dict:
         indicator.set_rating(indicator_dict['rating'], update=False)
     if 'summary' in indicator_dict:
-        indicator.set_indicator(indicator_dict['summary'])
+        resource_type = get_resource_type(indicators_regex, indicator_dict['summary'])
+        indicator.set_indicator(indicator_dict['summary'], resource_type)
     if 'threatAssessConfidence' in indicator_dict:
         indicator.set_threat_assess_confidence(indicator_dict['threatAssessConfidence'])
     if 'threatAssessRating' in indicator_dict:
@@ -426,17 +427,13 @@ class IndicatorObject(object):
         else:
             raise AttributeError(ErrorCodes.e10030.value)
 
-    def set_indicator(self, data, resource_type=None, update=True):
+    def set_indicator(self, data, resource_type, update=True):
         """Read-Write indicator metadata"""
         if self._resource_type is None:
-            if resource_type is None:
-                # get resource type using regex
-                self._resource_type = get_resource_type(data)
-            else:
-                self._resource_type = resource_type
+            self._resource_type = resource_type
 
         # if get_resource_type return None error.
-        if self._resource_type is None:
+        if not isinstance(self._resource_type, ResourceType):
             raise AttributeError(ErrorCodes.e10030.value)
 
         #
@@ -787,9 +784,9 @@ class IndicatorObject(object):
         """ """
         return self._resource_type
 
-    def set_resource_type(self, data):
-        """ """
-        self._resource_type = data
+    # def set_resource_type(self, data):
+    #     """ """
+    #     self._resource_type = data
 
     #
     # validate
@@ -1322,7 +1319,8 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_resource_type(self._resource_type)
 
         for item in self._tc.result_pagination(ro, 'indicator'):
-            yield parse_indicator(item, api_filter=ro.description, request_uri=ro.request_uri)
+            yield parse_indicator(
+                item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
 
     @property
     def json(self):

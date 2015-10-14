@@ -25,7 +25,9 @@ from threatconnect.ErrorCodes import ErrorCodes
 
 # tc config modules
 from threatconnect.Config.FilterOperator import FilterSetOperator
+from threatconnect.Config.IndicatorType import IndicatorType
 from threatconnect.Config.ResourceType import ResourceType
+from threatconnect.Config.ResourceRegexes import indicators_regex
 
 from threatconnect.IndicatorObject import parse_indicator
 from threatconnect.GroupObject import parse_group
@@ -89,8 +91,10 @@ class ThreatConnect:
         self._api_request_timeout = 30
         self._api_retries = 5  # maximum of 5 minute window
         self._api_sleep = 59  # seconds
-        self._proxies = {'https': None}
         self._enable_report = False
+        self._indicators_regex = indicators_regex
+        self._proxies = {'https': None}
+        self._retype = type(re.compile(''))
 
         # config items
         self._report = []
@@ -433,7 +437,8 @@ class ThreatConnect:
                     if ro.resource_type == ResourceType.INDICATORS:
                         data = api_response_dict['indicator']
                         for item in data:
-                            obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                            obj_list.append(parse_indicator(
+                                    item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                             if len(obj_list) % 500 == 0:
                                 self.tcl.debug('obj_list len: {0!s}'.format(len(obj_list)))
@@ -465,7 +470,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                        obj_list.append(parse_indicator(
+                                item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                 #
                 # ADDRESSES
@@ -475,7 +481,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                        obj_list.append(parse_indicator(
+                                item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                 #
                 # DOCUMENTS
@@ -486,7 +493,8 @@ class ThreatConnect:
                         data = [data]  # for single results to be a list
                     for item in data:
                         obj_list.append(
-                            parse_group(item, ResourceType.DOCUMENTS, resource_obj, ro.description, ro.request_uri))
+                            parse_group(
+                                item, ResourceType.DOCUMENTS, resource_obj, ro.description, ro.request_uri))
 
                 #
                 # EMAILS
@@ -497,7 +505,8 @@ class ThreatConnect:
                         data = [data]  # for single results to be a list
                     for item in data:
                         obj_list.append(
-                            parse_group(item, ResourceType.EMAILS, resource_obj, ro.description, ro.request_uri))
+                            parse_group(
+                                item, ResourceType.EMAILS, resource_obj, ro.description, ro.request_uri))
 
                 #
                 # EMAIL ADDRESSES
@@ -507,7 +516,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                        obj_list.append(parse_indicator(
+                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                 #
                 # GROUPS
@@ -528,7 +538,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                        obj_list.append(parse_indicator(
+                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                 #
                 # HOSTS
@@ -538,7 +549,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                        obj_list.append(parse_indicator(
+                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                 #
                 # DNSResolutions
@@ -602,7 +614,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                        obj_list.append(parse_indicator(
+                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                 #
                 # VICTIMS
@@ -777,6 +790,24 @@ class ThreatConnect:
             ch.setLevel(self.log_level[level])
             ch.setFormatter(self.formatter)
             self.tcl.addHandler(ch)
+
+    def set_indicator_regex(self, type_enum, compiled_regex):
+        """ overwrite default SDK regex """
+        self.tcl.debug('overwrite regex for {0!s}'.format(type_enum.name))
+        if not isinstance(type_enum, IndicatorType):
+            raise AttributeError(ErrorCodes.e0150.value.format(type_enum))
+
+        if not isinstance(compiled_regex, list):
+            compiled_regex = [compiled_regex]
+
+        cr_list = []
+        for cr in compiled_regex:
+            if isinstance(cr, self._retype):
+                cr_list.append(cr)
+            else:
+                raise AttributeError(ErrorCodes.e0160.value.format(cr))
+
+        self._indicators_regex[type_enum.name] = cr_list
 
     #
     # Resources

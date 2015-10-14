@@ -1162,7 +1162,7 @@ class GroupObjectAdvanced(GroupObject):
 
         for item in self._tc.result_pagination(ro, 'indicator'):
             yield threatconnect.IndicatorObject.parse_indicator(
-                item, api_filter=ro.description, request_uri=ro.request_uri)
+                item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
 
     @property
     def json(self):
