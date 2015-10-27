@@ -31,7 +31,7 @@ def parse_batch_job(batch_job_dict, resource_obj=None, api_filter=None, request_
     if 'successCount' in batch_job_dict:
         batch_job.set_success_count(batch_job_dict['successCount'])
     if 'unprocessCount' in batch_job_dict:
-        batch_job.set_unprocess_count(batch_job_dict['unprocessCount'], False)
+        batch_job.set_unprocess_count(batch_job_dict['unprocessCount'])
 
     #
     # handle both resource containers and individual objects
