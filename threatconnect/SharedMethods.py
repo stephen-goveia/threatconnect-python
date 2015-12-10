@@ -74,7 +74,7 @@ def get_indicator_uri_attribute(indicators_regex, indicator):
 
 def uni(data):
     """ convert to unicode when appropriate """
-    if data is None or isinstance(data, (int, list, dict)):
+    if data is None or isinstance(data, (int, list, dict, float)):
         return data
     elif not isinstance(data, unicode):
         return unicode(data, 'utf-8', errors='ignore')
