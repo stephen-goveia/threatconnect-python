@@ -103,7 +103,7 @@ class ThreatConnect:
         self._api_result_limit = 200
 
         # default values
-        self._activity_log = 'false'
+        self._activity_log = False
         self._api_request_timeout = 30
         self._api_retries = 5  # maximum of 5 minute window
         self._api_sleep = 59  # seconds
@@ -196,7 +196,7 @@ class ThreatConnect:
                             # TODO: should this be done?
                             # post filter owners
                             for obj in results:
-                                if obj.owner_name != o:
+                                if obj.owner_name.upper() != o.upper():
                                     results.remove(obj)
 
                         obj_list.extend(results)
@@ -267,7 +267,8 @@ class ThreatConnect:
         #
         # enable activity log
         #
-        # request_object.enable_activity_mode()
+        if self._activity_log:
+            ro.enable_activity_log()
 
         #
         # prepare request
@@ -731,9 +732,6 @@ class ThreatConnect:
     def set_activity_log(self, data_bool):
         """ enable or disable api activity log """
         if isinstance(data_bool, bool):
-            data_bool = str(data_bool).lower()
-
-        if data_bool in ['true', 'false']:
             self._activity_log = data_bool
 
     def set_api_request_timeout(self, data_int):
