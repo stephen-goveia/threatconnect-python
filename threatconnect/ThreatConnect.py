@@ -1,4 +1,5 @@
 """ standard """
+import argparse
 import base64
 from datetime import datetime
 import hashlib
@@ -49,6 +50,21 @@ from threatconnect.Resources.Owners import Owners
 from threatconnect.Resources.Threats import Threats
 from threatconnect.Resources.Signatures import Signatures
 from threatconnect.Resources.Victims import Victims
+
+
+def create_tc_arg_parser():
+    """Add default command line arguments for all App Engine apps."""
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--api_access_id', help='API Access ID', required=True)
+    parser.add_argument('--api_secret_key', help='API Secret Key', required=True)
+    parser.add_argument('--api_default_org', help='API Default Org', required=True)
+    parser.add_argument('--tc_log_path', help='ThreatConnect log path', default='/log')
+    parser.add_argument('--tc_temp_path', help='ThreatConnect temp path', default='/tmp')
+    parser.add_argument('--tc_out_path', help='ThreatConnect output path', default='/out')
+    parser.add_argument('--tc_api_path', help='ThreatConnect api path',
+                        default='https://api.threatconnect.com')
+    return parser
 
 
 def tc_logger():

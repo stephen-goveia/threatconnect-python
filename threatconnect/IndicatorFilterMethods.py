@@ -83,15 +83,19 @@ def add_incident_id(self, data_int):
     self._add_request_objects(ro)
 
 
-def add_indicator(self, data):
+def add_indicator(self, data, indicator_type = None):
     """ filter api results by indicator """
     # validation indicator
     if not SharedMethods.validate_indicator(self.tc._indicators_regex, data):
         raise AttributeError(ErrorCodes.e5010.value.format(data))
 
     # get indicator uri attribute
-    indicator_type = SharedMethods.get_resource_type(self.tc._indicators_regex, data)
+
+    if indicator_type is None:
+        indicator_type = SharedMethods.get_resource_type(self.tc._indicators_regex, data)
     indicator_uri_attribute = ApiProperties.api_properties[indicator_type.name]['uri_attribute']
+
+
 
     prop = self._resource_properties['indicator']
     ro = RequestObject()
