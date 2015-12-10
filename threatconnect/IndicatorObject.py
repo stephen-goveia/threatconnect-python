@@ -432,7 +432,7 @@ class IndicatorObject(object):
         if self._resource_type is None:
             if resource_type is None:
                 # get resource type using regex
-                self._resource_type = get_resource_type(data)
+                self._resource_type = get_resource_type(self._tc._indicators_regex, data)
             else:
                 self._resource_type = resource_type
 
