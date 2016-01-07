@@ -8,18 +8,18 @@ except ImportError:
     from io import StringIO
 
 """ custom """
-from threatconnect.AttributeObject import parse_attribute, AttributeObject
-import threatconnect.IndicatorObject
-from threatconnect.SecurityLabelObject import parse_security_label
-from threatconnect.TagObject import parse_tag
-from threatconnect.VictimObject import parse_victim
+from AttributeObject import parse_attribute, AttributeObject
+# import IndicatorObject  #Causes circular import
+from SecurityLabelObject import parse_security_label
+from TagObject import parse_tag
+# import VictimObject
 
-from threatconnect import ApiProperties
-from threatconnect.Config.ResourceType import ResourceType
-from threatconnect.ErrorCodes import ErrorCodes
+import ApiProperties
+from Config.ResourceType import ResourceType
+from ErrorCodes import ErrorCodes
 
-from threatconnect.RequestObject import RequestObject
-from threatconnect.SharedMethods import get_resource_group_type
+from RequestObject import RequestObject
+from SharedMethods import get_resource_group_type
 
 
 def parse_group(group_dict, resource_type=ResourceType.GROUPS, resource_obj=None, api_filter=None, request_uri=None):
@@ -1164,7 +1164,9 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_resource_type(self._resource_type)
 
         for item in self._tc.result_pagination(ro, 'indicator'):
-            yield threatconnect.IndicatorObject.parse_indicator(
+            import IndicatorObject  #Causes circular import
+
+            yield IndicatorObject.parse_indicator(
                 item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
 
     @property

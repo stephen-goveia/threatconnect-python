@@ -2,8 +2,8 @@
 import re
 
 """ custom """
-from threatconnect.Config.FilterOperator import FilterSetOperator
-from threatconnect.ErrorCodes import ErrorCodes
+from Config.FilterOperator import FilterSetOperator
+from ErrorCodes import ErrorCodes
 
 
 class FilterObject(object):

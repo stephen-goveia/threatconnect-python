@@ -2,15 +2,15 @@
 import dateutil.parser
 import time
 import uuid
-from threatconnect.BatchJobObject import BatchJobObject
+from BatchJobObject import BatchJobObject
 
 """ custom """
-from threatconnect.GroupObject import GroupObject
-from threatconnect.VictimObject import VictimObject
+from GroupObject import GroupObject
+from VictimObject import VictimObject
 
-from threatconnect.Config.ResourceType import ResourceType
-from threatconnect.Config.FilterOperator import FilterOperator
-from threatconnect.ErrorCodes import ErrorCodes
+from Config.ResourceType import ResourceType
+from Config.FilterOperator import FilterOperator
+from ErrorCodes import ErrorCodes
 
 
 class Resource(object):

@@ -1,20 +1,13 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='threatconnect',
-    version='2.03',
+    version='2.3',
     description='Python wrapper for ThreatConnect API',
     author='ThreatConnect',
     author_email='support@threatconnect.com',
     # package_dir = {'': 'src'},
-    packages=[
-        'threatconnect',
-        'threatconnect/Config',
-        'threatconnect/Resources'],
-    py_modules=[
-        'threatconnect',
-        'threatconnect/Config',
-        'threatconnect/Resources'],
+    packages=find_packages(),
     # test_suite = '',
     url='https://github.com/ThreatConnect-Inc/threatconnect-python',
     license='GPLv3',

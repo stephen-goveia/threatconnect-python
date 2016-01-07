@@ -3,9 +3,9 @@ import json
 
 """ custom """
 
-from threatconnect import ApiProperties
-from threatconnect.Config.ResourceType import ResourceType
-from threatconnect.RequestObject import RequestObject
+import ApiProperties
+from Config.ResourceType import ResourceType
+from RequestObject import RequestObject
 
 
 class BatchJobObject(object):

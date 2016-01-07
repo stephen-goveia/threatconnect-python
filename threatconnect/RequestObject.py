@@ -1,5 +1,5 @@
 
-from threatconnect import ErrorCodes
+import ErrorCodes
 
 
 class RequestObject(object):

@@ -4,16 +4,16 @@ __version__ = '2.0'
 __license__ = 'GPLv3'
 __url__ = 'https://github.com/ThreatConnect-Inc/threatconnect-python'
 
-from threatconnect.ThreatConnect import ThreatConnect, create_tc_arg_parser
-from threatconnect.Resources.Adversaries import (Adversaries, AdversaryFilterObject)
-from threatconnect.Resources.Emails import (Emails, EmailFilterObject)
-from threatconnect.Resources.Groups import (Groups, GroupFilterObject)
-from threatconnect.Resources.Incidents import (Incidents, IncidentFilterObject)
-from threatconnect.Resources.Indicators import IndicatorFilterObject
-from threatconnect.Resources import Indicators
-from threatconnect.Resources.Owners import (Owners, OwnerFilterObject)
-from threatconnect.Resources.Signatures import (Signatures, SignatureFilterObject)
-from threatconnect.Resources.Threats import (Threats, ThreatFilterObject)
-from threatconnect.Resources.Victims import (Victims, VictimFilterObject)
-from threatconnect.Config.ResourceType import *
-from threatconnect.Config.FilterOperator import *
+from ThreatConnect import ThreatConnect, create_tc_arg_parser
+from Resources.Adversaries import (Adversaries, AdversaryFilterObject)
+from Resources.Emails import (Emails, EmailFilterObject)
+from Resources.Groups import (Groups, GroupFilterObject)
+from Resources.Incidents import (Incidents, IncidentFilterObject)
+from Resources.Indicators import IndicatorFilterObject
+from Resources import Indicators
+from Resources.Owners import (Owners, OwnerFilterObject)
+from Resources.Signatures import (Signatures, SignatureFilterObject)
+from Resources.Threats import (Threats, ThreatFilterObject)
+from Resources.Victims import (Victims, VictimFilterObject)
+from Config.ResourceType import *
+from Config.FilterOperator import *

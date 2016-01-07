@@ -2,8 +2,8 @@
 import urllib
 
 """ custom """
-from threatconnect.Config.ResourceRegexes import md5_re, sha1_re, sha256_re
-from threatconnect.Config.ResourceType import ResourceType
+from Config.ResourceRegexes import md5_re, sha1_re, sha256_re
+from Config.ResourceType import ResourceType
 
 # group type to resource type mapping
 g_type_to_r_type = {

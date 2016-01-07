@@ -1,7 +1,7 @@
 """ custom """
-from threatconnect import SharedMethods
-from threatconnect.Config.FilterOperator import FilterOperator
-from threatconnect.ErrorCodes import ErrorCodes
+import SharedMethods
+from Config.FilterOperator import FilterOperator
+from ErrorCodes import ErrorCodes
 
 
 class PostFilterObject(object):
