@@ -634,6 +634,9 @@ class GroupObject(object):
         return self._security_label
 
     def set_security_label(self, data_obj):
+        self.add_security_label(self, data_obj):
+
+    def add_security_label(self, data_obj):
         """security label"""
         self._security_label = data_obj
 
