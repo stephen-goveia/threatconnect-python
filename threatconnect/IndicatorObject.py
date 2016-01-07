@@ -753,7 +753,7 @@ class IndicatorObject(object):
         return self._security_label
 
     def set_security_label(self, data_obj):
-        self.add_security_label(self, data_obj):
+        self.add_security_label(data_obj)
 
     def add_security_label(self, data_obj):
         """security label"""
@@ -1529,7 +1529,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
                     self._resource_obj.add_tag(parse_tag(item))  # add to main resource object
 
     def set_security_label(self, label):
-        self.add_security_label(self, label):
+        self.add_security_label(label)
 
     def add_security_label(self, label):
         """ set the security label for this indicator """
