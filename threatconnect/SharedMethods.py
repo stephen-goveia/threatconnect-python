@@ -2,7 +2,7 @@
 import urllib
 
 """ custom """
-from threatconnect.Config.ResourceRegexes import indicators_regex, md5_re, sha1_re, sha256_re
+from threatconnect.Config.ResourceRegexes import md5_re, sha1_re, sha256_re
 from threatconnect.Config.ResourceType import ResourceType
 
 # group type to resource type mapping
@@ -43,11 +43,12 @@ def get_hash_type(indicator):
         return 'SHA256'
 
 
-def get_resource_type(indicator):
+def get_resource_type(indicators_regex, indicator):
     """ Get resource type enum from an indicator. """
     for indicator_type, regex in indicators_regex.items():
         for rex in regex:
-            if rex.match(indicator):
+            match = rex.match(indicator)
+            if match and match.group(0) == indicator:
                 return ResourceType[indicator_type]
     return None
 
@@ -62,7 +63,7 @@ def get_resource_indicator_type(indicator_type):
     return i_type_to_r_type[indicator_type]
 
 
-def get_indicator_uri_attribute(indicator):
+def get_indicator_uri_attribute(indicators_regex, indicator):
     """ """
     for indicator_type, regex in indicators_regex.items():
         for rex in regex:
@@ -73,7 +74,7 @@ def get_indicator_uri_attribute(indicator):
 
 def uni(data):
     """ convert to unicode when appropriate """
-    if data is None or isinstance(data, (int, list, dict)):
+    if data is None or isinstance(data, (int, list, dict, float)):
         return data
     elif not isinstance(data, unicode):
         return unicode(data, 'utf-8', errors='ignore')
@@ -91,7 +92,7 @@ def urlunsafe(data):
     return urllib.unquote(data)
 
 
-def validate_indicator(indicator):
+def validate_indicator(indicators_regex, indicator):
     """ """
     for indicator_type, regex in indicators_regex.items():
         for rex in regex:

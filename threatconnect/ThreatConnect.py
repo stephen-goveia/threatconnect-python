@@ -1,4 +1,5 @@
 """ standard """
+import argparse
 import base64
 from datetime import datetime
 import hashlib
@@ -18,14 +19,16 @@ packages.urllib3.disable_warnings()
 #
 # memory testing
 #
-import psutil
+# import psutil
 
 """ custom """
 from threatconnect.ErrorCodes import ErrorCodes
 
 # tc config modules
 from threatconnect.Config.FilterOperator import FilterSetOperator
+from threatconnect.Config.IndicatorType import IndicatorType
 from threatconnect.Config.ResourceType import ResourceType
+from threatconnect.Config.ResourceRegexes import indicators_regex
 
 from threatconnect.IndicatorObject import parse_indicator
 from threatconnect.GroupObject import parse_group
@@ -47,6 +50,21 @@ from threatconnect.Resources.Owners import Owners
 from threatconnect.Resources.Threats import Threats
 from threatconnect.Resources.Signatures import Signatures
 from threatconnect.Resources.Victims import Victims
+
+
+def create_tc_arg_parser():
+    """Add default command line arguments for all App Engine apps."""
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--api_access_id', help='API Access ID', required=True)
+    parser.add_argument('--api_secret_key', help='API Secret Key', required=True)
+    parser.add_argument('--api_default_org', help='API Default Org', required=True)
+    parser.add_argument('--tc_log_path', help='ThreatConnect log path', default='/log')
+    parser.add_argument('--tc_temp_path', help='ThreatConnect temp path', default='/tmp')
+    parser.add_argument('--tc_out_path', help='ThreatConnect output path', default='/out')
+    parser.add_argument('--tc_api_path', help='ThreatConnect api path',
+                        default='https://api.threatconnect.com')
+    return parser
 
 
 def tc_logger():
@@ -85,12 +103,14 @@ class ThreatConnect:
         self._api_result_limit = 200
 
         # default values
-        self._activity_log = 'false'
+        self._activity_log = False
         self._api_request_timeout = 30
         self._api_retries = 5  # maximum of 5 minute window
         self._api_sleep = 59  # seconds
-        self._proxies = {'https': None}
         self._enable_report = False
+        self._indicators_regex = indicators_regex
+        self._proxies = {'https': None}
+        self._retype = type(re.compile(''))
 
         # config items
         self._report = []
@@ -105,8 +125,8 @@ class ThreatConnect:
         #
         # Memory Testing
         #
-        self._p = psutil.Process(os.getpid())
-        self._memory = self._p.memory_info().rss
+        # self._p = psutil.Process(os.getpid())
+        # self._memory = self._p.memory_info().rss
 
     def _api_request_headers(self, ro):
         """ """
@@ -176,7 +196,7 @@ class ThreatConnect:
                             # TODO: should this be done?
                             # post filter owners
                             for obj in results:
-                                if obj.owner_name != o:
+                                if obj.owner_name.upper() != o.upper():
                                     results.remove(obj)
 
                         obj_list.extend(results)
@@ -247,7 +267,8 @@ class ThreatConnect:
         #
         # enable activity log
         #
-        # request_object.enable_activity_mode()
+        if self._activity_log:
+            ro.enable_activity_log()
 
         #
         # prepare request
@@ -403,6 +424,8 @@ class ThreatConnect:
         if ro.resource_pagination:
             ro.set_result_limit(self._api_result_limit)
             ro.set_result_start(0)
+        else:
+            ro.set_remaining_results(1)
 
         while ro.remaining_results > 0:
             #
@@ -431,11 +454,12 @@ class ThreatConnect:
                     if ro.resource_type == ResourceType.INDICATORS:
                         data = api_response_dict['indicator']
                         for item in data:
-                            obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                            obj_list.append(parse_indicator(
+                                    item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                             if len(obj_list) % 500 == 0:
                                 self.tcl.debug('obj_list len: {0!s}'.format(len(obj_list)))
-                                self.print_mem('bulk process - {0:d} objects'.format(len(obj_list)))
+                                # self.print_mem('bulk process - {0:d} objects'.format(len(obj_list)))
 
                 elif api_response_dict['status'] == 'Failure':
                     # handle failed request (404 Resource not Found)
@@ -463,7 +487,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                        obj_list.append(parse_indicator(
+                                item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                 #
                 # ADDRESSES
@@ -473,7 +498,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                        obj_list.append(parse_indicator(
+                                item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                 #
                 # DOCUMENTS
@@ -484,7 +510,8 @@ class ThreatConnect:
                         data = [data]  # for single results to be a list
                     for item in data:
                         obj_list.append(
-                            parse_group(item, ResourceType.DOCUMENTS, resource_obj, ro.description, ro.request_uri))
+                            parse_group(
+                                item, ResourceType.DOCUMENTS, resource_obj, ro.description, ro.request_uri))
 
                 #
                 # EMAILS
@@ -495,7 +522,8 @@ class ThreatConnect:
                         data = [data]  # for single results to be a list
                     for item in data:
                         obj_list.append(
-                            parse_group(item, ResourceType.EMAILS, resource_obj, ro.description, ro.request_uri))
+                            parse_group(
+                                item, ResourceType.EMAILS, resource_obj, ro.description, ro.request_uri))
 
                 #
                 # EMAIL ADDRESSES
@@ -505,7 +533,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                        obj_list.append(parse_indicator(
+                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                 #
                 # GROUPS
@@ -526,7 +555,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                        obj_list.append(parse_indicator(
+                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                 #
                 # HOSTS
@@ -536,7 +566,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                        obj_list.append(parse_indicator(
+                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                 #
                 # DNSResolutions
@@ -600,7 +631,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(item, resource_obj, ro.description, ro.request_uri))
+                        obj_list.append(parse_indicator(
+                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
                 #
                 # VICTIMS
@@ -629,7 +661,7 @@ class ThreatConnect:
                 #
                 # memory testing
                 #
-                self.print_mem('pagination - {0:d} objects'.format(len(obj_list)))
+                # self.print_mem('pagination - {0:d} objects'.format(len(obj_list)))
 
             elif api_response.headers['content-type'] == 'text/plain':
                 self.tcl.error('{0!s} "{1!s}"'.format(api_response.content, ro.description))
@@ -682,12 +714,12 @@ class ThreatConnect:
 
         return data
 
-    def print_mem(self, msg):
-        if self._memory_monitor:
-            current_mem = self._p.memory_info().rss
-            self.tcl.info('Memory ({0!s}) - Delta {1:d} Bytes'.format(msg, current_mem - self._memory))
-            self.tcl.info('Memory ({0!s}) - RSS {1:d} Bytes'.format(msg, current_mem))
-            self._memory = current_mem
+    # def print_mem(self, msg):
+    #     if self._memory_monitor:
+    #         current_mem = self._p.memory_info().rss
+    #         self.tcl.info('Memory ({0!s}) - Delta {1:d} Bytes'.format(msg, current_mem - self._memory))
+    #         self.tcl.info('Memory ({0!s}) - RSS {1:d} Bytes'.format(msg, current_mem))
+    #         self._memory = current_mem
 
     def report_enable(self):
         """ """
@@ -700,9 +732,6 @@ class ThreatConnect:
     def set_activity_log(self, data_bool):
         """ enable or disable api activity log """
         if isinstance(data_bool, bool):
-            data_bool = str(data_bool).lower()
-
-        if data_bool in ['true', 'false']:
             self._activity_log = data_bool
 
     def set_api_request_timeout(self, data_int):
@@ -775,6 +804,24 @@ class ThreatConnect:
             ch.setLevel(self.log_level[level])
             ch.setFormatter(self.formatter)
             self.tcl.addHandler(ch)
+
+    def set_indicator_regex(self, type_enum, compiled_regex):
+        """ overwrite default SDK regex """
+        self.tcl.debug('overwrite regex for {0!s}'.format(type_enum.name))
+        if not isinstance(type_enum, IndicatorType):
+            raise AttributeError(ErrorCodes.e0150.value.format(type_enum))
+
+        if not isinstance(compiled_regex, list):
+            compiled_regex = [compiled_regex]
+
+        cr_list = []
+        for cr in compiled_regex:
+            if isinstance(cr, self._retype):
+                cr_list.append(cr)
+            else:
+                raise AttributeError(ErrorCodes.e0160.value.format(cr))
+
+        self._indicators_regex[type_enum.name] = cr_list
 
     #
     # Resources

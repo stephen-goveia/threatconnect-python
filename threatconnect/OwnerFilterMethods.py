@@ -13,11 +13,11 @@ from threatconnect.RequestObject import RequestObject
 def add_indicator(self, data):
     """ filter api results by indicator """
     # validation indicator
-    if not SharedMethods.validate_indicator(data):
+    if not SharedMethods.validate_indicator(self.tc._indicators_regex, data):
         raise AttributeError(ErrorCodes.e5010.value.format(data))
 
     # get indicator uri attribute
-    indicator_type = SharedMethods.get_resource_type(data)
+    indicator_type = SharedMethods.get_resource_type(self.tc._indicators_regex, data)
     indicator_uri_attribute = ApiProperties.api_properties[indicator_type.name]['uri_attribute']
 
     prop = self._resource_properties['indicators']

@@ -23,7 +23,7 @@ from threatconnect.RequestObject import RequestObject
 from threatconnect.SharedMethods import get_resource_type, get_hash_type, get_resource_indicator_type
 
 
-def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_uri=None):
+def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_uri=None, indicators_regex=None):
     """ """
     # indicator object
     indicator = IndicatorObject()
@@ -41,6 +41,7 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     #
     if 'type' in indicator_dict:
         indicator.set_type(indicator_dict['type'])  # set type before indicator
+
     if 'confidence' in indicator_dict:
         indicator.set_confidence(indicator_dict['confidence'], update=False)
     if 'description' in indicator_dict:
@@ -52,7 +53,8 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     if 'rating' in indicator_dict:
         indicator.set_rating(indicator_dict['rating'], update=False)
     if 'summary' in indicator_dict:
-        indicator.set_indicator(indicator_dict['summary'])
+        resource_type = get_resource_type(indicators_regex, indicator_dict['summary'])
+        indicator.set_indicator(indicator_dict['summary'], resource_type)
     if 'threatAssessConfidence' in indicator_dict:
         indicator.set_threat_assess_confidence(indicator_dict['threatAssessConfidence'])
     if 'threatAssessRating' in indicator_dict:
@@ -63,24 +65,34 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     #
     if 'ip' in indicator_dict:
         indicator.set_indicator(indicator_dict['ip'], ResourceType.ADDRESSES)
+        if indicator.type is None:
+            indicator.set_type('Address')  # set type before indicator
 
     #
     # email address
     #
     if 'address' in indicator_dict:
         indicator.set_indicator(indicator_dict['address'], ResourceType.EMAIL_ADDRESSES)
+        if indicator.type is None:
+            indicator.set_type('EmailAddress')  # set type before indicator
 
     #
     # files
     #
     if 'md5' in indicator_dict:
         indicator.set_indicator(indicator_dict['md5'], ResourceType.FILES)
+        if indicator.type is None:
+            indicator.set_type('File')  # set type before indicator
 
     if 'sha1' in indicator_dict:
         indicator.set_indicator(indicator_dict['sha1'], ResourceType.FILES)
+        if indicator.type is None:
+            indicator.set_type('File')  # set type before indicator
 
     if 'sha256' in indicator_dict:
         indicator.set_indicator(indicator_dict['sha256'], ResourceType.FILES)
+        if indicator.type is None:
+            indicator.set_type('File')  # set type before indicator
 
     if 'size' in indicator_dict:
         indicator.set_size(indicator_dict['size'], update=False)
@@ -90,6 +102,8 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     #
     if 'hostName' in indicator_dict:
         indicator.set_indicator(indicator_dict['hostName'], ResourceType.HOSTS)
+        if indicator.type is None:
+            indicator.set_type('Host')  # set type before indicator
 
     if 'dnsActive' in indicator_dict:
         indicator.set_dns_active(indicator_dict['dnsActive'], update=False)
@@ -102,6 +116,8 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     #
     if 'text' in indicator_dict:
         indicator.set_indicator(indicator_dict['text'], ResourceType.URLS)
+        if indicator.type is None:
+            indicator.set_type('URL')  # set type before indicator
 
     if 'source' in indicator_dict:
         indicator.set_source(indicator_dict['source'], update=False)
@@ -128,8 +144,11 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
     if resource_obj is not None:
         # store the resource object in the master resource object list
         # must be submitted after parameters are set for indexing to work
-        # roi = resource_obj.add_master_resource_obj(indicator, indicator_dict['id'])
-        roi = resource_obj.add_master_resource_obj(indicator, indicator.indicator)
+        roi = resource_obj.add_master_resource_obj(indicator, indicator_dict['id'])
+
+        # BCS - This causes a bug on searching for a single indicator over multiple
+        #       owners, only 1 indicator is returned.
+        # roi = resource_obj.add_master_resource_obj(indicator, indicator.indicator)
 
         # retrieve the resource object and update data
         return resource_obj.get_resource_by_identity(roi)
@@ -413,12 +432,12 @@ class IndicatorObject(object):
         if self._resource_type is None:
             if resource_type is None:
                 # get resource type using regex
-                self._resource_type = get_resource_type(data)
+                self._resource_type = get_resource_type(self._tc._indicators_regex, data)
             else:
                 self._resource_type = resource_type
 
         # if get_resource_type return None error.
-        if self._resource_type is None:
+        if not isinstance(self._resource_type, ResourceType):
             raise AttributeError(ErrorCodes.e10030.value)
 
         #
@@ -734,6 +753,9 @@ class IndicatorObject(object):
         return self._security_label
 
     def set_security_label(self, data_obj):
+        self.add_security_label(data_obj)
+
+    def add_security_label(self, data_obj):
         """security label"""
         self._security_label.append(data_obj)
 
@@ -768,6 +790,10 @@ class IndicatorObject(object):
     def resource_type(self):
         """ """
         return self._resource_type
+
+    # def set_resource_type(self, data):
+    #     """ """
+    #     self._resource_type = data
 
     #
     # validate
@@ -918,14 +944,23 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def add_attribute(self, attr_type, attr_value, attr_displayed='true'):
         """ add an attribute to an indicator """
+        attr_type = self._uni(attr_type)
+        attr_value = self._uni(attr_value)
         prop = self._resource_properties['attribute_add']
         ro = RequestObject()
         ro.set_body(json.dumps({
             'type': attr_type,
             'value': attr_value,
             'displayed': attr_displayed}))
-        ro.set_description('add attribute type "{0}" with value "{1}" to {2}'.format(
-            attr_type, attr_value, self._reference_indicator))
+        try:
+            ro.set_description('add attribute type "{}" with value "{}" to {}'.format(
+                attr_type,
+                attr_value.encode('ascii', 'ignore'),
+                self._reference_indicator.encode('utf-8', 'ignore')))
+        except:
+            ro.set_description('add attribute type "{}" with value "unencodable" to {}'.format(
+                attr_type,
+                self._reference_indicator.encode('utf-8', 'ignore')))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
         ro.set_request_uri(prop['uri'].format(self._reference_indicator))
@@ -1291,7 +1326,8 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_resource_type(self._resource_type)
 
         for item in self._tc.result_pagination(ro, 'indicator'):
-            yield parse_indicator(item, api_filter=ro.description, request_uri=ro.request_uri)
+            yield parse_indicator(
+                item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
 
     @property
     def json(self):
@@ -1493,6 +1529,9 @@ class IndicatorObjectAdvanced(IndicatorObject):
                     self._resource_obj.add_tag(parse_tag(item))  # add to main resource object
 
     def set_security_label(self, label):
+        self.add_security_label(label)
+
+    def add_security_label(self, label):
         """ set the security label for this indicator """
         prop = self._resource_properties['security_label_add']
         ro = RequestObject()
@@ -1508,11 +1547,19 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def update_attribute(self, attr_id, attr_value):
         """ update indicator attribute by id """
+        attr_value = self._uni(attr_value)
         prop = self._resource_properties['attribute_update']
         ro = RequestObject()
         ro.set_body(json.dumps({'value': attr_value}))
-        ro.set_description('update attribute id {0} with value "{1}" on {2}'.format(
-            attr_id, attr_value, self._reference_indicator))
+        try:
+            ro.set_description('update attribute id {} with value "{}" on {}'.format(
+                attr_id,
+                attr_value,
+                self._reference_indicator))
+        except:
+            ro.set_description('update attribute id {} with value "unencodable" on {}'.format(
+                attr_id,
+                self._reference_indicator))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
         ro.set_request_uri(prop['uri'].format(

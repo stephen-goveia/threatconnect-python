@@ -634,6 +634,9 @@ class GroupObject(object):
         return self._security_label
 
     def set_security_label(self, data_obj):
+        self.add_security_label(data_obj)
+
+    def add_security_label(self, data_obj):
         """security label"""
         self._security_label = data_obj
 
@@ -1162,7 +1165,7 @@ class GroupObjectAdvanced(GroupObject):
 
         for item in self._tc.result_pagination(ro, 'indicator'):
             yield threatconnect.IndicatorObject.parse_indicator(
-                item, api_filter=ro.description, request_uri=ro.request_uri)
+                item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
 
     @property
     def json(self):
@@ -1251,6 +1254,9 @@ class GroupObjectAdvanced(GroupObject):
                     self._resource_obj.add_tag(parse_tag(item))  # add to main resource object
 
     def set_security_label(self, label):
+        self.add_security_label(label)
+
+    def add_security_label(self, label):
         """ set the security label for this group """
         prop = self._resource_properties['security_label_add']
         ro = RequestObject()

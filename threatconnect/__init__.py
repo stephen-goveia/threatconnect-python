@@ -4,7 +4,7 @@ __version__ = '2.0'
 __license__ = 'GPLv3'
 __url__ = 'https://github.com/ThreatConnect-Inc/threatconnect-python'
 
-from threatconnect.ThreatConnect import ThreatConnect
+from threatconnect.ThreatConnect import ThreatConnect, create_tc_arg_parser
 from threatconnect.Resources.Adversaries import (Adversaries, AdversaryFilterObject)
 from threatconnect.Resources.Emails import (Emails, EmailFilterObject)
 from threatconnect.Resources.Groups import (Groups, GroupFilterObject)

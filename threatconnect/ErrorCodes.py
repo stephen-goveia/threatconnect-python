@@ -12,6 +12,8 @@ class ErrorCodes(Enum):
     e0120 = 'Settings Error: ({0!s}) is an invalid value. API Retries must be a integer.'
     e0130 = 'Settings Error: ({0!s}) is an invalid value. API Sleep must be a integer.'
     e0140 = 'Settings Error: ({0!s}) is an invalid value. Max result counts must be a integer.'
+    e0150 = 'Settings Error: Type {0!s} must be a IndicatorType.'
+    e0160 = 'Settings Error: ({0!s}) is an invalid compiled regex.'
 
     #
     # Resource Error Codes
@@ -59,6 +61,7 @@ class ErrorCodes(Enum):
     e10030 = 'Resource Error: Resource Type is not configured for this object.'
     e10040 = 'Resource Error: Cannot commit incomplete resource object.'
     e10050 = 'Resource Error: {0!s} is an invalid indicator.'
+    e10060 = 'Resource Error: Type {0!s} must be a IndicatorType.'
 
     # Indicator Resource Object
     e10100 = 'Resource Error: DNS Active is not supported for this resource type.'
