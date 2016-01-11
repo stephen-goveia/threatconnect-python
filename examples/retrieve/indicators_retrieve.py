@@ -21,7 +21,7 @@ owners = ['Example Community']
 # shared method to display results from examples below
 def show_data(result_obj):
     """  """
-    tc.print_mem('before loop')
+    #tc.print_mem('before loop')
     for obj in result_obj:
         print('\n{0!s:_^80}'.format(obj.resource_type.name))
         if isinstance(obj.indicator, dict):
@@ -162,7 +162,7 @@ def show_data(result_obj):
         print('\n{0!s:-^40}'.format(' LEEF Format '))
         print('{0!s}\n'.format(obj.leef))
 
-    tc.print_mem('after loop')
+    #tc.print_mem('after loop')
 
     #
     # print report
