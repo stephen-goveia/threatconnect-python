@@ -1,5 +1,5 @@
 """ standard """
-from threatconnect.Config.ResourceType import ResourceType
+from Config.ResourceType import ResourceType
 
 
 def parse_dns_resolution(dr_dict):

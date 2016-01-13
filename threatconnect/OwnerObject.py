@@ -9,9 +9,9 @@ except ImportError:
 
 """ custom """
 
-from threatconnect import ApiProperties
-from threatconnect.Config.ResourceType import ResourceType
-from threatconnect.ErrorCodes import ErrorCodes
+import ApiProperties
+from Config.ResourceType import ResourceType
+from ErrorCodes import ErrorCodes
 
 
 def parse_owner(owner_dict, resource_obj=None, api_filter=None, request_uri=None):

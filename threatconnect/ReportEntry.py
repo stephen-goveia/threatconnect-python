@@ -1,5 +1,5 @@
 """ custom """
-from threatconnect import SharedMethods
+import SharedMethods
 
 
 class ReportEntry(object):

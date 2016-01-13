@@ -1,9 +1,9 @@
 """ standard """
 import json
-from threatconnect.ErrorCodes import ErrorCodes
+from ErrorCodes import ErrorCodes
 
 """ custom """
-from threatconnect.Config.ResourceType import ResourceType
+from Config.ResourceType import ResourceType
 # from threatconnect.ErrorCodes import ErrorCodes
 
 

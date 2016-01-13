@@ -6,13 +6,13 @@ import dateutil.parser
 
 """ custom """
 from Config.FilterOperator import FilterOperator
-from threatconnect import ApiProperties
-from threatconnect import SharedMethods
+import ApiProperties
+import SharedMethods
 
-from threatconnect.Config.ResourceType import ResourceType
-from threatconnect.ErrorCodes import ErrorCodes
-from threatconnect.PostFilterObject import PostFilterObject
-from threatconnect.RequestObject import RequestObject
+from Config.ResourceType import ResourceType
+from ErrorCodes import ErrorCodes
+from PostFilterObject import PostFilterObject
+from RequestObject import RequestObject
 
 
 def add_adversary_id(self, data_int):

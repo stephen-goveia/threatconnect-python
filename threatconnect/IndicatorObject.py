@@ -8,19 +8,20 @@ except ImportError:
     from io import StringIO
 
 """ custom """
-from threatconnect.AttributeObject import parse_attribute, AttributeObject
-from threatconnect.FileOccurrenceObject import parse_file_occurrence
-import threatconnect.GroupObject
-from threatconnect.SecurityLabelObject import parse_security_label
-from threatconnect.TagObject import parse_tag
-from threatconnect.VictimObject import parse_victim
+import VictimObject
+from AttributeObject import parse_attribute, AttributeObject
+from FileOccurrenceObject import parse_file_occurrence
+import GroupObject
+from SecurityLabelObject import parse_security_label
+from TagObject import parse_tag
 
-from threatconnect import ApiProperties
-from threatconnect.Config.ResourceType import ResourceType
-from threatconnect.ErrorCodes import ErrorCodes
 
-from threatconnect.RequestObject import RequestObject
-from threatconnect.SharedMethods import get_resource_type, get_hash_type, get_resource_indicator_type
+import ApiProperties
+from Config.ResourceType import ResourceType
+from ErrorCodes import ErrorCodes
+
+from RequestObject import RequestObject
+from SharedMethods import get_resource_type, get_hash_type, get_resource_indicator_type
 
 
 def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_uri=None, indicators_regex=None):
@@ -1310,7 +1311,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_resource_type(self._resource_type)
 
         for item in self._tc.result_pagination(ro, 'group'):
-            yield threatconnect.GroupObject.parse_group(item, api_filter=ro.description, request_uri=ro.request_uri)
+            yield GroupObject.parse_group(item, api_filter=ro.description, request_uri=ro.request_uri)
 
     @property
     def indicator_associations(self):

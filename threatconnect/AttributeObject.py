@@ -1,10 +1,10 @@
 """ standard """
-from threatconnect import ApiProperties
-from threatconnect.RequestObject import RequestObject
-from threatconnect.SecurityLabelObject import parse_security_label, SecurityLabelObject
+import ApiProperties
+from RequestObject import RequestObject
+from SecurityLabelObject import parse_security_label, SecurityLabelObject
 
 """ custom """
-from threatconnect.ErrorCodes import ErrorCodes
+from ErrorCodes import ErrorCodes
 
 
 def parse_attribute(attribute_dict, container):

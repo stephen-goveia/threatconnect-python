@@ -9,7 +9,7 @@ import os
 import re
 import socket
 import time
-from threatconnect.DnsResolutionObject import parse_dns_resolution
+from DnsResolutionObject import parse_dns_resolution
 
 """ third-party """
 from requests import (exceptions, packages, Request, Session)
@@ -22,34 +22,34 @@ packages.urllib3.disable_warnings()
 # import psutil
 
 """ custom """
-from threatconnect.ErrorCodes import ErrorCodes
+from ErrorCodes import ErrorCodes
 
 # tc config modules
-from threatconnect.Config.FilterOperator import FilterSetOperator
-from threatconnect.Config.IndicatorType import IndicatorType
-from threatconnect.Config.ResourceType import ResourceType
-from threatconnect.Config.ResourceRegexes import indicators_regex
+from Config.FilterOperator import FilterSetOperator
+from Config.IndicatorType import IndicatorType
+from Config.ResourceType import ResourceType
+from Config.ResourceRegexes import indicators_regex
 
-from threatconnect.IndicatorObject import parse_indicator
-from threatconnect.GroupObject import parse_group
-from threatconnect.OwnerObject import parse_owner
-from threatconnect.VictimObject import parse_victim
-from threatconnect.Resources.BatchJobs import BatchJobs, parse_batch_job
+from IndicatorObject import parse_indicator
+from GroupObject import parse_group
+from OwnerObject import parse_owner
+from VictimObject import parse_victim
+from Resources.BatchJobs import BatchJobs, parse_batch_job
 
-from threatconnect.ReportEntry import ReportEntry
-from threatconnect.Report import Report
-from threatconnect.Resources.Adversaries import Adversaries
-from threatconnect.Resources.Bulk import Bulk
-from threatconnect.Resources.BulkIndicators import BulkIndicators
-from threatconnect.Resources.Documents import Documents
-from threatconnect.Resources.Emails import Emails
-from threatconnect.Resources.Groups import Groups
-from threatconnect.Resources.Incidents import Incidents
-from threatconnect.Resources.Indicators import Indicators
-from threatconnect.Resources.Owners import Owners
-from threatconnect.Resources.Threats import Threats
-from threatconnect.Resources.Signatures import Signatures
-from threatconnect.Resources.Victims import Victims
+from ReportEntry import ReportEntry
+from Report import Report
+from Resources.Adversaries import Adversaries
+from Resources.Bulk import Bulk
+from Resources.BulkIndicators import BulkIndicators
+from Resources.Documents import Documents
+from Resources.Emails import Emails
+from Resources.Groups import Groups
+from Resources.Incidents import Incidents
+from Resources.Indicators import Indicators
+from Resources.Owners import Owners
+from Resources.Threats import Threats
+from Resources.Signatures import Signatures
+from Resources.Victims import Victims
 
 
 def create_tc_arg_parser():

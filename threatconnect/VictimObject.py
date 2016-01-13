@@ -8,14 +8,15 @@ except ImportError:
     from io import StringIO
 
 """ custom """
-import threatconnect.GroupObject
-import threatconnect.IndicatorObject
-from threatconnect.VictimAssetObject import parse_victim_asset
+# import IndicatorObject
+import GroupObject
 
-from threatconnect import ApiProperties
-from threatconnect.Config.ResourceType import ResourceType
-from threatconnect.ErrorCodes import ErrorCodes
-from threatconnect.RequestObject import RequestObject
+from VictimAssetObject import parse_victim_asset
+
+import ApiProperties
+from Config.ResourceType import ResourceType
+from ErrorCodes import ErrorCodes
+from RequestObject import RequestObject
 
 
 def parse_victim(victim_dict, resource_obj=None, api_filter=None, request_uri=None):

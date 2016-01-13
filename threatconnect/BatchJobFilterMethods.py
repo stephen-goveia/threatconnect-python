@@ -1,5 +1,5 @@
-from threatconnect.ErrorCodes import ErrorCodes
-from threatconnect.RequestObject import RequestObject
+from ErrorCodes import ErrorCodes
+from RequestObject import RequestObject
 
 
 def add_id(self, data_int):
