@@ -57,3 +57,8 @@ target/
 .idea/
 
 # ThreatConnect
+
+# IDE Directories
+.idea
+.c9
+.python-version

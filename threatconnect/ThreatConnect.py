@@ -771,6 +771,10 @@ class ThreatConnect:
             self._proxies['https'] = '{0!s}:{1!s}@{2!s}:{3!s}'.format(proxy_user, proxy_pass, proxy_address, proxy_port)
         else:
             self._proxies['https'] = '{0!s}:{1!s}'.format(proxy_address, proxy_port)
+            
+    def get_proxies(self):
+        """ get proxy settings """
+        return self._proxies
 
     def set_tcl_file(self, fqpn, level='info'):
         """ set the log file destination and log level """
