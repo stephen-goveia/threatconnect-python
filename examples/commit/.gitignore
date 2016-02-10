@@ -1,0 +1,5 @@
+tc.conf*
+threatconnect
+
+# Except this file
+!tc.conf-template

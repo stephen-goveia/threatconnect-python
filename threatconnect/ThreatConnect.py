@@ -765,12 +765,21 @@ class ThreatConnect:
     def set_proxies(self, proxy_address, proxy_port, proxy_user=None, proxy_pass=None):
         """ define proxy server to use with the requests module """
         # "http": "http://user:pass@10.10.1.10:3128/",
-
+        
+        # accept host with http(s) or without
+        proxy_method = 'http://'
+        if re.match('^http', proxy_address):
+            proxy_method, proxy_host = proxy_address.split('//')
+            proxy_method += '//'
+            proxy_address = proxy_host
+        
         # TODO: add validation
         if proxy_user is not None and proxy_pass is not None:
-            self._proxies['https'] = '{0!s}:{1!s}@{2!s}:{3!s}'.format(proxy_user, proxy_pass, proxy_address, proxy_port)
+            self._proxies['https'] = '{0!s}{1!s}:{2!s}@{3!s}:{4!s}'.format(
+                proxy_method, proxy_user, proxy_pass, proxy_address, proxy_port)
         else:
-            self._proxies['https'] = '{0!s}:{1!s}'.format(proxy_address, proxy_port)
+            self._proxies['https'] = '{0!s}{1!s}{2!s}'.format(
+                proxy_method, proxy_address, proxy_port)
             
     def get_proxies(self):
         """ get proxy settings """

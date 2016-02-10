@@ -1,13 +1,36 @@
 # -*- coding: utf-8 -*-
 
 """ standard """
+import ConfigParser
 from random import randint
 import re
+import sys
 
 """ custom """
-from examples.working_init import *
+from threatconnect import ThreatConnect
 from threatconnect.Config.ResourceType import ResourceType
 from threatconnect.VictimAssetObject import VictimAssetObject
+
+# configuration file
+config_file = "tc.conf"
+
+# retrieve configuration file
+config = ConfigParser.RawConfigParser()
+config.read(config_file)
+
+try:
+    api_access_id = config.get('threatconnect', 'api_access_id')
+    api_secret_key = config.get('threatconnect', 'api_secret_key')
+    api_default_org = config.get('threatconnect', 'api_default_org')
+    api_base_url = config.get('threatconnect', 'api_base_url')
+    api_result_limit = int(config.get('threatconnect', 'api_result_limit'))
+except ConfigParser.NoOptionError:
+    print('Could not retrieve configuration file.')
+    sys.exit(1)
+
+tc = ThreatConnect(api_access_id, api_secret_key, api_default_org, api_base_url)
+tc.set_api_result_limit(api_result_limit)
+tc.report_enable()
 
 #
 # CHANGE FOR YOUR TESTING ENVIRONMENT
