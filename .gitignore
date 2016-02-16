@@ -63,3 +63,5 @@ threatconnect/ThreatConnect-urllib.py
 .idea
 .c9
 .python-version
+/.project
+/.pydevproject
