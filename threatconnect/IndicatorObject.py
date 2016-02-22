@@ -954,12 +954,12 @@ class IndicatorObjectAdvanced(IndicatorObject):
             'value': attr_value,
             'displayed': attr_displayed}))
         try:
-            ro.set_description('add attribute type "{}" with value "{}" to {}'.format(
+            ro.set_description('add attribute type "{0}" with value "{1}" to {2}'.format(
                 attr_type,
                 attr_value.encode('ascii', 'ignore'),
                 self._reference_indicator.encode('utf-8', 'ignore')))
         except:
-            ro.set_description('add attribute type "{}" with value "unencodable" to {}'.format(
+            ro.set_description('add attribute type "{0}" with value "unencodable" to {1}'.format(
                 attr_type,
                 self._reference_indicator.encode('utf-8', 'ignore')))
         ro.set_http_method(prop['http_method'])
@@ -1553,12 +1553,12 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro = RequestObject()
         ro.set_body(json.dumps({'value': attr_value}))
         try:
-            ro.set_description('update attribute id {} with value "{}" on {}'.format(
+            ro.set_description('update attribute id {0} with value "{1}" on {2}'.format(
                 attr_id,
                 attr_value,
                 self._reference_indicator))
         except:
-            ro.set_description('update attribute id {} with value "unencodable" on {}'.format(
+            ro.set_description('update attribute id {0} with value "unencodable" on {1}'.format(
                 attr_id,
                 self._reference_indicator))
         ro.set_http_method(prop['http_method'])
