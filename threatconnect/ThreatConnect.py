@@ -778,7 +778,7 @@ class ThreatConnect:
             self._proxies['https'] = '{0!s}{1!s}:{2!s}@{3!s}:{4!s}'.format(
                 proxy_method, proxy_user, proxy_pass, proxy_address, proxy_port)
         else:
-            self._proxies['https'] = '{0!s}{1!s}{2!s}'.format(
+            self._proxies['https'] = '{0!s}{1!s}:{2!s}'.format(
                 proxy_method, proxy_address, proxy_port)
             
     def get_proxies(self):
