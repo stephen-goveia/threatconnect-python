@@ -15,7 +15,7 @@ setup(
     url='https://github.com/ThreatConnect-Inc/threatconnect-python',
     download_url='https://github.com/ThreatConnect-Inc/threatconnect-python/tarball/2.3',
     license='GPLv3',
-    install_requires=['requests', 'python-dateutil', 'psutil'],
+    install_requires=['requests', 'python-dateutil'],
     extras_require={
         ':python_version=="2.7"': ['enum34']
     },
