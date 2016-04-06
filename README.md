@@ -10,7 +10,7 @@ Python 2.x requirements:
  * Requests 2.7+ module (http://docs.python-requests.org/en/latest/).
  * enum34 module (https://pypi.python.org/pypi/enum34).
 
-Python 3.x support coming soon.
+Python 3.x now supported.
 
 API credentials with a ThreatConnect instance is required to run this module.  Please see http://www.threatconnect.com/product/threatconnect_API for more information on obtaining API credentials.  
 
