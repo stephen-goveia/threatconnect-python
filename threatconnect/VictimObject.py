@@ -8,10 +8,11 @@ except ImportError:
     from io import StringIO
 
 """ custom """
-# import IndicatorObject
+from AttributeObject import parse_attribute, AttributeObject
 import GroupObject
-
+from SecurityLabelObject import parse_security_label
 from VictimAssetObject import parse_victim_asset
+from TagObject import parse_tag
 
 import ApiProperties
 from Config.ResourceType import ResourceType
@@ -99,6 +100,7 @@ def parse_victim(victim_dict, resource_obj=None, api_filter=None, request_uri=No
 class VictimObject(object):
     __slots__ = (
         '_assets',
+        '_attributes',
         '_description',
         '_id',
         '_matched_filters',
@@ -110,13 +112,17 @@ class VictimObject(object):
         '_properties',
         '_request_uris',
         '_resource_type',
+        '_security_label',
         '_suborg',
+        '_tags',
         '_weblink',
         '_work_location',
+        '_reload_attributes'
     )
 
     def __init__(self):
         self._assets = []
+        self._attributes = []
         self._description = None
         self._id = None
         self._matched_filters = []
@@ -152,9 +158,12 @@ class VictimObject(object):
                 'required': False,
             },
         }
+        self._reload_attributes = False
         self._request_uris = []
         self._resource_type = ResourceType.VICTIMS
+        self._security_label = None
         self._suborg = None
+        self._tags = []
         self._weblink = None
         self._work_location = None
 
@@ -194,6 +203,18 @@ class VictimObject(object):
     def add_asset(self, data_obj):
         """Read-Only group metadata"""
         self._assets.append(data_obj)
+        
+    #
+    # attributes
+    #
+    @property
+    def attributes(self):
+        """ """
+        return self._attributes
+
+    def add_attribute(self, data_obj, displayed=True):
+        """collection of attributes objects"""
+        self._attributes.append(data_obj)
 
     #
     # description
@@ -328,6 +349,21 @@ class VictimObject(object):
         return self._resource_type
 
     #
+    # security label
+    #
+    @property
+    def security_label(self):
+        """ """
+        return self._security_label
+
+    def set_security_label(self, data_obj):
+        self.add_security_label(data_obj)
+
+    def add_security_label(self, data_obj):
+        """security label"""
+        self._security_label = data_obj
+
+    #
     # suborg
     #
     @property
@@ -341,6 +377,18 @@ class VictimObject(object):
 
         if update and self._phase == 0:
             self._phase = 2
+
+    #
+    # tags
+    #
+    @property
+    def tags(self):
+        """ """
+        return self._tags
+
+    def add_tag(self, data_obj):
+        """collection of tag objects"""
+        self._tags.append(data_obj)
 
     #
     # weblink
@@ -485,6 +533,62 @@ class VictimObjectAdvanced(VictimObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
+        
+    def add_attribute(self, attr_type, attr_value, attr_displayed='true'):
+        """ add an attribute to a victim """
+        prop = self._resource_properties['attribute_add']
+        ro = RequestObject()
+        ro.set_body(json.dumps({
+            'type': attr_type,
+            'value': attr_value,
+            'displayed': attr_displayed}))
+        ro.set_description('add attribute type "{0}" with value "{1}" to "{2}"'.format(
+            attr_type, attr_value, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(self._id))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        callback = lambda status: self.__add_attribute_failure(attr_type, attr_value)
+        ro.set_failure_callback(callback)
+        self._resource_container.add_commit_queue(self.id, ro)
+        attribute = AttributeObject(self)
+        attribute.set_type(attr_type)
+        attribute.set_value(attr_value)
+        attribute.set_displayed(attr_displayed)
+        self._resource_obj.add_attribute(attribute)
+        
+    def __add_attribute_failure(self, attr_type, attr_value):
+        for attribute in self._attributes:
+            if attribute.type == attr_type and attribute.value == attr_value:
+                self._attributes.remove(attribute)
+                break
+            
+    def add_security_label(self, label):
+        """ set the security label for this victim """
+        prop = self._resource_properties['security_label_add']
+        ro = RequestObject()
+        ro.set_description('add security label "{0}" to "{1}"'.format(label, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, self._urlsafe(label)))
+        ro.set_resource_type(self._resource_type)
+
+        self._resource_container.add_commit_queue(self.id, ro)
+
+    def add_tag(self, tag):
+        """ add a tag to an victim """
+        prop = self._resource_properties['tag_add']
+        ro = RequestObject()
+        ro.set_description('add tag "{0}" to "{1}"'.format(tag, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(self._id, self._urlsafe(tag)))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
 
     def associate_group(self, resource_type, resource_id):
         """ associate a group to indicator by id """
@@ -570,8 +674,11 @@ class VictimObjectAdvanced(VictimObject):
         self.set_id(r_id)
 
         self._resource_container.clear_commit_queue_id(self.id)
-
+        
         self.set_phase(0)
+        
+        if self._reload_attributes:
+            self.load_attributes(automatically_reload=True)
 
         # return object
         return self
@@ -633,6 +740,45 @@ class VictimObjectAdvanced(VictimObject):
         ro.set_owner(self.owner_name)
         ro.set_owner_allowed(prop['owner_allowed'])
         ro.set_request_uri(prop['uri'].format(self._id, asset_obj.uri_attribute, asset_id))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
+        
+    def delete_attribute(self, attr_id):
+        """ delete attribute from victim by id """
+        prop = self._resource_properties['attribute_delete']
+        ro = RequestObject()
+        ro.set_description('delete attribute id {0} from "{1}"'.format(attr_id, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, attr_id))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
+
+    def delete_security_label(self, label):
+        """ delete the security label for this indicator """
+        prop = self._resource_properties['security_label_delete']
+        ro = RequestObject()
+        ro.set_description('delete security label "{0}" from {1}'.format(label, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, self._urlsafe(label)))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
+        
+    def delete_tag(self, tag):
+        """ delete tag from victim """
+        prop = self._resource_properties['tag_delete']
+        ro = RequestObject()
+        ro.set_description('delete tag "{0}" from "{1}"'.format(tag, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, self._urlsafe(tag)))
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
@@ -729,6 +875,71 @@ class VictimObjectAdvanced(VictimObject):
                 data = api_response_dict['data']['victimAsset']
                 for item in data:
                     self._resource_obj.add_asset(parse_victim_asset(item))  # add to main resource object
+                    
+    def load_attributes(self, automatically_reload=False):
+        self._reload_attributes = automatically_reload
+        """ retrieve attributes for this group """
+        prop = self._resource_properties['attributes']
+        ro = RequestObject()
+        ro.set_description('load attributes for {0}'.format(self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner(self.owner_name)
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(self._id))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        api_response = self._tc.api_request(ro)
+
+        if api_response.headers['content-type'] == 'application/json':
+            api_response_dict = api_response.json()
+            if api_response_dict['status'] == 'Success':
+                data = api_response_dict['data']['attribute']
+                self._resource_obj._attributes = []
+                for item in data:
+                    self._resource_obj.add_attribute(parse_attribute(item, self))  # add to main resource object
+                    
+    def load_security_label(self):
+        """ retrieve security label for this victim """
+        prop = self._resource_properties['security_label_load']
+        ro = RequestObject()
+        ro.set_description('load security labels for {0}'.format(self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner(self.owner_name)
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(self._id))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        api_response = self._tc.api_request(ro)
+
+        if api_response.headers['content-type'] == 'application/json':
+            api_response_dict = api_response.json()
+            if api_response_dict['status'] == 'Success':
+                data = api_response_dict['data']['securityLabel']
+                for item in data:
+                    self._security_label = parse_security_label(item)  # add to main resource object
+                    
+    def load_tags(self):
+        """ retrieve tags for this victim """
+        prop = self._resource_properties['tags_load']
+        ro = RequestObject()
+        ro.set_description('load tags for {0}'.format(self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner(self.owner_name)
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(self._id))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        api_response = self._tc.api_request(ro)
+
+        if api_response.headers['content-type'] == 'application/json':
+            api_response_dict = api_response.json()
+            if api_response_dict['status'] == 'Success':
+                data = api_response_dict['data']['tag']
+                for item in data:
+                    self._resource_obj.add_tag(parse_tag(item))  # add to main resource object
+
+    def set_security_label(self, label):
+        self.add_security_label(label)
 
     def update_asset(self, asset_id, asset_obj):
         """ add a asset to a victim """
@@ -742,3 +953,26 @@ class VictimObjectAdvanced(VictimObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
+
+    def update_attribute(self, attr_id, attr_value):
+        """ update victim attribute by id """
+        prop = self._resource_properties['attribute_update']
+        ro = RequestObject()
+        ro.set_body(json.dumps({'value': attr_value}))
+        ro.set_description('update attribute id {0} with value "{1}" on "{2}"'.format(
+            attr_id, attr_value, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(self._id, attr_id))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+
+        self._resource_container.add_commit_queue(self.id, ro)
+        
+    #
+    # attributes
+    #
+    @property
+    def attributes(self):
+        """ """
+        return self._resource_obj._attributes

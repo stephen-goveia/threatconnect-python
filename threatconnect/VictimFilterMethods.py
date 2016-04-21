@@ -120,6 +120,21 @@ def add_indicator(self, data):
     self._add_request_objects(ro)
 
 
+def add_security_label(self, data):
+    """ """
+    if not isinstance(data, str):
+        raise AttributeError(ErrorCodes.e4050.value.format(data))
+
+    prop = self._resource_properties['security_labels']
+    ro = RequestObject()
+    ro.set_description('api filter by security label "{0}"'.format(data))
+    ro.set_owner_allowed(prop['owner_allowed'])
+    ro.set_resource_pagination(prop['pagination'])
+    ro.set_request_uri(prop['uri'], [SharedMethods.urlsafe(data)])
+    ro.set_resource_type(self._resource_type)
+    self._add_request_objects(ro)
+
+
 def add_signature_id(self, data_int):
     """ """
     # validation of data input
@@ -133,6 +148,21 @@ def add_signature_id(self, data_int):
     ro.set_owner_allowed(prop['owner_allowed'])
     ro.set_request_uri(prop['uri'], ['signatures', data_int])
     ro.set_resource_pagination(prop['pagination'])
+    ro.set_resource_type(self._resource_type)
+    self._add_request_objects(ro)
+
+
+def add_tag(self, data):
+    """ """
+    if not isinstance(data, str):
+        raise AttributeError(ErrorCodes.e4070.value.format(data))
+
+    prop = self._resource_properties['tags']
+    ro = RequestObject()
+    ro.set_description('api filter by tag "{0}"'.format(data))
+    ro.set_owner_allowed(prop['owner_allowed'])
+    ro.set_resource_pagination(prop['pagination'])
+    ro.set_request_uri(prop['uri'], [SharedMethods.urlsafe(data)])
     ro.set_resource_type(self._resource_type)
     self._add_request_objects(ro)
 
@@ -157,6 +187,17 @@ def add_threat_id(self, data_int):
 # Post Filters
 #
 
+def add_pf_attribute(self, data, operator=FilterOperator.EQ):
+    """ add post filter by attribute
+    :type operator: FilterOperator
+    """
+    post_filter = PostFilterObject()
+    post_filter.set_description('post filter by attribute {0} {1}'.format(operator.name, data))
+    post_filter.set_method('filter_attribute')
+    post_filter.set_filter(data)
+    post_filter.set_operator(operator)
+    self.add_post_filter(post_filter)
+
 
 def add_pf_date_added(self, data_date, operator=FilterOperator.EQ):
     """ add post filter by date 
@@ -171,18 +212,6 @@ def add_pf_date_added(self, data_date, operator=FilterOperator.EQ):
     post_filter.set_description('post filter by date added {0} {1} seconds'.format(operator.name, date_added_seconds))
     post_filter.set_method('filter_date_added')
     post_filter.set_filter(date_added_seconds)
-    post_filter.set_operator(operator)
-    self.add_post_filter(post_filter)
-
-
-def add_pf_file_type(self, data, operator=FilterOperator.EQ):
-    """ add post filter by file type
-    :type operator: FilterOperator
-    """
-    post_filter = PostFilterObject()
-    post_filter.set_description('post filter by file type {0} {1}'.format(operator.name, data))
-    post_filter.set_method('filter_file_type')
-    post_filter.set_filter(data)
     post_filter.set_operator(operator)
     self.add_post_filter(post_filter)
 

@@ -166,7 +166,6 @@ class GroupObject(object):
         self._name = None
         self._owner_name = None
         self._phase = 0
-        self._reload_attributes = False
         self._properties = {
             '_name': {
                 'api_field': 'name',
@@ -174,6 +173,7 @@ class GroupObject(object):
                 'required': True,
             }
         }
+        self._reload_attributes = False
         self._request_uris = []
         self._resource_type = resource_type_enum
         self._score = None
@@ -823,9 +823,23 @@ class GroupObjectAdvanced(GroupObject):
             if attribute.type == attr_type and attribute.value == attr_value:
                 self._attributes.remove(attribute)
                 break
+            
+    def add_security_label(self, label):
+        """ set the security label for this group """
+        prop = self._resource_properties['security_label_add']
+        ro = RequestObject()
+        ro.set_description('add security label "{0}" to "{1}"'.format(label, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, self._urlsafe(label)))
+        ro.set_resource_type(self._resource_type)
+
+        self._resource_container.add_commit_queue(self.id, ro)
 
     def add_tag(self, tag):
-        """ add a tag to an indicator """
+        """ add a tag to an group """
         prop = self._resource_properties['tag_add']
         ro = RequestObject()
         ro.set_description('add tag "{0}" to "{1}"'.format(tag, self._name))
@@ -1043,7 +1057,7 @@ class GroupObjectAdvanced(GroupObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     def delete_security_label(self, label):
-        """ set the security label for this indicator """
+        """ delete the security label for this indicator """
         prop = self._resource_properties['security_label_delete']
         ro = RequestObject()
         ro.set_description('delete security label "{0}" from {1}'.format(label, self._name))
@@ -1258,22 +1272,8 @@ class GroupObjectAdvanced(GroupObject):
     def set_security_label(self, label):
         self.add_security_label(label)
 
-    def add_security_label(self, label):
-        """ set the security label for this group """
-        prop = self._resource_properties['security_label_add']
-        ro = RequestObject()
-        ro.set_description('add security label "{0}" to "{1}"'.format(label, self._name))
-        ro.set_http_method(prop['http_method'])
-        ro.set_owner_allowed(prop['owner_allowed'])
-        ro.set_resource_pagination(prop['pagination'])
-        ro.set_request_uri(prop['uri'].format(
-            self._id, self._urlsafe(label)))
-        ro.set_resource_type(self._resource_type)
-
-        self._resource_container.add_commit_queue(self.id, ro)
-
     def update_attribute(self, attr_id, attr_value):
-        """ update indicator attribute by id """
+        """ update victim attribute by id """
         prop = self._resource_properties['attribute_update']
         ro = RequestObject()
         ro.set_body(json.dumps({'value': attr_value}))

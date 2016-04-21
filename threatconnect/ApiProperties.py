@@ -49,6 +49,24 @@ def g_properties(group_uri):
             'pagination': False,
             'uri': '/v2/indicators/{0}/{1}/groups/' + group_uri + '/{2}',  # indicator type, indicator_value
         },
+        'association_tasks': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': True,
+            'uri': '/v2/groups/' + group_uri + '/{0}/tasks',  # group id
+        },
+        'association_task_add': {
+            'http_method': 'POST',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/groups/' + group_uri + '/{0}/tasks/{1}',  # group id, task id
+        },
+        'association_task_delete': {
+            'http_method': 'DELETE',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/groups/' + group_uri + '/{0}/tasks/{1}',  # group id, task id
+        },
         'association_victims': {
             'http_method': 'GET',
             'owner_allowed': True,
@@ -126,6 +144,7 @@ def g_properties(group_uri):
             'add_signature_id',
             'add_threat_id',
             'add_tag',
+            'add_task_id',
             'add_victim_id',
             # post filters
             'add_pf_name',
@@ -262,6 +281,24 @@ def i_properties(indicator_uri):
             'owner_allowed': True,
             'pagination': True,
             'uri': '/v2/indicators/' + indicator_uri + '/{0}/indicators',  # indicator value
+        },
+        'association_tasks': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': True,
+            'uri': '/v2/indicators/' + indicator_uri + '/{0}/tasks',  # indicator value
+        },
+        'association_task_add': {
+            'http_method': 'POST',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + indicator_uri + '/{0}/tasks/{1}',  # indicator value, task id
+        },
+        'association_task_delete': {
+            'http_method': 'DELETE',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + indicator_uri + '/{0}/tasks/{1}/{2}',  # indicator value, tasks id
         },
         'association_victims': {
             'http_method': 'GET',
@@ -479,6 +516,7 @@ groups_properties = {
         'add_signature_id',
         'add_threat_id',
         'add_tag',
+        'add_tasks',
         'add_victim_id',
         # post filters
         'add_pf_name',
@@ -542,6 +580,7 @@ indicators_properties = {
         'add_security_label',
         'add_signature_id',
         'add_tag',
+        'add_tasks',
         'add_threat_id',
         'add_victim_id',
         'add_pf_attribute',
@@ -591,15 +630,46 @@ owners_properties = {
         'uri': '/v2/owners',
     },
     'filters': [
+        'add_id',
         'add_indicator',
         'add_pf_name',
         'add_pf_type',
     ],
+    'id': {
+        'http_method': 'GET',
+        'owner_allowed': True,
+        'pagination': False,
+        'uri': '/v2/owners/{0}',  # owner id
+    },
     'indicators': {
         'http_method': 'GET',
         'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/indicators/{0}/{1}/owners',  # indicator type, indicator value
+    },
+    'individual_metrics': {
+        'http_method': 'GET',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '/v2/owners/{0}/metrics',
+    },
+    'members': {
+        'http_method': 'GET',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '/v2/owners/mine/members',
+    },
+    'metrics': {
+        'http_method': 'GET',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '/v2/owners/metrics',
+    },
+    'mine': {
+        'http_method': 'GET',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '/v2/owners/mine',
     },
 }
 
@@ -662,6 +732,48 @@ victims_properties = {
         'pagination': True,
         'uri': '/v2/victims/{0}/indicators',  # victim id
     },
+    'association_tasks': {
+        'http_method': 'GET',
+        'owner_allowed': True,
+        'pagination': True,
+        'uri': '/v2/victims/{0}/tasks',  # victim id
+    },
+    'association_task_add': {
+        'http_method': 'POST',
+        'owner_allowed': True,
+        'pagination': False,
+        'uri': '/v2/victims/{0}/tasks/{1}',  # victim id, task id
+    },
+    'association_task_delete': {
+        'http_method': 'DELETE',
+        'owner_allowed': True,
+        'pagination': False,
+        'uri': '/v2/victims/{0}/task/{1}',  # victim id, tasks id
+    },
+    'attributes': {
+        'http_method': 'GET',
+        'owner_allowed': True,
+        'pagination': False,
+        'uri': '/v2/victims/{0}/attributes',  # group id
+    },
+    'attribute_add': {
+        'http_method': 'POST',
+        'owner_allowed': True,
+        'pagination': False,
+        'uri': '/v2/victims/{0}/attributes',  # group id
+    },
+    'attribute_delete': {
+        'http_method': 'DELETE',
+        'owner_allowed': True,
+        'pagination': False,
+        'uri': '/v2/victims/{0}/attributes/{1}',  # group id, attribute id
+    },
+    'attribute_update': {
+        'http_method': 'PUT',
+        'owner_allowed': True,
+        'pagination': False,
+        'uri': '/v2/victims/{0}/attributes/{1}',  # group id, attribute id
+    },
     'base': {
         'http_method': 'GET',
         'owner_allowed': True,
@@ -688,7 +800,14 @@ victims_properties = {
         'add_incident_id',
         'add_indicator',
         'add_signature_id',
+        'add_security_label',
+        'add_tag',
         'add_threat_id',
+        # post filters
+        'add_pf_attribute',
+        'add_pf_date_added',
+        'add_pf_name',
+        'add_pf_type',
     ],
     'id': {
         'http_method': 'GET',
@@ -701,6 +820,54 @@ victims_properties = {
         'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/indicators/{0}/{1}/victims',  # indicator type, indicator value
+    },
+    'security_label_add': {
+        'http_method': 'POST',
+        'owner_allowed': True,
+        'pagination': True,
+        'uri': '/v2/victims/{0}/securityLabels/{1}',  # victim id, security label
+    },
+    'security_label_delete': {
+        'http_method': 'DELETE',
+        'owner_allowed': True,
+        'pagination': True,
+        'uri': '/v2/victims/{0}/securityLabels/{1}',  # victim id, security label
+    },
+    'security_label_load': {
+        'http_method': 'GET',
+        'owner_allowed': False,
+        'pagination': True,
+        'uri': '/v2/victims/{0}/securityLabels',  # victim id
+    },
+    'security_labels': {
+        'http_method': 'GET',
+        'owner_allowed': True,
+        'pagination': True,
+        'uri': '/v2/securityLabels/{0}/victims',  # security labels
+    },
+    'tag_add': {
+        'http_method': 'POST',
+        'owner_allowed': True,
+        'pagination': False,
+        'uri': '/v2/victims/{0}/tags/{1}',  # victim id, security label
+    },
+    'tag_delete': {
+        'http_method': 'DELETE',
+        'owner_allowed': True,
+        'pagination': False,
+        'uri': '/v2/victims/{0}/tags/{1}',  # victim id, security label
+    },
+    'tags': {
+        'http_method': 'GET',
+        'owner_allowed': True,
+        'pagination': True,
+        'uri': '/v2/tags/{0}/victims',  # tag name
+    },
+    'tags_load': {
+        'http_method': 'GET',
+        'owner_allowed': False,
+        'pagination': True,
+        'uri': '/v2/victims/{0}/tags',  # victim id
     },
     'update': {
         'http_method': 'PUT',
@@ -838,6 +1005,11 @@ api_properties = {
         'resource_key':  'signature',
         'uri_attribute':  'signatures',
     },
+    # 'TASKS': {
+    #     'properties': t_properties('tasks'),
+    #     'resource_key':  'tasks',
+    #     'uri_attribute':  'tasks',
+    # },
     'THREATS': {
         'properties': g_properties('threats'),
         'resource_key':  'threat',
