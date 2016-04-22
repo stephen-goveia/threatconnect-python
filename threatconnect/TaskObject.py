@@ -22,148 +22,97 @@ from RequestObject import RequestObject
 from SharedMethods import get_resource_group_type
 
 
-def parse_group(group_dict, resource_type=ResourceType.GROUPS, resource_obj=None, api_filter=None, request_uri=None):
+def parse_task(task_dict, resource_type=ResourceType.TASKS, resource_obj=None, api_filter=None, request_uri=None):
     """ """
-    # group object
-    group = GroupObject(resource_type)
-
+    # task object
+    task = TaskObject(resource_type)
+    
     #
     # standard values
     #
-    group.set_date_added(group_dict['dateAdded'])
-    group.set_id(group_dict['id'], False)
-    group.set_name(group_dict['name'], False)
-    group.set_weblink(group_dict['webLink'])
+    task.set_date_added(task_dict['dateAdded'])
+    task.set_id(task_dict['id'], False)
+    task.set_name(task_dict['name'], False)
+    task.set_status(task_dict['status'], False)
+    task.set_escalated(task_dict['escalated'], False)
+    task.set_reminded(task_dict['reminded'], False)
+    task.set_overdue(task_dict['overdue'], False)
+    task.set_due_date(task_dict['dueDate'], False)
+    task.set_reminder_date(task_dict['reminderDate'], False)
+    task.set_escalation_date(task_dict['escalationDate'], False)
+    task.set_weblink(task_dict['webLink'])
 
     #
     # optional values
     #
-    if 'owner' in group_dict:  # nested owner for single indicator result
-        group.set_owner_name(group_dict['owner']['name'])
-    if 'ownerName' in group_dict:
-        group.set_owner_name(group_dict['ownerName'])
-    if 'type' in group_dict:
-        group.set_type(group_dict['type'])
-
-    #
-    # adversary
-    #
-
-    #
-    # document
-    #
-    if 'fileName' in group_dict:
-        group.set_file_name(group_dict['fileName'], False)
-    if 'fileSize' in group_dict:
-        group.set_file_size(group_dict['fileSize'], False)
-
-    #
-    # email
-    #
-    if 'body' in group_dict:
-        group.set_body(group_dict['body'], False)
-    if 'from' in group_dict:
-        group.set_from_address(group_dict['from'], False)
-    if 'header' in group_dict:
-        group.set_header(group_dict['header'], False)
-    if 'score' in group_dict:
-        group.set_score(group_dict['score'], False)
-    if 'subject' in group_dict:
-        group.set_subject(group_dict['subject'], False)
-    if 'to' in group_dict:
-        group.set_to(group_dict['to'])
-
-    #
-    # incident
-    #
-    if 'eventDate' in group_dict:
-        group.set_event_date(group_dict['eventDate'], False)
-
-    #
-    # signature
-    #
-    if 'fileType' in group_dict:
-        group.set_file_type(group_dict['fileType'], False)
-
-    if 'fileName' in group_dict:
-        group.set_file_name(group_dict['fileName'], False)
-
-    #
-    # threat
-    #
+    if 'owner' in task_dict:  # nested owner for single indicator result
+        task.set_owner_name(task_dict['owner']['name'])
+    if 'ownerName' in task_dict:
+        task.set_owner_name(task_dict['ownerName'])
 
     #
     # handle both resource containers and individual objects
     #
     if resource_obj is not None:
         # store the resource object in the master resource object list
-        roi = resource_obj.add_master_resource_obj(group, group_dict['id'])
+        roi = resource_obj.add_master_resource_obj(task, task_dict['id'])
 
         # retrieve the resource object and update data
         # must be submitted after parameters are set for indexing to work
-        group = resource_obj.get_resource_by_identity(roi)
+        task = resource_obj.get_resource_by_identity(roi)
 
     #
     # filter (set after retrieving stored object)
     #
     if api_filter is not None:
-        group.add_matched_filter(api_filter)
+        task.add_matched_filter(api_filter)
 
     #
     # request_uri (set after retrieving stored object)
     #
     if request_uri is not None:
-        group.add_request_uri(request_uri)
+        task.add_request_uri(request_uri)
 
-    return group
+    return task
 
 
-class GroupObject(object):
+class TaskObject(object):
     __slots__ = (
         '_attributes',
-        '_body',  # email specific
+        '_assignee',
         '_date_added',
-        '_contents',  # document/signature specific
-        '_event_date',  # incident specific
-        '_file_name',  # document/signature specific
-        '_file_size',  # document specific
-        '_file_text',  # signature specific
-        '_file_type',  # signature specific
-        '_from_address',  # email specific
-        '_header',  # email specific
+        '_due_date',
+        '_escalated',
+        '_escalate_date',
         '_id',
         '_matched_filters',
         '_name',
+        '_overdue',
         '_owner_name',
         '_phase',  # 0 - new; 1 - add; 2 - update
         '_properties',
+        '_reload_attributes',
+        '_reminded',
+        '_reminder_date',
         '_request_uris',
         '_resource_type',
-        '_score',  # email specific
         '_security_label',
-        '_subject',  # email specific
+        '_status',
         '_tags',
-        '_to',  # email specific
-        '_type',
         '_weblink',
-        '_reload_attributes'
     )
 
     def __init__(self, resource_type_enum=None):
         self._attributes = []
-        self._body = None
+        self._assignee = []
         self._date_added = None
-        self._contents = None
-        self._event_date = None
-        self._file_name = None
-        self._file_size = None
-        self._file_text = None
-        self._file_type = None
-        self._from_address = None
-        self._header = None
+        self._due_date = None
+        self._escalated = None
+        self._escalated_date = None
         self._id = None
         self._matched_filters = []
         self._name = None
+        self._overdue = None
         self._owner_name = None
         self._phase = 0
         self._properties = {
@@ -174,75 +123,14 @@ class GroupObject(object):
             }
         }
         self._reload_attributes = False
+        self._reminded = False
+        self._reminder_date = False
         self._request_uris = []
         self._resource_type = resource_type_enum
-        self._score = None
         self._security_label = None
-        self._subject = None
+        self._status = None
         self._tags = []
-        self._to = None
-        self._type = None
         self._weblink = None
-
-        if self._resource_type == ResourceType.DOCUMENTS:
-            self._properties['_file_name'] = {
-                'api_field': 'fileName',
-                'method': 'set_filename',
-                'required': True,
-            }
-        elif self._resource_type == ResourceType.EMAILS:
-            self._properties['_body'] = {
-                'api_field': 'body',
-                'method': 'set_body',
-                'required': True,
-            }
-            self._properties['_from_address'] = {
-                'api_field': 'from',
-                'method': 'set_from_address',
-                'required': False,
-            }
-            self._properties['_header'] = {
-                'api_field': 'header',
-                'method': 'set_header',
-                'required': True,
-            }
-            self._properties['_score'] = {
-                'api_field': 'score',
-                'method': 'set_score',
-                'required': False,
-            }
-            self._properties['_subject'] = {
-                'api_field': 'subject',
-                'method': 'set_subject',
-                'required': True,
-            }
-            self._properties['_to'] = {
-                'api_field': 'to',
-                'method': 'set_to',
-                'required': False,
-            }
-        elif self._resource_type == ResourceType.INCIDENTS:
-            self._properties['_event_date'] = {
-                'api_field': 'eventDate',
-                'method': 'set_event_date',
-                'required': True,
-            }
-        elif self._resource_type == ResourceType.SIGNATURES:
-            self._properties['_file_name'] = {
-                'api_field': 'fileName',
-                'method': 'set_file_name',
-                'required': True,
-            }
-            self._properties['_file_text'] = {
-                'api_field': 'fileText',
-                'method': 'set_file_text',
-                'required': False,
-            }
-            self._properties['_file_type'] = {
-                'api_field': 'fileType',
-                'method': 'set_file_type',
-                'required': True,
-            }
 
     #
     # unicode
@@ -282,22 +170,19 @@ class GroupObject(object):
         self._attributes.append(data_obj)
 
     #
-    # body (email specific)
+    # assignee
     #
     @property
-    def body(self):
+    def assignee(self):
         """ """
-        if self._resource_type == ResourceType.EMAILS:
-            return self._body
-        else:
-            raise AttributeError(ErrorCodes.e10200.value)
+        return self._assignee
 
-    def set_body(self, data, update=True):
-        """Read-Write group metadata"""
-        if self._resource_type == ResourceType.EMAILS:
-            self._body = self._uni(data)
-            if update and self._phase == 0:
-                self._phase = 2
+    def set_assignee(self, data, update=True):
+        """Read-Write task metadata"""
+        self._body = self._uni(data)
+        
+        if update and self._phase == 0:
+            self._phase = 2
         else:
             raise AttributeError(ErrorCodes.e10200.value)
 
@@ -310,166 +195,59 @@ class GroupObject(object):
         return self._date_added
 
     def set_date_added(self, data):
-        """Read-Only group metadata"""
+        """Read-Only task metadata"""
         self._date_added = data
 
     #
-    # documents contents
+    # due_date
     #
     @property
-    def contents(self):
+    def due_date(self):
         """ """
-        if self._resource_type in [ResourceType.DOCUMENTS, ResourceType.SIGNATURES]:
-            return self._contents
-        else:
-            raise AttributeError(ErrorCodes.e10210.value)
+        return self._due_date
 
-    def set_contents(self, data):
-        """Read-Only group metadata"""
-        if self._resource_type in [ResourceType.DOCUMENTS, ResourceType.SIGNATURES]:
-            self._contents = data
+    def set_contents(self, data, update=True):
+        """Read-Write task metadata"""
+        self._due_date = data
+        
+        if update and self._phase == 0:
+            self._phase = 2
         else:
-            raise AttributeError(ErrorCodes.e10210.value)
+            raise AttributeError(ErrorCodes.e10200.value)
 
     #
-    # event_date (incident specific)
+    # escalated
     #
     @property
-    def event_date(self):
+    def escalated(self):
         """ """
-        if self._resource_type == ResourceType.INCIDENTS:
-            return self._event_date
-        else:
-            raise AttributeError(ErrorCodes.e10220.value)
+        return self._escalated
 
-    def set_event_date(self, data, update=True):
-        """Read-Write group metadata"""
-        if self._resource_type == ResourceType.INCIDENTS:
-            self._event_date = self._uni(data)
-            if update and self._phase == 0:
-                self._phase = 2
+    def set_escalated(self, data, update=True):
+        """Read-Write task metadata"""
+        self._escalated = data
+        
+        if update and self._phase == 0:
+            self._phase = 2
         else:
-            raise AttributeError(ErrorCodes.e10220.value)
-
+            raise AttributeError(ErrorCodes.e10200.value)
+            
     #
-    # file name (document/signature specific)
+    # escalate_date
     #
     @property
-    def file_name(self):
+    def escalate_date(self):
         """ """
-        if self._resource_type in [ResourceType.DOCUMENTS, ResourceType.SIGNATURES]:
-            return self._file_name
-        else:
-            raise AttributeError(ErrorCodes.e10230.value)
+        return self._escalate_date
 
-    def set_file_name(self, data, update=True):
-        """Read-Write group metadata"""
-        if self._resource_type in [ResourceType.DOCUMENTS, ResourceType.SIGNATURES]:
-            self._file_name = self._uni(data)
-            if update and self._phase == 0:
-                self._phase = 2
+    def set_escalate_date(self, data, update=True):
+        """Read-Write task metadata"""
+        self._escalate_date = data
+        
+        if update and self._phase == 0:
+            self._phase = 2
         else:
-            raise AttributeError(ErrorCodes.e10230.value)
-
-    #
-    # file size (document specific)
-    #
-    @property
-    def file_size(self):
-        """ """
-        if self._resource_type == ResourceType.DOCUMENTS:
-            return self._file_size
-        else:
-            raise AttributeError(ErrorCodes.e10240.value)
-
-    def set_file_size(self, data, update=True):
-        """Read-Write group metadata"""
-        if self._resource_type == ResourceType.DOCUMENTS:
-            self._file_size = self._uni(data)
-            if update and self._phase == 0:
-                self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10240.value)
-
-    #
-    # file text (signature specific)
-    #
-    @property
-    def file_text(self):
-        """ """
-        if self._resource_type == ResourceType.SIGNATURES:
-            return self._file_text
-        else:
-            raise AttributeError(ErrorCodes.e10250.value)
-
-    def set_file_text(self, data, update=True):
-        """Read-Write group metadata"""
-        if self._resource_type == ResourceType.SIGNATURES:
-            self._file_text = self._uni(data)
-            if update and self._phase == 0:
-                self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10250.value)
-
-    #
-    # file type (signature specific)
-    #
-    @property
-    def file_type(self):
-        """ """
-        if self._resource_type == ResourceType.SIGNATURES:
-            return self._file_type
-        else:
-            raise AttributeError(ErrorCodes.e10260.value)
-
-    def set_file_type(self, data, update=True):
-        """Read-Write group metadata"""
-        if self._resource_type == ResourceType.SIGNATURES:
-            self._file_type = self._uni(data)
-            if update and self._phase == 0:
-                self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10260.value)
-
-    #
-    # from_address (email specific)
-    #
-    @property
-    def from_address(self):
-        """ """
-        if self._resource_type == ResourceType.EMAILS:
-            return self._from_address
-        else:
-            raise AttributeError(ErrorCodes.e10270.value)
-
-    def set_from_address(self, data, update=True):
-        """Read-Write group metadata"""
-        if self._resource_type == ResourceType.EMAILS:
-            self._from_address = self._uni(data)
-            if update and self._phase == 0:
-                self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10270.value)
-
-    #
-    # header (email specific)
-    #
-    @property
-    def header(self):
-        """ """
-        if self._resource_type == ResourceType.EMAILS:
-            return self._header
-        else:
-            raise AttributeError(ErrorCodes.e10280.value)
-
-    def set_header(self, data, update=True):
-        """Read-Write group metadata"""
-        if self._resource_type == ResourceType.EMAILS:
-            self._header = self._uni(data)
-            if update and self._phase == 0:
-                self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10280.value)
+            raise AttributeError(ErrorCodes.e10200.value)
 
     #
     # id
@@ -515,6 +293,23 @@ class GroupObject(object):
         self._name = self._uni(data)
         if update and self._phase == 0:
             self._phase = 2
+            
+    #
+    # overdue
+    #
+    @property
+    def overdue(self):
+        """ """
+        return self._overdue
+
+    def set_overdue(self, data, update=True):
+        """Read-Write task metadata"""
+        self._overdue = data
+        
+        if update and self._phase == 0:
+            self._phase = 2
+        else:
+            raise AttributeError(ErrorCodes.e10200.value)
 
     #
     # owner_name
@@ -529,78 +324,56 @@ class GroupObject(object):
         self._owner_name = self._uni(data)
 
     #
-    # score (email specific)
+    # reminded
     #
     @property
-    def score(self):
+    def reminded(self):
         """ """
-        if self._resource_type == ResourceType.EMAILS:
-            return self._score
-        else:
-            raise AttributeError(ErrorCodes.e10290.value)
+        return self._reminded
 
-    def set_score(self, data, update=True):
-        """Read-Write group metadata"""
-        if self._resource_type == ResourceType.EMAILS:
-            self._score = self._uni(data)
-            if update and self._phase == 0:
-                self._phase = 2
+    def set_reminded(self, data, update=True):
+        """Read-Write task metadata"""
+        self._reminded = data
+        
+        if update and self._phase == 0:
+            self._phase = 2
         else:
-            raise AttributeError(ErrorCodes.e10290.value)
+            raise AttributeError(ErrorCodes.e10200.value)
 
     #
-    # subject (email specific)
+    # reminder_date
     #
     @property
-    def subject(self):
+    def reminder_date(self):
         """ """
-        if self._resource_type == ResourceType.EMAILS:
-            return self._subject
-        else:
-            raise AttributeError(ErrorCodes.e10300.value)
+        return self._reminder_date
 
-    def set_subject(self, data, update=True):
-        """Read-Write group metadata"""
-        if self._resource_type == ResourceType.EMAILS:
-            self._subject = self._uni(data)
-            if update and self._phase == 0:
-                self._phase = 2
+    def set_reminder_date(self, data, update=True):
+        """Read-Write task metadata"""
+        self._reminder_date = data
+        
+        if update and self._phase == 0:
+            self._phase = 2
         else:
-            raise AttributeError(ErrorCodes.e10300.value)
+            raise AttributeError(ErrorCodes.e10200.value)
 
     #
-    # to (email specific)
+    # status
     #
     @property
-    def to(self):
+    def status(self):
         """ """
-        if self._resource_type == ResourceType.EMAILS:
-            return self._to
+        return self._status
+
+    def set_status(self, data, update=True):
+        """Read-Write task metadata"""
+        self._status = data
+        
+        if update and self._phase == 0:
+            self._phase = 2
         else:
-            raise AttributeError(ErrorCodes.e10310.value)
-
-    def set_to(self, data, update=True):
-        """Read-Write group metadata"""
-        if self._resource_type == ResourceType.EMAILS:
-            self._to = self._uni(data)
-            if update and self._phase == 0:
-                self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10310.value)
-
-    #
-    # type
-    #
-    @property
-    def type(self):
-        """ """
-        return self._type
-
-    def set_type(self, data):
-        """ """
-        self._type = self._uni(data)
-        self._resource_type = get_resource_group_type(self._type)
-
+            raise AttributeError(ErrorCodes.e10200.value)
+            
     #
     # weblink
     #
@@ -691,7 +464,7 @@ class GroupObject(object):
     def __str__(self):
         """allow object to be displayed with print"""
 
-        printable_string = '\n{0!s:_^80}\n'.format('Group Resource Object Properties')
+        printable_string = '\n{0!s:_^80}\n'.format('Task Resource Object Properties')
 
         #
         # retrievable methods
@@ -702,9 +475,13 @@ class GroupObject(object):
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('resource_type', self.resource_type))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('owner_name', self.owner_name))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('date_added', self.date_added))
-        if self.security_label is not None:
-            printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('security_label', self.security_label.name))
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('type', self.type))
+        
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('escalated', self.escalated))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('escalate_date', self.escalate_date))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('overdue', self.overdue))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('reminded', self.reminded))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('reminder_date', self.reminder_date))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('status', self.status))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('weblink', self.weblink))
 
         #
@@ -740,7 +517,7 @@ class GroupObject(object):
         return printable_string
 
 
-class GroupObjectAdvanced(GroupObject):
+class TaskObjectAdvanced(TaskObject):
     """ Temporary Object with extended functionality. """
     __slots__ = (
         '_resource_container',
@@ -754,17 +531,23 @@ class GroupObjectAdvanced(GroupObject):
 
     def __init__(self, tc_obj, resource_container, resource_obj):
         """ add methods to resource object """
-        super(GroupObject, self).__init__()
+        super(TaskObject, self).__init__()
 
         self._resource_properties = ApiProperties.api_properties[resource_obj.resource_type.name]['properties']
         self._resource_container = resource_container
         self._resource_obj = resource_obj
         self._basic_structure = {
             'dateAdded': 'date_added',
+            'dueDate': 'due_date',
+            'escalated': 'escalated',
+            'escalate_date': 'escalate_date',
             'id': 'id',
             'name': 'name',
+            'overdue': 'overdue',
             'ownerName': 'owner_name',
-            'type': 'type',
+            'reminded': 'reminded',
+            'reminderDate': 'reminder_date',
+            'status': 'status',
             'weblink': 'weblink',
         }
         self._structure = self._basic_structure.copy()
@@ -774,28 +557,8 @@ class GroupObjectAdvanced(GroupObject):
         # load data from resource_obj
         self.load_data(self._resource_obj)
 
-        #
-        # group structure
-        #
-        if self._resource_type == ResourceType.DOCUMENTS:
-            self._structure['fileName'] = 'file_name'
-            self._structure['fileSize'] = 'file_size'
-        elif self._resource_type == ResourceType.EMAILS:
-            self._structure['body'] = 'body'
-            self._structure['from'] = 'from_address'
-            self._structure['header'] = 'header'
-            self._structure['score'] = 'score'
-            self._structure['subject'] = 'subject'
-            self._structure['to'] = 'to'
-        elif self._resource_type == ResourceType.INCIDENTS:
-            self._structure['eventDate'] = 'event_date'
-        elif self._resource_type == ResourceType.SIGNATURES:
-            self._structure['fileName'] = 'file_name'
-            self._structure['fileType'] = 'file_type'
-            self._structure['fileText'] = 'file_text'
-
     def add_attribute(self, attr_type, attr_value, attr_displayed='true'):
-        """ add an attribute to a group """
+        """ add an attribute to a task """
         prop = self._resource_properties['attribute_add']
         ro = RequestObject()
         ro.set_body(json.dumps({
@@ -825,7 +588,7 @@ class GroupObjectAdvanced(GroupObject):
                 break
             
     def add_security_label(self, label):
-        """ set the security label for this group """
+        """ set the security label for this task """
         prop = self._resource_properties['security_label_add']
         ro = RequestObject()
         ro.set_description('add security label "{0}" to "{1}"'.format(label, self._name))
@@ -839,7 +602,7 @@ class GroupObjectAdvanced(GroupObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     def add_tag(self, tag):
-        """ add a tag to an group """
+        """ add a tag to an task """
         prop = self._resource_properties['tag_add']
         ro = RequestObject()
         ro.set_description('add tag "{0}" to "{1}"'.format(tag, self._name))
@@ -851,7 +614,7 @@ class GroupObjectAdvanced(GroupObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     def associate_group(self, resource_type, resource_id):
-        """ associate a group to group by id """
+        """ associate a group to task by id """
         prop = self._resource_properties['association_group_add']
         ro = RequestObject()
         ro.set_description('associate group type "{0}" id {1} to "{2}"'.format(
@@ -865,7 +628,7 @@ class GroupObjectAdvanced(GroupObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     def associate_indicator(self, indicator_type, indicator):
-        """ associate a indicator to group by id """
+        """ associate a indicator to task by id """
         prop = self._resource_properties['association_indicator_add']
         ro = RequestObject()
         ro.set_description('associate indicator {0} to "{1}"'.format(
@@ -879,7 +642,7 @@ class GroupObjectAdvanced(GroupObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     def associate_victim(self, resource_id):
-        """ associate victim from group """
+        """ associate victim to task """
         prop = self._resource_properties['association_victim_add']
         ro = RequestObject()
         ro.set_description('associate victim id {0} from "{1}"'.format(
@@ -916,7 +679,7 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_resource_type(self.resource_type)
         if self.phase == 1:
             prop = self._resource_properties['add']
-            ro.set_description('adding group "{0}".'.format(self._name))
+            ro.set_description('adding task "{0}".'.format(self._name))
             ro.set_http_method(prop['http_method'])
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._id))
@@ -1032,7 +795,7 @@ class GroupObjectAdvanced(GroupObject):
         """ delete indicator """
         prop = self._resource_properties['delete']
         ro = RequestObject()
-        ro.set_description('delete group "{0}".'.format(self._name))
+        ro.set_description('delete task "{0}".'.format(self._name))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
         if self.owner_name is not None:
@@ -1044,7 +807,7 @@ class GroupObjectAdvanced(GroupObject):
         self.set_phase(3)
 
     def delete_attribute(self, attr_id):
-        """ delete attribute from group by id """
+        """ delete attribute from task by id """
         prop = self._resource_properties['attribute_delete']
         ro = RequestObject()
         ro.set_description('delete attribute id {0} from "{1}"'.format(attr_id, self._name))
@@ -1070,7 +833,7 @@ class GroupObjectAdvanced(GroupObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     def delete_tag(self, tag):
-        """ delete tag from group """
+        """ delete tag from task """
         prop = self._resource_properties['tag_delete']
         ro = RequestObject()
         ro.set_description('delete tag "{0}" from "{1}"'.format(tag, self._name))
@@ -1083,7 +846,7 @@ class GroupObjectAdvanced(GroupObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     def disassociate_group(self, resource_type, resource_id):
-        """ disassociate group from group """
+        """ disassociate group from task """
         prop = self._resource_properties['association_group_delete']
         ro = RequestObject()
         ro.set_description('disassociate group type {0} id {1} from "{2}"'.format(
@@ -1098,7 +861,7 @@ class GroupObjectAdvanced(GroupObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     def disassociate_indicator(self, indicator_type, indicator):
-        """ disassociate indicator from group by id """
+        """ disassociate indicator from task by id """
         prop = self._resource_properties['association_indicator_delete']
         ro = RequestObject()
         ro.set_description('disassociate indicator {0} to "{1}"'.format(
@@ -1112,7 +875,7 @@ class GroupObjectAdvanced(GroupObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     def disassociate_victim(self, resource_id):
-        """ disassociate victim from group """
+        """ disassociate victim from task """
         prop = self._resource_properties['association_victim_delete']
         ro = RequestObject()
         ro.set_description('disassociate victim id {0} from "{1}"'.format(
@@ -1149,7 +912,7 @@ class GroupObjectAdvanced(GroupObject):
 
     @property
     def group_associations(self):
-        """ retrieve associations for this group. associations are not stored within the object """
+        """ retrieve associations for this task. associations are not stored within the object """
         prop = self._resource_properties['association_groups']
         ro = RequestObject()
         ro.set_description('retrieve group associations for {0}'.format(self._name))
@@ -1165,7 +928,7 @@ class GroupObjectAdvanced(GroupObject):
 
     @property
     def indicator_associations(self):
-        """ retrieve associations for this group. associations are not stored within the object """
+        """ retrieve associations for this task. associations are not stored within the object """
         prop = self._resource_properties['association_indicators']
         ro = RequestObject()
         ro.set_description('retrieve indicator associations for {0}'.format(self._name))
@@ -1204,7 +967,7 @@ class GroupObjectAdvanced(GroupObject):
 
     def load_attributes(self, automatically_reload=False):
         self._reload_attributes = automatically_reload
-        """ retrieve attributes for this group """
+        """ retrieve attributes for this task """
         prop = self._resource_properties['attributes']
         ro = RequestObject()
         ro.set_description('load attributes for {0}'.format(self._name))
@@ -1230,7 +993,7 @@ class GroupObjectAdvanced(GroupObject):
             setattr(self, key, getattr(resource_obj, key))
 
     def load_security_label(self):
-        """ retrieve security label for this group """
+        """ retrieve security label for this task """
         prop = self._resource_properties['security_label_load']
         ro = RequestObject()
         ro.set_description('load security labels for {0}'.format(self._name))
@@ -1250,7 +1013,7 @@ class GroupObjectAdvanced(GroupObject):
                     self._security_label = parse_security_label(item)  # add to main resource object
 
     def load_tags(self):
-        """ retrieve tags for this group """
+        """ retrieve tags for this task """
         prop = self._resource_properties['tags_load']
         ro = RequestObject()
         ro.set_description('load tags for {0}'.format(self._name))
@@ -1273,7 +1036,7 @@ class GroupObjectAdvanced(GroupObject):
         self.add_security_label(label)
 
     def update_attribute(self, attr_id, attr_value):
-        """ update group attribute by id """
+        """ update task attribute by id """
         prop = self._resource_properties['attribute_update']
         ro = RequestObject()
         ro.set_body(json.dumps({'value': attr_value}))
@@ -1287,36 +1050,9 @@ class GroupObjectAdvanced(GroupObject):
 
         self._resource_container.add_commit_queue(self.id, ro)
 
-    def upload(self, body):
-        """ upload document  """
-        if self._resource_type == ResourceType.DOCUMENTS:
-            prop = self._resource_properties['document_upload']
-        elif self._resource_type == ResourceType.SIGNATURES:
-            prop = self._resource_properties['signature_upload']
-        else:
-            self._tc.tcl.error('Upload requested for wrong resource type.')
-            raise AttributeError(ErrorCodes.e10330.value)
-
-        ro = RequestObject()
-        ro.set_body(body)
-        ro.set_content_type('application/octet-stream')
-        ro.set_description('upload document for "{0}"'.format(self._name))
-        # determine whether the file contents exist using phase (not 100%)
-        if self.phase == 1:
-            ro.set_http_method(prop['http_method'])
-        else:
-            ro.set_http_method('PUT')
-        ro.set_owner_allowed(prop['owner_allowed'])
-        ro.set_request_uri(prop['uri'].format(self._id))
-        ro.set_resource_pagination(prop['pagination'])
-        ro.set_resource_type(self._resource_type)
-        success_callback = lambda request, response: self.set_contents(request.body)
-        ro.set_success_callback(success_callback)
-        self._resource_container.add_commit_queue(self.id, ro)
-
     @property
     def victim_associations(self):
-        """ retrieve associations for this group. associations are not stored within the object """
+        """ retrieve associations for this tasks. associations are not stored within the object """
         prop = self._resource_properties['association_victims']
         ro = RequestObject()
         ro.set_description('retrieve victim associations for {0}'.format(self._name))
@@ -1337,3 +1073,60 @@ class GroupObjectAdvanced(GroupObject):
     def attributes(self):
         """ """
         return self._resource_obj._attributes
+        
+        
+"""
+{
+    "status": "Success",
+    "data": {
+        "resultCount": 1,
+        "task": [
+            {
+                "id": 22,
+                "name": "Test Task",
+                "ownerName": "SumX",
+                "dateAdded": "2016-04-22T13:07:36Z",
+                "webLink": "https://ti.sumx.us/auth/workflow/task.xhtml?task=22",
+                "status": "Not Started",
+                "escalated": false,
+                "reminded": false,
+                "overdue": false,
+                "dueDate": "2016-04-29T00:00:00Z",
+                "reminderDate": "2016-04-26T13:06:00Z",
+                "escalationDate": "2016-05-04T13:06:00Z"
+            }
+        ]
+    }
+}
+
+{
+    "status": "Success",
+    "data": {
+        "task": {
+            "id": 22,
+            "name": "Test Task",
+            "owner": {
+                "id": 2,
+                "name": "SumX",
+                "type": "Organization"
+            },
+            "dateAdded": "2016-04-22T13:07:36Z",
+            "webLink": "https://ti.sumx.us/auth/workflow/task.xhtml?task=22",
+            "status": "Not Started",
+            "escalated": false,
+            "reminded": false,
+            "overdue": false,
+            "dueDate": "2016-04-29T00:00:00Z",
+            "reminderDate": "2016-04-26T13:06:00Z",
+            "escalationDate": "2016-05-04T13:06:00Z",
+            "assignee": [
+                {
+                    "userName": "bsummers",
+                    "firstName": "Bracey",
+                    "lastName": "Summers"
+                }
+            ]
+        }
+    }
+}
+"""

@@ -906,13 +906,13 @@ class ThreatConnect:
         """ return an owner container object """
         return Owners(self)
 
-    # def metrics(self):
-    #     """ return an metrics container object """
-    #     return Metrics(self)
-
     def signatures(self):
         """ return a signature container object """
         return Signatures(self)
+        
+    def tasks(self):
+        """ return a task container object """
+        return Tasks(self)
 
     def threats(self):
         """ return a threat container object """
