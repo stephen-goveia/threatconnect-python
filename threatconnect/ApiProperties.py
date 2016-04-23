@@ -703,55 +703,55 @@ owners_properties = {
 tasks_properties = {
     'add': {
         'http_method': 'POST',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/tasks',
     },
     'association_groups': {
         'http_method': 'GET',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': True,
         'uri': '/v2/tasks/{0}/groups',  # task id
     },
     'association_group_add': {
         'http_method': 'POST',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/tasks/{0}/groups/{1}/{2}',  # task id, group type, group id
     },
     'association_group_delete': {
         'http_method': 'DELETE',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/tasks/{0}/groups/{1}/{2}',  # task id, group type, group id
     },
     'association_indicators': {
         'http_method': 'GET',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': True,
         'uri': '/v2/tasks/{0}/indicators',  # task id
     },
     'attributes': {
         'http_method': 'GET',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/tasks/{0}/attributes',  # task id
     },
     'attribute_add': {
         'http_method': 'POST',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/tasks/{0}/attributes',  # task id
     },
     'attribute_delete': {
         'http_method': 'DELETE',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/tasks/{0}/attributes/{1}',  # tasks id, attribute id
     },
     'attribute_update': {
         'http_method': 'PUT',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/tasks/{0}/attributes/{1}',  # task id, attribute id
     },
@@ -763,7 +763,7 @@ tasks_properties = {
     },
     'delete': {
         'http_method': 'DELETE',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/tasks/{0}',
     },
@@ -788,29 +788,28 @@ tasks_properties = {
         'add_pf_attribute',
         'add_pf_name',
         'add_pf_date_added',
-        'add_pf_type'
     ],
     'id': {
         'http_method': 'GET',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/tasks/{0}',  # task id
     },
     'indicators': {
         'http_method': 'GET',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/indicators/{0}/{1}/tasks',  # indicator type, indicator value
     },
     'security_label_add': {
         'http_method': 'POST',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': True,
         'uri': '/v2/tasks/{0}/securityLabels/{1}',  # task id, security label
     },
     'security_label_delete': {
         'http_method': 'DELETE',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': True,
         'uri': '/v2/tasks/{0}/securityLabels/{1}',  # task id, security label
     },
@@ -822,25 +821,25 @@ tasks_properties = {
     },
     'security_labels': {
         'http_method': 'GET',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': True,
         'uri': '/v2/securityLabels/{0}/tasks',  # security labels
     },
     'tag_add': {
         'http_method': 'POST',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/tasks/{0}/tags/{1}',  # task id, security label
     },
     'tag_delete': {
         'http_method': 'DELETE',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/tasks/{0}/tags/{1}',  # task id, security label
     },
     'tags': {
         'http_method': 'GET',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': True,
         'uri': '/v2/tags/{0}/tasks',  # tag name
     },
@@ -852,7 +851,7 @@ tasks_properties = {
     },
     'update': {
         'http_method': 'PUT',
-        'owner_allowed': True,
+        'owner_allowed': False,
         'pagination': False,
         'uri': '/v2/tasks/{0}',  # task id
     },

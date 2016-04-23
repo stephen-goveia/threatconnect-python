@@ -34,6 +34,7 @@ from IndicatorObject import parse_indicator
 from GroupObject import parse_group
 from OwnerObject import parse_owner
 from OwnerMetricsObject import parse_metrics
+from TaskObject import parse_task
 from VictimObject import parse_victim
 from Resources.BatchJobs import BatchJobs, parse_batch_job
 
@@ -48,6 +49,7 @@ from Resources.Groups import Groups
 from Resources.Incidents import Incidents
 from Resources.Indicators import Indicators
 from Resources.Owners import Owners
+from Resources.Tasks import Tasks
 from Resources.Threats import Threats
 from Resources.Signatures import Signatures
 from Resources.Victims import Victims
@@ -647,12 +649,12 @@ class ThreatConnect:
                 # TASKS
                 #
                 elif ro.resource_type == ResourceType.TASKS:
-                    data = api_response_dict['data']['tasks']
+                    data = api_response_dict['data']['task']
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
                         obj_list.append(
-                            parse_group(item, ResourceType.TASKS, resource_obj, ro.description, ro.request_uri))
+                            parse_task(item, ResourceType.TASKS, resource_obj, ro.description, ro.request_uri))
 
                 #
                 # THREATS

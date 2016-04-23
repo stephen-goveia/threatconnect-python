@@ -21,7 +21,7 @@ def add_adversary_id(self, data_int):
     if not isinstance(data_int, int):
         raise AttributeError(ErrorCodes.e4000.value.format(data_int))
 
-    prop = self._resource_properties['tasks']
+    prop = self._resource_properties['groups']
     ro = RequestObject()
     ro.set_description('api filter by adversary id {0}'.format(data_int))
     ro.set_http_method(prop['http_method'])
@@ -38,7 +38,7 @@ def add_document_id(self, data_int):
     if not isinstance(data_int, int):
         raise AttributeError(ErrorCodes.e4010.value.format(data_int))
 
-    prop = self._resource_properties['tasks']
+    prop = self._resource_properties['groups']
     ro = RequestObject()
     ro.set_description('api filter by documents id {0}'.format(data_int))
     ro.set_http_method(prop['http_method'])
@@ -55,7 +55,7 @@ def add_email_id(self, data_int):
     if not isinstance(data_int, int):
         raise AttributeError(ErrorCodes.e4020.value.format(data_int))
 
-    prop = self._resource_properties['tasks']
+    prop = self._resource_properties['groups']
     ro = RequestObject()
     ro.set_description('api filter by email id {0}'.format(data_int))
     ro.set_http_method(prop['http_method'])
@@ -89,7 +89,7 @@ def add_incident_id(self, data_int):
     if not isinstance(data_int, int):
         raise AttributeError(ErrorCodes.e4040.value.format(data_int))
 
-    prop = self._resource_properties['tasks']
+    prop = self._resource_properties['groups']
     ro = RequestObject()
     ro.set_description('api filter by incident id {0}'.format(data_int))
     ro.set_http_method(prop['http_method'])
@@ -141,7 +141,7 @@ def add_signature_id(self, data_int):
     if not isinstance(data_int, int):
         raise AttributeError(ErrorCodes.e4060.value.format(data_int))
 
-    prop = self._resource_properties['tasks']
+    prop = self._resource_properties['groups']
     ro = RequestObject()
     ro.set_description('api filter by signature id {0}'.format(data_int))
     ro.set_http_method(prop['http_method'])
@@ -172,7 +172,7 @@ def add_threat_id(self, data_int):
     if not isinstance(data_int, int):
         raise AttributeError(ErrorCodes.e4080.value.format(data_int))
 
-    prop = self._resource_properties['tasks']
+    prop = self._resource_properties['groups']
     ro = RequestObject()
     ro.set_description('api filter by threat id {0}'.format(data_int))
     ro.set_http_method(prop['http_method'])
@@ -188,7 +188,7 @@ def add_victim_id(self, data_int):
     if not isinstance(data_int, int):
         raise AttributeError(ErrorCodes.e4090.value.format(data_int))
 
-    prop = self._resource_properties['tasks']
+    prop = self._resource_properties['victims']
     ro = RequestObject()
     ro.set_description('api filter by victim id {0}'.format(data_int))
     ro.set_owner_allowed(prop['owner_allowed'])

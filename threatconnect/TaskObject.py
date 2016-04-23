@@ -31,20 +31,21 @@ def parse_task(task_dict, resource_type=ResourceType.TASKS, resource_obj=None, a
     # standard values
     #
     task.set_date_added(task_dict['dateAdded'])
-    task.set_id(task_dict['id'], False)
-    task.set_name(task_dict['name'], False)
-    task.set_status(task_dict['status'], False)
-    task.set_escalated(task_dict['escalated'], False)
-    task.set_reminded(task_dict['reminded'], False)
-    task.set_overdue(task_dict['overdue'], False)
     task.set_due_date(task_dict['dueDate'], False)
+    task.set_id(task_dict['id'], False)
+    task.set_escalated(task_dict['escalated'], False)
+    task.set_name(task_dict['name'], False)
+    task.set_overdue(task_dict['overdue'], False)
+    task.set_reminded(task_dict['reminded'], False)
     task.set_reminder_date(task_dict['reminderDate'], False)
-    task.set_escalation_date(task_dict['escalationDate'], False)
+    task.set_status(task_dict['status'], False)
     task.set_weblink(task_dict['webLink'])
 
     #
     # optional values
     #
+    if 'escalationDate' in task_dict:
+        task.set_escalation_date(task_dict['escalationDate'], False)
     if 'owner' in task_dict:  # nested owner for single indicator result
         task.set_owner_name(task_dict['owner']['name'])
     if 'ownerName' in task_dict:
@@ -83,7 +84,7 @@ class TaskObject(object):
         '_date_added',
         '_due_date',
         '_escalated',
-        '_escalate_date',
+        '_escalation_date',
         '_id',
         '_matched_filters',
         '_name',
@@ -108,7 +109,7 @@ class TaskObject(object):
         self._date_added = None
         self._due_date = None
         self._escalated = None
-        self._escalated_date = None
+        self._escalation_date = None
         self._id = None
         self._matched_filters = []
         self._name = None
@@ -120,7 +121,37 @@ class TaskObject(object):
                 'api_field': 'name',
                 'method': 'set_name',
                 'required': True,
-            }
+            },
+            'escalated': {
+                'api_field': 'escalated',
+                'method': 'set_escalated',
+                'required': False,
+            },
+            'escalation_date': {
+                'api_field': 'escalationDate',
+                'method': 'set_escalation_date',
+                'required': False,
+            },
+            'overdue': {
+                'api_field': 'overdue',
+                'method': 'set_overdue',
+                'required': False,
+            },
+            'reminded': {
+                'api_field': 'reminded',
+                'method': 'set_reminded',
+                'required': False,
+            },
+            'reminder_date': {
+                'api_field': 'reminderDate',
+                'method': 'set_reminder_date',
+                'required': False,
+            },
+            'status': {
+                'api_field': 'status',
+                'method': 'set_status',
+                'required': False,
+            },
         }
         self._reload_attributes = False
         self._reminded = False
@@ -155,7 +186,7 @@ class TaskObject(object):
         """ url encode value for safe request """
         return urllib.quote(data, safe='~')
 
-    """ group object methods """
+    """ tasks object methods """
 
     #
     # attributes
@@ -179,12 +210,10 @@ class TaskObject(object):
 
     def set_assignee(self, data, update=True):
         """Read-Write task metadata"""
-        self._body = self._uni(data)
+        self._assignee = self._uni(data)
         
         if update and self._phase == 0:
             self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10200.value)
 
     #
     # date_added
@@ -206,14 +235,12 @@ class TaskObject(object):
         """ """
         return self._due_date
 
-    def set_contents(self, data, update=True):
+    def set_due_date(self, data, update=True):
         """Read-Write task metadata"""
         self._due_date = data
         
         if update and self._phase == 0:
             self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10200.value)
 
     #
     # escalated
@@ -229,25 +256,21 @@ class TaskObject(object):
         
         if update and self._phase == 0:
             self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10200.value)
             
     #
-    # escalate_date
+    # escalation_date
     #
     @property
-    def escalate_date(self):
+    def escalation_date(self):
         """ """
-        return self._escalate_date
+        return self._escalation_date
 
-    def set_escalate_date(self, data, update=True):
+    def set_escalation_date(self, data, update=True):
         """Read-Write task metadata"""
-        self._escalate_date = data
+        self._escalation_date = data
         
         if update and self._phase == 0:
             self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10200.value)
 
     #
     # id
@@ -258,7 +281,7 @@ class TaskObject(object):
         return self._id
 
     def set_id(self, data, update=True):
-        """Read-Only group metadata"""
+        """Read-Only task metadata"""
         if isinstance(data, (int, long)):
             self._id = data
 
@@ -289,7 +312,7 @@ class TaskObject(object):
         return self._uni(self._name)
 
     def set_name(self, data, update=True):
-        """Read-Write group metadata"""
+        """Read-Write task metadata"""
         self._name = self._uni(data)
         if update and self._phase == 0:
             self._phase = 2
@@ -308,8 +331,6 @@ class TaskObject(object):
         
         if update and self._phase == 0:
             self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10200.value)
 
     #
     # owner_name
@@ -320,7 +341,7 @@ class TaskObject(object):
         return self._owner_name
 
     def set_owner_name(self, data):
-        """Read-Only group metadata"""
+        """Read-Only task metadata"""
         self._owner_name = self._uni(data)
 
     #
@@ -337,8 +358,6 @@ class TaskObject(object):
         
         if update and self._phase == 0:
             self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10200.value)
 
     #
     # reminder_date
@@ -354,8 +373,6 @@ class TaskObject(object):
         
         if update and self._phase == 0:
             self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10200.value)
 
     #
     # status
@@ -371,8 +388,6 @@ class TaskObject(object):
         
         if update and self._phase == 0:
             self._phase = 2
-        else:
-            raise AttributeError(ErrorCodes.e10200.value)
             
     #
     # weblink
@@ -477,7 +492,7 @@ class TaskObject(object):
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('date_added', self.date_added))
         
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('escalated', self.escalated))
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('escalate_date', self.escalate_date))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('escalation_date', self.escalation_date))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('overdue', self.overdue))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('reminded', self.reminded))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('reminder_date', self.reminder_date))

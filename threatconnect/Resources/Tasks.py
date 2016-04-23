@@ -7,7 +7,7 @@ from threatconnect import ApiProperties
 from threatconnect import TaskFilterMethods
 from threatconnect.Config.ResourceType import ResourceType
 from threatconnect.FilterObject import FilterObject
-from threatconnect.GroupObject import GroupObjectAdvanced
+from threatconnect.TaskObject import TaskObjectAdvanced
 from threatconnect.RequestObject import RequestObject
 from threatconnect.Resource import Resource
 
