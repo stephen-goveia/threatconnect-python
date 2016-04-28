@@ -33,6 +33,8 @@ from Config.ResourceRegexes import indicators_regex
 from IndicatorObject import parse_indicator
 from GroupObject import parse_group
 from OwnerObject import parse_owner
+from OwnerMetricsObject import parse_metrics
+from TaskObject import parse_task
 from VictimObject import parse_victim
 from Resources.BatchJobs import BatchJobs, parse_batch_job
 
@@ -47,6 +49,7 @@ from Resources.Groups import Groups
 from Resources.Incidents import Incidents
 from Resources.Indicators import Indicators
 from Resources.Owners import Owners
+from Resources.Tasks import Tasks
 from Resources.Threats import Threats
 from Resources.Signatures import Signatures
 from Resources.Victims import Victims
@@ -402,7 +405,6 @@ class ThreatConnect:
         #
         # return response
         #
-        # self.print_mem('end _api_request')
         return api_response
 
     def api_response_handler(self, resource_obj, ro):
@@ -441,8 +443,7 @@ class ThreatConnect:
             #
             if api_response.headers['content-type'] == 'application/json':
                 api_response_dict = api_response.json()
-                # self.print_mem('after building dict')
-
+                
                 # try and free memory for next api request
                 api_response.close()
                 del api_response  # doesn't appear to clear memory
@@ -459,7 +460,6 @@ class ThreatConnect:
 
                             if len(obj_list) % 500 == 0:
                                 self.tcl.debug('obj_list len: {0!s}'.format(len(obj_list)))
-                                # self.print_mem('bulk process - {0:d} objects'.format(len(obj_list)))
 
                 elif api_response_dict['status'] == 'Failure':
                     # handle failed request (404 Resource not Found)
@@ -589,7 +589,40 @@ class ThreatConnect:
                     for item in data:
                         obj_list.append(
                             parse_group(item, ResourceType.INCIDENTS, resource_obj, ro.description, ro.request_uri))
-
+                            
+                #
+                # METRICS
+                #
+                # elif ro.resource_type == ResourceType.OWNER_METRICS:
+                #     data = api_response_dict['data']['ownerMetric']
+                #     if not isinstance(data, list):
+                #         data = [data]  # for single results to be a list
+                #     for item in data:
+                #         obj_list.append(
+                #             parse_metrics(item, resource_obj, ro.description, ro.request_uri))
+                            
+                #
+                # MINE
+                #
+                # elif ro.resource_type == ResourceType.OWNER_MINE:
+                #     data = api_response_dict['data']['owner']
+                #     if not isinstance(data, list):
+                #         data = [data]  # for single results to be a list
+                #     for item in data:
+                #         obj_list.append(
+                #             parse_metrics(item, resource_obj, ro.description, ro.request_uri))
+                            
+                #
+                # MEMBERS
+                #
+                # elif ro.resource_type == ResourceType.OWNER_MEMBERS:
+                #     data = api_response_dict['data']['user']
+                #     if not isinstance(data, list):
+                #         data = [data]  # for single results to be a list
+                #     for item in data:
+                #         obj_list.append(
+                #             parse_metrics(item, resource_obj, ro.description, ro.request_uri))
+                            
                 #
                 # OWNERS
                 #
@@ -611,6 +644,17 @@ class ThreatConnect:
                     for item in data:
                         obj_list.append(
                             parse_group(item, ResourceType.SIGNATURES, resource_obj, ro.description, ro.request_uri))
+
+                #
+                # TASKS
+                #
+                elif ro.resource_type == ResourceType.TASKS:
+                    data = api_response_dict['data']['task']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(
+                            parse_task(item, ResourceType.TASKS, resource_obj, ro.description, ro.request_uri))
 
                 #
                 # THREATS
@@ -657,11 +701,6 @@ class ThreatConnect:
                         # victims data comes back with no owner, manually add owner here
                         item['owner'] = ro.owner
                         obj_list.append(parse_batch_job(item, resource_obj, ro.description, ro.request_uri))
-
-                #
-                # memory testing
-                #
-                # self.print_mem('pagination - {0:d} objects'.format(len(obj_list)))
 
             elif api_response.headers['content-type'] == 'text/plain':
                 self.tcl.error('{0!s} "{1!s}"'.format(api_response.content, ro.description))
@@ -713,13 +752,6 @@ class ThreatConnect:
             ro.set_result_start(ro.result_start + ro.result_limit)
 
         return data
-
-    # def print_mem(self, msg):
-    #     if self._memory_monitor:
-    #         current_mem = self._p.memory_info().rss
-    #         self.tcl.info('Memory ({0!s}) - Delta {1:d} Bytes'.format(msg, current_mem - self._memory))
-    #         self.tcl.info('Memory ({0!s}) - RSS {1:d} Bytes'.format(msg, current_mem))
-    #         self._memory = current_mem
 
     def report_enable(self):
         """ """
@@ -879,6 +911,10 @@ class ThreatConnect:
     def signatures(self):
         """ return a signature container object """
         return Signatures(self)
+        
+    def tasks(self):
+        """ return a task container object """
+        return Tasks(self)
 
     def threats(self):
         """ return a threat container object """

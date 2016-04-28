@@ -9,6 +9,8 @@ from threatconnect.FilterObject import FilterObject
 from threatconnect.OwnerObject import OwnerObjectAdvanced
 from threatconnect.RequestObject import RequestObject
 from threatconnect.Resource import Resource
+from threatconnect.OwnerMetricsObject import parse_metrics
+from threatconnect.OwnerMembersObject import parse_member
 
 
 class Owners(Resource):
@@ -59,6 +61,66 @@ class Owners(Resource):
         """ generator for owner names """
         for obj in self._objects:
             yield obj.name
+            
+    def retrieve_metrics(self):
+        """ retrieve owner metrics """
+        prop = ApiProperties.api_properties['OWNERS']['properties']['metrics']
+        ro = RequestObject()
+        ro.set_description('load global metrics')
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_request_uri(prop['uri'])
+        ro.set_resource_type(ResourceType.OWNER_METRICS)
+        api_response = self.tc.api_request(ro)
+        
+        metrics = []
+        if api_response.headers['content-type'] == 'application/json':
+            api_response_dict = api_response.json()
+            if api_response_dict['status'] == 'Success':
+                data = api_response_dict['data']['ownerMetric']
+                for item in data:
+                    metrics.append(parse_metrics(item))
+                    
+        return metrics  # if class is called directly
+            
+    def retrieve_members(self):
+        """ retrieve owner members """
+        prop = ApiProperties.api_properties['OWNERS']['properties']['members']
+        ro = RequestObject()
+        ro.set_description('load owner members')
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_request_uri(prop['uri'])
+        ro.set_resource_type(ResourceType.OWNER_MEMBERS)
+        api_response = self.tc.api_request(ro)
+        
+        members = []
+        if api_response.headers['content-type'] == 'application/json':
+            api_response_dict = api_response.json()
+            if api_response_dict['status'] == 'Success':
+                data = api_response_dict['data']['user']
+                for item in data:
+                    members.append(parse_member(item))
+                    
+        return members  # if class is called directly
+            
+    def retrieve_mine(self):
+        """ retrieve owner mine """
+        
+        prop = ApiProperties.api_properties['OWNERS']['properties']['mine']
+        ro = RequestObject()
+        ro.set_description('load owner mine')
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_request_uri(prop['uri'])
+        ro.set_resource_type(ResourceType.OWNERS)
+        
+        data_set = self.tc.api_response_handler(self, ro)
+        for obj in data_set:
+            self.add_obj(obj)
 
 
 class OwnerFilterObject(FilterObject):

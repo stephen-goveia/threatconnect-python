@@ -12,6 +12,8 @@ except ImportError:
 import ApiProperties
 from Config.ResourceType import ResourceType
 from ErrorCodes import ErrorCodes
+from RequestObject import RequestObject
+import OwnerMetricsObject
 
 
 def parse_owner(owner_dict, resource_obj=None, api_filter=None, request_uri=None):
@@ -306,3 +308,23 @@ class OwnerObjectAdvanced(OwnerObject):
         """ load data from resource object to self """
         for key in resource_obj.__slots__:
             setattr(self, key, getattr(resource_obj, key))
+
+    @property
+    def metrics(self):
+        """ retrieve owner metrics for this owner """
+        prop = self._resource_properties['individual_metrics']
+        ro = RequestObject()
+        ro.set_description('load owner metrics {0}'.format(self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_request_uri(prop['uri'].format(self._id))
+        ro.set_resource_type(ResourceType.OWNER_METRICS)
+        api_response = self._tc.api_request(ro)
+        
+        if api_response.headers['content-type'] == 'application/json':
+            api_response_dict = api_response.json()
+            if api_response_dict['status'] == 'Success':
+                data = api_response_dict['data']['ownerMetric']
+                for item in data:
+                    yield OwnerMetricsObject.parse_metrics(item)

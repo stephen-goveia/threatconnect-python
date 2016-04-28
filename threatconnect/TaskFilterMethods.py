@@ -183,9 +183,25 @@ def add_threat_id(self, data_int):
     self._add_request_objects(ro)
 
 
+def add_victim_id(self, data_int):
+    """ """
+    if not isinstance(data_int, int):
+        raise AttributeError(ErrorCodes.e4090.value.format(data_int))
+
+    prop = self._resource_properties['victims']
+    ro = RequestObject()
+    ro.set_description('api filter by victim id {0}'.format(data_int))
+    ro.set_owner_allowed(prop['owner_allowed'])
+    ro.set_resource_pagination(prop['pagination'])
+    ro.set_request_uri(prop['uri'], [data_int])
+    ro.set_resource_type(self._resource_type)
+    self._add_request_objects(ro)
+
+
 #
 # Post Filters
 #
+
 
 def add_pf_attribute(self, data, operator=FilterOperator.EQ):
     """ add post filter by attribute
@@ -200,7 +216,7 @@ def add_pf_attribute(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_date_added(self, data_date, operator=FilterOperator.EQ):
-    """ add post filter by date 
+    """ add post filter by date
     :type operator: FilterOperator
     """
     # properly format date
@@ -223,18 +239,6 @@ def add_pf_name(self, data, operator=FilterOperator.EQ):
     post_filter = PostFilterObject()
     post_filter.set_description('post filter by name {0} {1}'.format(operator.name, data))
     post_filter.set_method('filter_name')
-    post_filter.set_filter(data)
-    post_filter.set_operator(operator)
-    self.add_post_filter(post_filter)
-
-
-def add_pf_type(self, data, operator=FilterOperator.EQ):
-    """ add post filter by type
-    :type operator: FilterOperator
-    """
-    post_filter = PostFilterObject()
-    post_filter.set_description('post filter by type {0} {1}'.format(operator.name, data))
-    post_filter.set_method('filter_type')
     post_filter.set_filter(data)
     post_filter.set_operator(operator)
     self.add_post_filter(post_filter)

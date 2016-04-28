@@ -9,126 +9,116 @@ except ImportError:
 
 """ custom """
 from AttributeObject import parse_attribute, AttributeObject
-import GroupObject
+from GroupObject import parse_group
+# import IndicatorObject  #Causes circular import
 from SecurityLabelObject import parse_security_label
-from VictimAssetObject import parse_victim_asset
 from TagObject import parse_tag
+from VictimObject import parse_victim
+# import VictimObject
 
 import ApiProperties
 from Config.ResourceType import ResourceType
 from ErrorCodes import ErrorCodes
+
 from RequestObject import RequestObject
+from SharedMethods import get_resource_group_type
 
 
-def parse_victim(victim_dict, resource_obj=None, api_filter=None, request_uri=None):
+def parse_task(task_dict, resource_type=ResourceType.TASKS, resource_obj=None, api_filter=None, request_uri=None):
     """ """
-    # group object
-    victim = VictimObject()
-
+    # task object
+    task = TaskObject()
+    
     #
     # standard values
     #
-    victim.set_id(victim_dict['id'], False)
-    victim.set_name(victim_dict['name'], False)
-    victim.set_weblink(victim_dict['webLink'])
+    task.set_date_added(task_dict['dateAdded'])
+    task.set_id(task_dict['id'], False)
+    task.set_escalated(task_dict['escalated'], False)
+    task.set_name(task_dict['name'], False)
+    task.set_overdue(task_dict['overdue'], False)
+    task.set_reminded(task_dict['reminded'], False)
+    task.set_status(task_dict['status'], False)
+    task.set_weblink(task_dict['webLink'])
 
     #
     # optional values
     #
-    if 'description' in victim_dict:
-        victim.set_description(victim_dict['description'], False)
-    if 'nationality' in victim_dict:
-        victim.set_nationality(victim_dict['nationality'], False)
-    if 'org' in victim_dict:
-        victim.set_org(victim_dict['org'], False)
-    if 'owner' in victim_dict:
-        victim.set_owner_name(victim_dict['owner'])
-    if 'suborg' in victim_dict:
-        victim.set_suborg(victim_dict['suborg'], False)
-    if 'workLocation' in victim_dict:
-        victim.set_work_location(victim_dict['workLocation'], False)
-
-    # #
-    # # automatically load victim assets (special case for Victims)
-    # #
-    #
-    # """ retrieve assets for this indicator """
-    # prop = ApiProperties.api_properties['VICTIMS']['properties']['assets']
-    # ro = RequestObject()
-    # ro.set_description('load assets for {0}'.format(victim_dict['name']))
-    # ro.set_http_method(prop['http_method'])
-    # ro.set_owner(victim_dict['owner'])
-    # ro.set_owner_allowed(prop['owner_allowed'])
-    # ro.set_request_uri(prop['uri'].format(victim_dict['id']))
-    # ro.set_resource_pagination(prop['pagination'])
-    # ro.set_resource_type(ResourceType.VICTIMS)
-    # api_response = tc.api_request(ro)
-    #
-    # if api_response.headers['content-type'] == 'application/json':
-    #     api_response_dict = api_response.json()
-    #     if api_response_dict['status'] == 'Success':
-    #         data = api_response_dict['data']['victimAsset']
-    #         for item in data:
-    #             victim.add_asset(parse_victim_asset(item))
+    if 'dueDate' in task_dict:
+        task.set_due_date(task_dict['dueDate'], False)
+    if 'escalationDate' in task_dict:
+        task.set_escalation_date(task_dict['escalationDate'], False)
+    if 'reminderDate' in task_dict:
+        task.set_reminder_date(task_dict['reminderDate'], False)
+    if 'owner' in task_dict:  # nested owner for single indicator result
+        task.set_owner_name(task_dict['owner']['name'])
+    if 'ownerName' in task_dict:
+        task.set_owner_name(task_dict['ownerName'])
 
     #
     # handle both resource containers and individual objects
     #
     if resource_obj is not None:
         # store the resource object in the master resource object list
-        roi = resource_obj.add_master_resource_obj(victim, victim_dict['id'])
+        roi = resource_obj.add_master_resource_obj(task, task_dict['id'])
 
         # retrieve the resource object and update data
         # must be submitted after parameters are set for indexing to work
-        victim = resource_obj.get_resource_by_identity(roi)
+        task = resource_obj.get_resource_by_identity(roi)
 
     #
     # filter (set after retrieving stored object)
     #
     if api_filter is not None:
-        victim.add_matched_filter(api_filter)
+        task.add_matched_filter(api_filter)
 
     #
     # request_uri (set after retrieving stored object)
     #
     if request_uri is not None:
-        victim.add_request_uri(request_uri)
+        task.add_request_uri(request_uri)
 
-    return victim
+    return task
 
 
-class VictimObject(object):
+class TaskObject(object):
     __slots__ = (
-        '_assets',
         '_attributes',
-        '_description',
+        '_assignee',
+        '_date_added',
+        '_due_date',
+        '_escalated',
+        '_escalation_date',
         '_id',
         '_matched_filters',
-        '_nationality',
         '_name',
-        '_org',
+        '_overdue',
         '_owner_name',
-        '_phase',
+        '_phase',  # 0 - new; 1 - add; 2 - update
         '_properties',
+        '_reload_attributes',
+        '_reminded',
+        '_reminder_date',
         '_request_uris',
         '_resource_type',
         '_security_label',
-        '_suborg',
+        '_status',
         '_tags',
         '_weblink',
-        '_work_location',
-        '_reload_attributes'
     )
 
+    # def __init__(self, resource_type_enum=None):
     def __init__(self):
-        self._assets = []
         self._attributes = []
-        self._description = None
+        self._assignee = []
+        self._date_added = None
+        self._due_date = None
+        self._escalated = None
+        self._escalation_date = None
         self._id = None
         self._matched_filters = []
         self._name = None
-        self._nationality = None
-        self._org = None
+        self._overdue = None
         self._owner_name = None
         self._phase = 0
         self._properties = {
@@ -137,35 +127,51 @@ class VictimObject(object):
                 'method': 'set_name',
                 'required': True,
             },
-            '_nationality': {
-                'api_field': 'nationality',
-                'method': 'set_nationality',
+            'due_date': {
+                'api_field': 'dueDate',
+                'method': 'set_due_date',
                 'required': False,
             },
-            '_org': {
-                'api_field': 'org',
-                'method': 'set_org',
+            'escalated': {
+                'api_field': 'escalated',
+                'method': 'set_escalated',
                 'required': False,
             },
-            '_suborg': {
-                'api_field': 'suborg',
-                'method': 'set_suborg',
+            'escalation_date': {
+                'api_field': 'escalationDate',
+                'method': 'set_escalation_date',
                 'required': False,
             },
-            '_work_location': {
-                'api_field': 'workLocation',
-                'method': 'set_work_location',
+            'overdue': {
+                'api_field': 'overdue',
+                'method': 'set_overdue',
+                'required': False,
+            },
+            'reminded': {
+                'api_field': 'reminded',
+                'method': 'set_reminded',
+                'required': False,
+            },
+            'reminder_date': {
+                'api_field': 'reminderDate',
+                'method': 'set_reminder_date',
+                'required': False,
+            },
+            'status': {
+                'api_field': 'status',
+                'method': 'set_status',
                 'required': False,
             },
         }
         self._reload_attributes = False
+        self._reminded = None
+        self._reminder_date = None
         self._request_uris = []
-        self._resource_type = ResourceType.VICTIMS
+        self._resource_type = ResourceType.TASKS
         self._security_label = None
-        self._suborg = None
+        self._status = None
         self._tags = []
         self._weblink = None
-        self._work_location = None
 
     #
     # unicode
@@ -173,7 +179,7 @@ class VictimObject(object):
     @staticmethod
     def _uni(data):
         """ """
-        if data is None or isinstance(data, (int, list, long, dict)):
+        if data is None or isinstance(data, (int, list, dict)):
             return data
         elif isinstance(data, unicode):
             return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
@@ -190,20 +196,8 @@ class VictimObject(object):
         """ url encode value for safe request """
         return urllib.quote(data, safe='~')
 
-    """ victim object methods """
+    """ tasks object methods """
 
-    #
-    # assets
-    #
-    @property
-    def assets(self):
-        """ """
-        return self._assets
-
-    def add_asset(self, data_obj):
-        """Read-Only group metadata"""
-        self._assets.append(data_obj)
-        
     #
     # attributes
     #
@@ -217,17 +211,74 @@ class VictimObject(object):
         self._attributes.append(data_obj)
 
     #
-    # description
+    # assignee
     #
     @property
-    def description(self):
+    def assignee(self):
         """ """
-        return self._description
+        return self._assignee
 
-    def set_description(self, data, update=True):
-        """Read-Only group metadata"""
-        self._description = self._uni(data)
+    def set_assignee(self, data, update=True):
+        """Read-Write task metadata"""
+        self._assignee = self._uni(data)
+        
+        if update and self._phase == 0:
+            self._phase = 2
 
+    #
+    # date_added
+    #
+    @property
+    def date_added(self):
+        """ """
+        return self._date_added
+
+    def set_date_added(self, data):
+        """Read-Only task metadata"""
+        self._date_added = data
+
+    #
+    # due_date
+    #
+    @property
+    def due_date(self):
+        """ """
+        return self._due_date
+
+    def set_due_date(self, data, update=True):
+        """Read-Write task metadata"""
+        self._due_date = data
+        
+        if update and self._phase == 0:
+            self._phase = 2
+
+    #
+    # escalated
+    #
+    @property
+    def escalated(self):
+        """ """
+        return self._escalated
+
+    def set_escalated(self, data, update=True):
+        """Read-Write task metadata"""
+        self._escalated = data
+        
+        if update and self._phase == 0:
+            self._phase = 2
+            
+    #
+    # escalation_date
+    #
+    @property
+    def escalation_date(self):
+        """ """
+        return self._escalation_date
+
+    def set_escalation_date(self, data, update=True):
+        """Read-Write task metadata"""
+        self._escalation_date = data
+        
         if update and self._phase == 0:
             self._phase = 2
 
@@ -240,11 +291,14 @@ class VictimObject(object):
         return self._id
 
     def set_id(self, data, update=True):
-        """Read-Only group metadata"""
-        self._id = self._uni(data)
+        """Read-Only task metadata"""
+        if isinstance(data, (int, long)):
+            self._id = data
 
-        if update:
-            self._phase = 2
+            if update:
+                self._phase = 2
+        else:
+            raise RuntimeError(ErrorCodes.e10020.value.format(data))
 
     #
     # matched filters
@@ -256,7 +310,7 @@ class VictimObject(object):
 
     def add_matched_filter(self, data):
         """ """
-        if data not in self._matched_filters and data is not None:
+        if data is not None and data not in self._matched_filters:
             self._matched_filters.append(data)
 
     #
@@ -265,42 +319,26 @@ class VictimObject(object):
     @property
     def name(self):
         """ """
-        return self._name
+        return self._uni(self._name)
 
     def set_name(self, data, update=True):
-        """Read-Write group metadata"""
+        """Read-Write task metadata"""
         self._name = self._uni(data)
-
         if update and self._phase == 0:
             self._phase = 2
-
+            
     #
-    # nationality
-    #
-    @property
-    def nationality(self):
-        """ """
-        return self._nationality
-
-    def set_nationality(self, data, update=True):
-        """Read-Only group metadata"""
-        self._nationality = self._uni(data)
-
-        if update and self._phase == 0:
-            self._phase = 2
-
-    #
-    # org
+    # overdue
     #
     @property
-    def org(self):
+    def overdue(self):
         """ """
-        return self._org
+        return self._overdue
 
-    def set_org(self, data, update=True):
-        """Read-Only group metadata"""
-        self._org = self._uni(data)
-
+    def set_overdue(self, data, update=True):
+        """Read-Write task metadata"""
+        self._overdue = data
+        
         if update and self._phase == 0:
             self._phase = 2
 
@@ -313,20 +351,65 @@ class VictimObject(object):
         return self._owner_name
 
     def set_owner_name(self, data):
-        """Read-Only group metadata"""
+        """Read-Only task metadata"""
         self._owner_name = self._uni(data)
 
     #
-    # phase
+    # reminded
     #
     @property
-    def phase(self):
+    def reminded(self):
         """ """
-        return self._phase
+        return self._reminded
 
-    def set_phase(self, data):
+    def set_reminded(self, data, update=True):
+        """Read-Write task metadata"""
+        self._reminded = data
+        
+        if update and self._phase == 0:
+            self._phase = 2
+
+    #
+    # reminder_date
+    #
+    @property
+    def reminder_date(self):
         """ """
-        self._phase = data
+        return self._reminder_date
+
+    def set_reminder_date(self, data, update=True):
+        """Read-Write task metadata"""
+        self._reminder_date = data
+        
+        if update and self._phase == 0:
+            self._phase = 2
+
+    #
+    # status
+    #
+    @property
+    def status(self):
+        """ """
+        return self._status
+
+    def set_status(self, data, update=True):
+        """Read-Write task metadata"""
+        self._status = data
+        
+        if update and self._phase == 0:
+            self._phase = 2
+            
+    #
+    # weblink
+    #
+    @property
+    def weblink(self):
+        """ """
+        return self._weblink
+
+    def set_weblink(self, data):
+        """ """
+        self._weblink = self._uni(data)
 
     #
     # request uris
@@ -339,14 +422,6 @@ class VictimObject(object):
         """ """
         if data not in self._request_uris:
             self._request_uris.append(data)
-
-    #
-    # resource_type
-    #
-    @property
-    def resource_type(self):
-        """ """
-        return self._resource_type
 
     #
     # security label
@@ -364,21 +439,6 @@ class VictimObject(object):
         self._security_label = data_obj
 
     #
-    # suborg
-    #
-    @property
-    def suborg(self):
-        """ """
-        return self._suborg
-
-    def set_suborg(self, data, update=True):
-        """Read-Only group metadata"""
-        self._suborg = self._uni(data)
-
-        if update and self._phase == 0:
-            self._phase = 2
-
-    #
     # tags
     #
     @property
@@ -391,31 +451,24 @@ class VictimObject(object):
         self._tags.append(data_obj)
 
     #
-    # weblink
+    # phase
     #
     @property
-    def weblink(self):
+    def phase(self):
         """ """
-        return self._weblink
+        return self._phase
 
-    def set_weblink(self, data):
-        """Read-Only group metadata"""
-        self._weblink = self._uni(data)
+    def set_phase(self, data):
+        """ """
+        self._phase = data
 
     #
-    # work_location
+    # resource_type
     #
     @property
-    def work_location(self):
+    def resource_type(self):
         """ """
-        return self._work_location
-
-    def set_work_location(self, data, update=True):
-        """Read-Only group metadata"""
-        self._work_location = self._uni(data)
-
-        if update and self._phase == 0:
-            self._phase = 2
+        return self._resource_type
 
     #
     # validate
@@ -436,7 +489,7 @@ class VictimObject(object):
     def __str__(self):
         """allow object to be displayed with print"""
 
-        printable_string = '\n{0!s:_^80}\n'.format('Resource Object Properties')
+        printable_string = '\n{0!s:_^80}\n'.format('Task Resource Object Properties')
 
         #
         # retrievable methods
@@ -444,13 +497,16 @@ class VictimObject(object):
         printable_string += '{0!s:40}\n'.format('Retrievable Methods')
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('id', self.id))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('name', self.name))
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('owner_name', self.owner_name))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('resource_type', self.resource_type))
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('description', self.description))
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('org', self.org))
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('nationality', self.nationality))
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('suborg', self.suborg))
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('work_location', self.work_location))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('owner_name', self.owner_name))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('date_added', self.date_added))
+        
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('escalated', self.escalated))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('escalation_date', self.escalation_date))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('overdue', self.overdue))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('reminded', self.reminded))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('reminder_date', self.reminder_date))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('status', self.status))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('weblink', self.weblink))
 
         #
@@ -486,7 +542,7 @@ class VictimObject(object):
         return printable_string
 
 
-class VictimObjectAdvanced(VictimObject):
+class TaskObjectAdvanced(TaskObject):
     """ Temporary Object with extended functionality. """
     __slots__ = (
         '_resource_container',
@@ -500,18 +556,24 @@ class VictimObjectAdvanced(VictimObject):
 
     def __init__(self, tc_obj, resource_container, resource_obj):
         """ add methods to resource object """
-        super(VictimObject, self).__init__()
-
+        super(TaskObject, self).__init__()
+        
         self._resource_properties = ApiProperties.api_properties[resource_obj.resource_type.name]['properties']
+        
         self._resource_container = resource_container
         self._resource_obj = resource_obj
         self._basic_structure = {
+            'dateAdded': 'date_added',
+            'dueDate': 'due_date',
+            'escalated': 'escalated',
+            'escalation_date': 'escalation_date',
             'id': 'id',
             'name': 'name',
-            'nationality': 'nationality',
-            'org': 'org',
-            'suborg': 'suborg',
-            'workLocation': 'work_location',
+            'overdue': 'overdue',
+            'ownerName': 'owner_name',
+            'reminded': 'reminded',
+            'reminderDate': 'reminder_date',
+            'status': 'status',
             'weblink': 'weblink',
         }
         self._structure = self._basic_structure.copy()
@@ -521,21 +583,21 @@ class VictimObjectAdvanced(VictimObject):
         # load data from resource_obj
         self.load_data(self._resource_obj)
 
-    def add_asset(self, asset_obj):
-        """ add a asset to a victim """
-        prop = self._resource_properties['asset_add']
+    def add_assignee(self, assignee):
+        """ add assignee to task by id """
+        prop = self._resource_properties['assignee_add']
         ro = RequestObject()
-        ro.set_body(asset_obj.gen_body)
-        ro.set_description('add asset type {0} with to {1}'.format(asset_obj.resource_type, self._name))
+        ro.set_description('add assignee {0} from "{1}"'.format(assignee, self._name))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
-        ro.set_request_uri(prop['uri'].format(self._id, asset_obj.uri_attribute))
+        ro.set_request_uri(prop['uri'].format(
+            self._id, assignee))
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
-        
+
     def add_attribute(self, attr_type, attr_value, attr_displayed='true'):
-        """ add an attribute to a victim """
+        """ add an attribute to a task """
         prop = self._resource_properties['attribute_add']
         ro = RequestObject()
         ro.set_body(json.dumps({
@@ -557,15 +619,28 @@ class VictimObjectAdvanced(VictimObject):
         attribute.set_value(attr_value)
         attribute.set_displayed(attr_displayed)
         self._resource_obj.add_attribute(attribute)
-        
+
     def __add_attribute_failure(self, attr_type, attr_value):
         for attribute in self._attributes:
             if attribute.type == attr_type and attribute.value == attr_value:
                 self._attributes.remove(attribute)
                 break
             
+    def add_escalatee(self, escalatee):
+        """ add escalatee to task by id """
+        prop = self._resource_properties['escalatee_add']
+        ro = RequestObject()
+        ro.set_description('add escalatee {0} from "{1}"'.format(escalatee, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, escalatee))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
+
     def add_security_label(self, label):
-        """ set the security label for this victim """
+        """ set the security label for this task """
         prop = self._resource_properties['security_label_add']
         ro = RequestObject()
         ro.set_description('add security label "{0}" to "{1}"'.format(label, self._name))
@@ -579,7 +654,7 @@ class VictimObjectAdvanced(VictimObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     def add_tag(self, tag):
-        """ add a tag to an victim """
+        """ add a tag to an task """
         prop = self._resource_properties['tag_add']
         ro = RequestObject()
         ro.set_description('add tag "{0}" to "{1}"'.format(tag, self._name))
@@ -591,7 +666,7 @@ class VictimObjectAdvanced(VictimObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     def associate_group(self, resource_type, resource_id):
-        """ associate a group to indicator by id """
+        """ associate a group to task by id """
         prop = self._resource_properties['association_group_add']
         ro = RequestObject()
         ro.set_description('associate group type "{0}" id {1} to "{2}"'.format(
@@ -602,7 +677,35 @@ class VictimObjectAdvanced(VictimObject):
         group_uri_attribute = ApiProperties.api_properties[resource_type.name]['uri_attribute']
         ro.set_request_uri(prop['uri'].format(self._id, group_uri_attribute, resource_id))
         ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
 
+    def associate_indicator(self, indicator_type, indicator):
+        """ associate a indicator to task by id """
+        prop = self._resource_properties['association_indicator_add']
+        ro = RequestObject()
+        ro.set_description('associate indicator {0} to "{1}"'.format(
+            indicator, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_resource_pagination(prop['pagination'])
+        indicator_uri_attribute = ApiProperties.api_properties[indicator_type.name]['uri_attribute']
+        # ro.set_request_uri(prop['uri'].format(indicator_uri_attribute, self._urlsafe(indicator), self.id))
+        ro.set_request_uri(prop['uri'].format(self.id, indicator_uri_attribute, self._urlsafe(indicator)))
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
+
+    def associate_victim(self, resource_id):
+        """ associate victim to task """
+        prop = self._resource_properties['association_victim_add']
+        ro = RequestObject()
+        ro.set_description('associate victim id {0} from "{1}"'.format(
+            resource_id, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, resource_id))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
 
     @property
@@ -615,7 +718,12 @@ class VictimObjectAdvanced(VictimObject):
         return json.dumps(body_dict)
 
     def commit(self):
-        """ commit victim and related assets, associations """
+
+        # phase 0 (no action) -> don't validate and don't POST group, only POST items in commit queue.
+        # phase 1 (add) -> validate before POST group, only POST items in commit queue if group POST succeeded.
+        # phase 2 (update) -> don't validate before PUT group, POST/PUT items in commit queue.
+
+        """ commit group and related associations, attributes, security labels and tags """
         r_id = self.id
         ro = RequestObject()
         ro.set_body(self.gen_body)
@@ -624,12 +732,12 @@ class VictimObjectAdvanced(VictimObject):
         ro.set_resource_type(self.resource_type)
         if self.phase == 1:
             prop = self._resource_properties['add']
-            ro.set_description('adding group "{0}".'.format(self._name))
+            ro.set_description('adding task "{0}".'.format(self._name))
             ro.set_http_method(prop['http_method'])
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._id))
             ro.set_resource_pagination(prop['pagination'])
-            # validate all required fields are present
+            
             if self.validate:
                 api_response = self._tc.api_request(ro)
                 if api_response.headers['content-type'] == 'application/json':
@@ -642,41 +750,63 @@ class VictimObjectAdvanced(VictimObject):
                 raise AttributeError(ErrorCodes.e10040.value)
         elif self.phase == 2:
             prop = self._resource_properties['update']
-            ro.set_description('update indicator "{0}".'.format(self._name))
+            ro.set_description('update group "{0}".'.format(self._name))
             ro.set_http_method(prop['http_method'])
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._id))
             ro.set_resource_pagination(prop['pagination'])
+            
             api_response = self._tc.api_request(ro)
             if api_response.headers['content-type'] == 'application/json':
                 api_response_dict = api_response.json()
                 if api_response_dict['status'] != 'Success':
                     self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
 
-        # submit all attributes, tags or associations
-        for ro in self._resource_container.commit_queue(self.id):
-            # if self.owner_name is not None:
-            #     ro.set_owner(self.owner_name)
+        # validate all required fields are present
 
-            # replace the id
-            if self.phase == 1 and self.id != r_id:
-                request_uri = str(ro.request_uri.replace(str(self.id), str(r_id)))
-                ro.set_request_uri(request_uri)
-            self._tc.tcl.debug('Replacing {0} with {1}'.format(self.id, str(r_id)))
-            self._tc.tcl.debug('RO {0}'.format(ro))
+        if r_id is not None:
+            #
+            # commit all associations, attributes, tags, etc
+            #
+            for ro in self._resource_container.commit_queue(self.id):
+                if self.owner_name is not None:
+                    ro.set_owner(self.owner_name)
 
-            api_response2 = self._tc.api_request(ro)
-            if api_response2.headers['content-type'] == 'application/json':
-                api_response_dict2 = api_response2.json()
-                if api_response_dict2['status'] != 'Success':
-                    self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
+                # replace the id
+                if self.phase == 1 and self.id != r_id:
+                    request_uri = str(ro.request_uri.replace(str(self.id), str(r_id)))
+                    ro.set_request_uri(request_uri)
+                    self._tc.tcl.debug('Replacing {0} with {1}'.format(self.id, str(r_id)))
 
-        self.set_id(r_id)
+                api_response2 = self._tc.api_request(ro)
+                if 'content-type' in api_response2.headers:
+                    if api_response2.headers['content-type'] == 'application/json':
+                        api_response_dict2 = api_response2.json()
+                        if api_response_dict2['status'] != 'Success':
+                            self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
+                        else:
+                            if ro.success_callback is not None:
+                                ro.success_callback(ro, api_response2)
+                    elif api_response2.headers['content-type'] == 'application/octet-stream':
+                        if api_response2.status_code in [200, 201, 202]:
+                            self.set_contents(ro.body)
+                            if ro.success_callback is not None:
+                                ro.success_callback(ro, api_response2)
+                else:
+                    # upload PUT response
+                    if api_response2.status_code in [200, 201, 202]:
+                        self.set_contents(ro.body)
+                        if ro.success_callback is not None:
+                            ro.success_callback(ro, api_response2)
 
-        self._resource_container.clear_commit_queue_id(self.id)
-        
+            # clear the commit queue
+            self._resource_container.clear_commit_queue_id(self.id)
+
+            self.set_id(r_id)
+
+        # clear phase
         self.set_phase(0)
-        
+
         if self._reload_attributes:
             self.load_attributes(automatically_reload=True)
 
@@ -720,32 +850,32 @@ class VictimObjectAdvanced(VictimObject):
         """ delete indicator """
         prop = self._resource_properties['delete']
         ro = RequestObject()
-        ro.set_description('delete victim "{0}".'.format(self._name))
+        ro.set_description('delete task "{0}".'.format(self._name))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
-        # if self.owner_name is not None:
-        #     ro.set_owner(self.owner_name)
+        if self.owner_name is not None:
+            ro.set_owner(self.owner_name)
         ro.set_request_uri(prop['uri'].format(self._id))
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self.resource_type)
         self._tc.api_request(ro)
         self.set_phase(3)
-
-    def delete_asset(self, asset_id, asset_obj):
-        """ add a asset to a victim """
-        prop = self._resource_properties['asset_delete']
+        
+    def delete_assignee(self, assignee):
+        """ delete assignee from task by id """
+        prop = self._resource_properties['assignee_delete']
         ro = RequestObject()
-        ro.set_description('delete asset type {0} with to {1}'.format(asset_obj.resource_type, self._name))
+        ro.set_description('delete assignee {0} from "{1}"'.format(assignee, self._name))
         ro.set_http_method(prop['http_method'])
-        ro.set_owner(self.owner_name)
         ro.set_owner_allowed(prop['owner_allowed'])
-        ro.set_request_uri(prop['uri'].format(self._id, asset_obj.uri_attribute, asset_id))
+        ro.set_request_uri(prop['uri'].format(
+            self._id, assignee))
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
-        
+
     def delete_attribute(self, attr_id):
-        """ delete attribute from victim by id """
+        """ delete attribute from task by id """
         prop = self._resource_properties['attribute_delete']
         ro = RequestObject()
         ro.set_description('delete attribute id {0} from "{1}"'.format(attr_id, self._name))
@@ -757,6 +887,19 @@ class VictimObjectAdvanced(VictimObject):
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
 
+    def delete_escalatee(self, escalatee):
+        """ delete escalatee from task by id """
+        prop = self._resource_properties['escalatee_delete']
+        ro = RequestObject()
+        ro.set_description('delete escalatee {0} from "{1}"'.format(escalatee, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, escalatee))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
+        
     def delete_security_label(self, label):
         """ delete the security label for this indicator """
         prop = self._resource_properties['security_label_delete']
@@ -769,9 +912,9 @@ class VictimObjectAdvanced(VictimObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
-        
+
     def delete_tag(self, tag):
-        """ delete tag from victim """
+        """ delete tag from task """
         prop = self._resource_properties['tag_delete']
         ro = RequestObject()
         ro.set_description('delete tag "{0}" from "{1}"'.format(tag, self._name))
@@ -784,7 +927,7 @@ class VictimObjectAdvanced(VictimObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     def disassociate_group(self, resource_type, resource_id):
-        """ disassociate group from victim """
+        """ disassociate group from task """
         prop = self._resource_properties['association_group_delete']
         ro = RequestObject()
         ro.set_description('disassociate group type {0} id {1} from "{2}"'.format(
@@ -798,38 +941,91 @@ class VictimObjectAdvanced(VictimObject):
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
 
+    def disassociate_indicator(self, indicator_type, indicator):
+        """ disassociate indicator from task by id """
+        prop = self._resource_properties['association_indicator_delete']
+        ro = RequestObject()
+        ro.set_description('disassociate indicator {0} to "{1}"'.format(
+            indicator, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_resource_pagination(prop['pagination'])
+        indicator_uri_attribute = ApiProperties.api_properties[indicator_type.name]['uri_attribute']
+        ro.set_request_uri(prop['uri'].format(indicator_uri_attribute, self._urlsafe(indicator), self.id))
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
+
+    def disassociate_victim(self, resource_id):
+        """ disassociate victim from task """
+        prop = self._resource_properties['association_victim_delete']
+        ro = RequestObject()
+        ro.set_description('disassociate victim id {0} from "{1}"'.format(
+            resource_id, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, resource_id))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
+
+    def download(self):
+        """ download document  """
+        if self._resource_type == ResourceType.DOCUMENTS:
+            prop = self._resource_properties['document_download']
+        elif self._resource_type == ResourceType.SIGNATURES:
+            prop = self._resource_properties['signature_download']
+        else:
+            self._tc.tcl.error('Download requested for wrong resource type.')
+            raise AttributeError(ErrorCodes.e10320.value)
+
+        ro = RequestObject()
+        ro.set_description('download {0} for "{1}"'.format(self.resource_type.name.lower(), self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(self._id))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        api_response = self._tc.api_request(ro)
+
+        if api_response.headers['content-type'] in ['application/octet-stream', 'text/plain']:
+            self.set_contents(api_response.content)
+
     @property
     def group_associations(self):
-        """ retrieve associations for this group. associations are not stored within the object """
+        """ retrieve associations for this task. associations are not stored within the object """
         prop = self._resource_properties['association_groups']
         ro = RequestObject()
         ro.set_description('retrieve group associations for {0}'.format(self._name))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
         ro.set_request_uri(prop['uri'].format(self._id))
-        # ro.set_owner(self.owner_name)
+        ro.set_owner(self.owner_name)
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
 
         for item in self._tc.result_pagination(ro, 'group'):
-            yield threatconnect.GroupObject.parse_group(item, api_filter=ro.description, request_uri=ro.request_uri)
+            yield parse_group(item, api_filter=ro.description, request_uri=ro.request_uri)
 
     @property
     def indicator_associations(self):
-        """ retrieve associations for this victim. associations are not stored within the object """
+        """ retrieve associations for this task. associations are not stored within the object """
         prop = self._resource_properties['association_indicators']
         ro = RequestObject()
         ro.set_description('retrieve indicator associations for {0}'.format(self._name))
+        ro.set_owner(self.owner_name)
         ro.set_http_method(prop['http_method'])
-        # ro.set_owner(self.owner_name)
+        ro.set_owner(self.owner_name)
         ro.set_owner_allowed(prop['owner_allowed'])
         ro.set_request_uri(prop['uri'].format(self._id))
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
 
         for item in self._tc.result_pagination(ro, 'indicator'):
-            yield threatconnect.IndicatorObject.parse_indicator(
-                item, api_filter=ro.description, request_uri=ro.request_uri)
+            import IndicatorObject  #Causes circular import
+
+            yield IndicatorObject.parse_indicator(
+                item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
 
     @property
     def json(self):
@@ -850,35 +1046,9 @@ class VictimObjectAdvanced(VictimObject):
 
         return keyval_str
 
-    def load_data(self, resource_obj):
-        """ load data from resource object to self """
-        for key in resource_obj.__slots__:
-            setattr(self, key, getattr(resource_obj, key))
-
-    def load_assets(self):
-        """ retrieve assets for this indicator """
-        prop = self._resource_properties['assets']
-        ro = RequestObject()
-        ro.set_description('load assets for {0}'.format(self._name))
-        ro.set_http_method(prop['http_method'])
-        # ro.set_owner(self.owner_name)
-        ro.set_owner_allowed(prop['owner_allowed'])
-        ro.set_request_uri(prop['uri'].format(self._id))
-        ro.set_resource_pagination(prop['pagination'])
-        # ro.set_request_uri(self._resource_properties.asset_path.format(self._id))
-        ro.set_resource_type(self._resource_type)
-        api_response = self._tc.api_request(ro)
-
-        if api_response.headers['content-type'] == 'application/json':
-            api_response_dict = api_response.json()
-            if api_response_dict['status'] == 'Success':
-                data = api_response_dict['data']['victimAsset']
-                for item in data:
-                    self._resource_obj.add_asset(parse_victim_asset(item))  # add to main resource object
-                    
     def load_attributes(self, automatically_reload=False):
         self._reload_attributes = automatically_reload
-        """ retrieve attributes for this group """
+        """ retrieve attributes for this task """
         prop = self._resource_properties['attributes']
         ro = RequestObject()
         ro.set_description('load attributes for {0}'.format(self._name))
@@ -897,9 +1067,14 @@ class VictimObjectAdvanced(VictimObject):
                 self._resource_obj._attributes = []
                 for item in data:
                     self._resource_obj.add_attribute(parse_attribute(item, self))  # add to main resource object
-                    
+
+    def load_data(self, resource_obj):
+        """ load data from resource object to self """
+        for key in resource_obj.__slots__:
+            setattr(self, key, getattr(resource_obj, key))
+
     def load_security_label(self):
-        """ retrieve security label for this victim """
+        """ retrieve security label for this task """
         prop = self._resource_properties['security_label_load']
         ro = RequestObject()
         ro.set_description('load security labels for {0}'.format(self._name))
@@ -917,9 +1092,9 @@ class VictimObjectAdvanced(VictimObject):
                 data = api_response_dict['data']['securityLabel']
                 for item in data:
                     self._security_label = parse_security_label(item)  # add to main resource object
-                    
+
     def load_tags(self):
-        """ retrieve tags for this victim """
+        """ retrieve tags for this task """
         prop = self._resource_properties['tags_load']
         ro = RequestObject()
         ro.set_description('load tags for {0}'.format(self._name))
@@ -941,21 +1116,8 @@ class VictimObjectAdvanced(VictimObject):
     def set_security_label(self, label):
         self.add_security_label(label)
 
-    def update_asset(self, asset_id, asset_obj):
-        """ add a asset to a victim """
-        prop = self._resource_properties['asset_update']
-        ro = RequestObject()
-        ro.set_body(asset_obj.gen_body)
-        ro.set_description('update asset type {0} with to {1}'.format(asset_obj.resource_type, self._name))
-        ro.set_http_method(prop['http_method'])
-        ro.set_owner_allowed(prop['owner_allowed'])
-        ro.set_request_uri(prop['uri'].format(self._id, asset_obj.uri_attribute, asset_id))
-        ro.set_resource_pagination(prop['pagination'])
-        ro.set_resource_type(self._resource_type)
-        self._resource_container.add_commit_queue(self.id, ro)
-
     def update_attribute(self, attr_id, attr_value):
-        """ update victim attribute by id """
+        """ update task attribute by id """
         prop = self._resource_properties['attribute_update']
         ro = RequestObject()
         ro.set_body(json.dumps({'value': attr_value}))
@@ -968,7 +1130,23 @@ class VictimObjectAdvanced(VictimObject):
         ro.set_resource_type(self._resource_type)
 
         self._resource_container.add_commit_queue(self.id, ro)
-        
+
+    @property
+    def victim_associations(self):
+        """ retrieve associations for this tasks. associations are not stored within the object """
+        prop = self._resource_properties['association_victims']
+        ro = RequestObject()
+        ro.set_description('retrieve victim associations for {0}'.format(self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_owner(self.owner_name)
+        ro.set_request_uri(prop['uri'].format(self._id))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+
+        for item in self._tc.result_pagination(ro, 'victim'):
+            yield parse_victim(item, api_filter=ro.description, request_uri=ro.request_uri)
+
     #
     # attributes
     #
@@ -976,3 +1154,60 @@ class VictimObjectAdvanced(VictimObject):
     def attributes(self):
         """ """
         return self._resource_obj._attributes
+        
+        
+"""
+{
+    "status": "Success",
+    "data": {
+        "resultCount": 1,
+        "task": [
+            {
+                "id": 22,
+                "name": "Test Task",
+                "ownerName": "SumX",
+                "dateAdded": "2016-04-22T13:07:36Z",
+                "webLink": "https://ti.sumx.us/auth/workflow/task.xhtml?task=22",
+                "status": "Not Started",
+                "escalated": false,
+                "reminded": false,
+                "overdue": false,
+                "dueDate": "2016-04-29T00:00:00Z",
+                "reminderDate": "2016-04-26T13:06:00Z",
+                "escalationDate": "2016-05-04T13:06:00Z"
+            }
+        ]
+    }
+}
+
+{
+    "status": "Success",
+    "data": {
+        "task": {
+            "id": 22,
+            "name": "Test Task",
+            "owner": {
+                "id": 2,
+                "name": "SumX",
+                "type": "Organization"
+            },
+            "dateAdded": "2016-04-22T13:07:36Z",
+            "webLink": "https://ti.sumx.us/auth/workflow/task.xhtml?task=22",
+            "status": "Not Started",
+            "escalated": false,
+            "reminded": false,
+            "overdue": false,
+            "dueDate": "2016-04-29T00:00:00Z",
+            "reminderDate": "2016-04-26T13:06:00Z",
+            "escalationDate": "2016-05-04T13:06:00Z",
+            "assignee": [
+                {
+                    "userName": "bsummers",
+                    "firstName": "Bracey",
+                    "lastName": "Summers"
+                }
+            ]
+        }
+    }
+}
+"""

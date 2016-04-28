@@ -8,6 +8,9 @@ class ResourceType(Enum):
     # ATTRIBUTES = 10
     # DNS_RESOLUTIONS = 20
     OWNERS = 30
+    # OWNER_MINE = 32
+    OWNER_MEMBERS = 34
+    OWNER_METRICS = 36
     BULK = 40
 
     # groups
@@ -20,6 +23,7 @@ class ResourceType(Enum):
     # SECURITY_LABELS = 175
     SIGNATURES = 185
     TAGS = 195
+    TASKS = 200
     THREATS = 205
 
     # indicators

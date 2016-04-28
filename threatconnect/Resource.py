@@ -6,6 +6,7 @@ from BatchJobObject import BatchJobObject
 
 """ custom """
 from GroupObject import GroupObject
+from TaskObject import TaskObject
 from VictimObject import VictimObject
 
 from Config.ResourceType import ResourceType
@@ -79,6 +80,8 @@ class Resource(object):
             resource_object = VictimObject()
         elif self._resource_type == ResourceType.BATCH_JOBS:
             resource_object = BatchJobObject()
+        elif self._resource_type == ResourceType.TASKS:
+            resource_object = TaskObject()
         else:
             resource_object = GroupObject(self._resource_type)
 

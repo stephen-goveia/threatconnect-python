@@ -21,14 +21,14 @@ cd threatconnect-python
 python setup.py install --force
 ```
 
-To automatically pull prerequisites.
+Using pip
 ```
-pip install setup.py  --force
+pip install threatconnect
 ```
 
 Documentation
 -----
-https://threatconnect-inc.github.io/tc-exchange/python/start/
+http://docs.threatconnect.com/#threatconnect-python-reg-sdk
 
 Examples
 -----
