@@ -29,8 +29,6 @@ def parse_task(task_dict, resource_type=ResourceType.TASKS, resource_obj=None, a
     # task object
     task = TaskObject()
     
-    print(task_dict)
-    
     #
     # standard values
     #
@@ -585,6 +583,19 @@ class TaskObjectAdvanced(TaskObject):
         # load data from resource_obj
         self.load_data(self._resource_obj)
 
+    def add_assignee(self, assignee):
+        """ add assignee to task by id """
+        prop = self._resource_properties['assignee_add']
+        ro = RequestObject()
+        ro.set_description('add assignee {0} from "{1}"'.format(assignee, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, assignee))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
+
     def add_attribute(self, attr_type, attr_value, attr_displayed='true'):
         """ add an attribute to a task """
         prop = self._resource_properties['attribute_add']
@@ -615,6 +626,19 @@ class TaskObjectAdvanced(TaskObject):
                 self._attributes.remove(attribute)
                 break
             
+    def add_escalatee(self, escalatee):
+        """ add escalatee to task by id """
+        prop = self._resource_properties['escalatee_add']
+        ro = RequestObject()
+        ro.set_description('add escalatee {0} from "{1}"'.format(escalatee, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, escalatee))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
+
     def add_security_label(self, label):
         """ set the security label for this task """
         prop = self._resource_properties['security_label_add']
@@ -836,6 +860,19 @@ class TaskObjectAdvanced(TaskObject):
         ro.set_resource_type(self.resource_type)
         self._tc.api_request(ro)
         self.set_phase(3)
+        
+    def delete_assignee(self, assignee):
+        """ delete assignee from task by id """
+        prop = self._resource_properties['assignee_delete']
+        ro = RequestObject()
+        ro.set_description('delete assignee {0} from "{1}"'.format(assignee, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, assignee))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
 
     def delete_attribute(self, attr_id):
         """ delete attribute from task by id """
@@ -850,6 +887,19 @@ class TaskObjectAdvanced(TaskObject):
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
 
+    def delete_escalatee(self, escalatee):
+        """ delete escalatee from task by id """
+        prop = self._resource_properties['escalatee_delete']
+        ro = RequestObject()
+        ro.set_description('delete escalatee {0} from "{1}"'.format(escalatee, self._name))
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(
+            self._id, escalatee))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
+        
     def delete_security_label(self, label):
         """ delete the security label for this indicator """
         prop = self._resource_properties['security_label_delete']

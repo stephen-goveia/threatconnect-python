@@ -189,6 +189,12 @@ def main():
     resource.set_reminded('false')
     resource.set_status('Not Started')
     
+    # assignee can be added to the new resource
+    resource.add_assignee('peter.gibbons@initech.com')
+    
+    # escalatees can be added to the new resource
+    resource.add_escalatee('bill.lumbergh@initech.com')
+    
     # attributes can be added to the new resource
     resource.add_attribute('Description', 'Delete Example #{0:d}'.format(rn))
 

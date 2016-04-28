@@ -707,6 +707,18 @@ tasks_properties = {
         'pagination': False,
         'uri': '/v2/tasks',
     },
+    'assignee_add': {
+        'http_method': 'POST',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '/v2/tasks/{0}/assignees/{1}',  # task id, assignee account
+    },
+    'assignee_delete': {
+        'http_method': 'DELETE',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '/v2/tasks/{0}/assignees/{1}',  # task id, assignee account
+    },
     'association_groups': {
         'http_method': 'GET',
         'owner_allowed': False,
@@ -792,6 +804,18 @@ tasks_properties = {
         'owner_allowed': False,
         'pagination': True,
         'uri': '/v2/tasks',
+    },
+    'escalatee_add': {
+        'http_method': 'POST',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '/v2/tasks/{0}/escalatees/{1}',  # task id, assignee account
+    },
+    'escalatee_delete': {
+        'http_method': 'DELETE',
+        'owner_allowed': False,
+        'pagination': False,
+        'uri': '/v2/tasks/{0}/escalatees/{1}',  # task id, assignee account
     },
     'delete': {
         'http_method': 'DELETE',
