@@ -9,9 +9,11 @@ except ImportError:
 
 """ custom """
 from AttributeObject import parse_attribute, AttributeObject
+from GroupObject import parse_group
 # import IndicatorObject  #Causes circular import
 from SecurityLabelObject import parse_security_label
 from TagObject import parse_tag
+from VictimObject import parse_victim
 # import VictimObject
 
 import ApiProperties
@@ -25,27 +27,31 @@ from SharedMethods import get_resource_group_type
 def parse_task(task_dict, resource_type=ResourceType.TASKS, resource_obj=None, api_filter=None, request_uri=None):
     """ """
     # task object
-    task = TaskObject(resource_type)
+    task = TaskObject()
+    
+    print(task_dict)
     
     #
     # standard values
     #
     task.set_date_added(task_dict['dateAdded'])
-    task.set_due_date(task_dict['dueDate'], False)
     task.set_id(task_dict['id'], False)
     task.set_escalated(task_dict['escalated'], False)
     task.set_name(task_dict['name'], False)
     task.set_overdue(task_dict['overdue'], False)
     task.set_reminded(task_dict['reminded'], False)
-    task.set_reminder_date(task_dict['reminderDate'], False)
     task.set_status(task_dict['status'], False)
     task.set_weblink(task_dict['webLink'])
 
     #
     # optional values
     #
+    if 'dueDate' in task_dict:
+        task.set_due_date(task_dict['dueDate'], False)
     if 'escalationDate' in task_dict:
         task.set_escalation_date(task_dict['escalationDate'], False)
+    if 'reminderDate' in task_dict:
+        task.set_reminder_date(task_dict['reminderDate'], False)
     if 'owner' in task_dict:  # nested owner for single indicator result
         task.set_owner_name(task_dict['owner']['name'])
     if 'ownerName' in task_dict:
@@ -103,7 +109,8 @@ class TaskObject(object):
         '_weblink',
     )
 
-    def __init__(self, resource_type_enum=None):
+    # def __init__(self, resource_type_enum=None):
+    def __init__(self):
         self._attributes = []
         self._assignee = []
         self._date_added = None
@@ -121,6 +128,11 @@ class TaskObject(object):
                 'api_field': 'name',
                 'method': 'set_name',
                 'required': True,
+            },
+            'due_date': {
+                'api_field': 'dueDate',
+                'method': 'set_due_date',
+                'required': False,
             },
             'escalated': {
                 'api_field': 'escalated',
@@ -154,10 +166,10 @@ class TaskObject(object):
             },
         }
         self._reload_attributes = False
-        self._reminded = False
-        self._reminder_date = False
+        self._reminded = None
+        self._reminder_date = None
         self._request_uris = []
-        self._resource_type = resource_type_enum
+        self._resource_type = ResourceType.TASKS
         self._security_label = None
         self._status = None
         self._tags = []
@@ -547,15 +559,16 @@ class TaskObjectAdvanced(TaskObject):
     def __init__(self, tc_obj, resource_container, resource_obj):
         """ add methods to resource object """
         super(TaskObject, self).__init__()
-
+        
         self._resource_properties = ApiProperties.api_properties[resource_obj.resource_type.name]['properties']
+        
         self._resource_container = resource_container
         self._resource_obj = resource_obj
         self._basic_structure = {
             'dateAdded': 'date_added',
             'dueDate': 'due_date',
             'escalated': 'escalated',
-            'escalate_date': 'escalate_date',
+            'escalation_date': 'escalation_date',
             'id': 'id',
             'name': 'name',
             'overdue': 'overdue',
@@ -652,7 +665,8 @@ class TaskObjectAdvanced(TaskObject):
         ro.set_owner_allowed(prop['owner_allowed'])
         ro.set_resource_pagination(prop['pagination'])
         indicator_uri_attribute = ApiProperties.api_properties[indicator_type.name]['uri_attribute']
-        ro.set_request_uri(prop['uri'].format(indicator_uri_attribute, self._urlsafe(indicator), self.id))
+        # ro.set_request_uri(prop['uri'].format(indicator_uri_attribute, self._urlsafe(indicator), self.id))
+        ro.set_request_uri(prop['uri'].format(self.id, indicator_uri_attribute, self._urlsafe(indicator)))
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
 
@@ -699,6 +713,7 @@ class TaskObjectAdvanced(TaskObject):
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._id))
             ro.set_resource_pagination(prop['pagination'])
+            
             if self.validate:
                 api_response = self._tc.api_request(ro)
                 if api_response.headers['content-type'] == 'application/json':
@@ -716,6 +731,7 @@ class TaskObjectAdvanced(TaskObject):
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._id))
             ro.set_resource_pagination(prop['pagination'])
+            
             api_response = self._tc.api_request(ro)
             if api_response.headers['content-type'] == 'application/json':
                 api_response_dict = api_response.json()

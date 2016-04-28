@@ -731,6 +731,38 @@ tasks_properties = {
         'pagination': True,
         'uri': '/v2/tasks/{0}/indicators',  # task id
     },
+    'association_indicator_add': {
+        'http_method': 'POST',
+        'owner_allowed': True,
+        'pagination': False,
+        # 'uri': '/v2/indicators/{0}/{1}/tasks/{2}',  # indicator type, indicator_value, task_id
+        'uri': '/v2/tasks/{0}/indicators/{1}/{2}',  # task id, indicator type, indicator_value
+    },
+    'association_indicator_delete': {
+        'http_method': 'DELETE',
+        'owner_allowed': True,
+        'pagination': False,
+        # 'uri': '/v2/indicators/{0}/{1}/tasks/{2}',  # indicator type, indicator_value, task_id
+        'uri': '/v2/tasks/{0}/indicators/{1}/{2}',  # task id, indicator type, indicator_value
+    },
+    'association_victims': {
+        'http_method': 'GET',
+        'owner_allowed': True,
+        'pagination': True,
+        'uri': '/v2/tasks/{0}/victims',  # task id
+    },
+    'association_victim_add': {
+        'http_method': 'POST',
+        'owner_allowed': True,
+        'pagination': False,
+        'uri': '/v2/tasks/{0}/victims/{1}',  # task id, victim id
+    },
+    'association_victim_delete': {
+        'http_method': 'DELETE',
+        'owner_allowed': True,
+        'pagination': False,
+        'uri': '/v2/tasks/{0}/victims/{1}',  # task id, victim id
+    },
     'attributes': {
         'http_method': 'GET',
         'owner_allowed': False,
@@ -1202,7 +1234,7 @@ api_properties = {
     },
     'TASKS': {
         'properties': tasks_properties,
-        'resource_key':  'tasks',
+        'resource_key':  'task',
         'uri_attribute':  'tasks',
     },
     'THREATS': {

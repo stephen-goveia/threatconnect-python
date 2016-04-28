@@ -35,23 +35,26 @@ tc.report_enable()
 enable_example1 = False
 enable_example2 = False
 enable_example3 = False
-enable_example4 = True
+enable_example4 = False
 enable_example5 = False
-
 
 # shared method to display results from examples below
 def show_data(result_obj):
     """  """
     for obj in result_obj:
-        # print('\n{0!s:_^80}'.format(obj.name))
-        # print('{0!s:<20}{1!s:<50}'.format('ID', obj.id))
-        # print('{0!s:<20}{1!s:<50}'.format('Owner Name', obj.owner_name))
-        # print('{0!s:<20}{1!s:<50}'.format('Date Added', obj.date_added))
-        # print('{0!s:<20}{1!s:<50}'.format('Web Link', obj.weblink))
+        print('\n{0!s:_^80}'.format(obj.name))
+        print('{0!s:<20}{1!s:<50}'.format('ID', obj.id))
+        print('{0!s:<20}{1!s:<50}'.format('Owner Name', obj.owner_name))
+        print('{0!s:<20}{1!s:<50}'.format('Date Added', obj.date_added))
+        print('{0!s:<20}{1!s:<50}'.format('Web Link', obj.weblink))
+        print('{0!s:<20}{1!s:<50}'.format('Overdue', obj.overdue))
+        print('{0!s:<20}{1!s:<50}'.format('Due Date', obj.due_date))
+        print('{0!s:<20}{1!s:<50}'.format('Escalated', obj.escalated))
+        print('{0!s:<20}{1!s:<50}'.format('Escalation Date', obj.escalation_date))
+        print('{0!s:<20}{1!s:<50}'.format('Reminded', obj.reminded))
+        print('{0!s:<20}{1!s:<50}'.format('Reminder Date', obj.reminder_date))
+        print('{0!s:<20}{1!s:<50}'.format('Status', obj.status))
         
-        print(obj)
-        continue
-
         #
         # api_uris
         #
@@ -59,7 +62,7 @@ def show_data(result_obj):
             print('\n{0!s:-^40}'.format(' Request URIs '))
             for request_uri in obj.request_uris:
                 print('{0!s:<20}{1!s:<50}'.format('URI', request_uri))
-
+                
         #
         # matched filters
         #
@@ -68,7 +71,6 @@ def show_data(result_obj):
             for api_filter in obj.matched_filters:
                 print('{0!s:<20}{1!s:<50}'.format('Filter', api_filter))
 
-        #
         # resource attributes
         #
         obj.load_attributes()
@@ -81,6 +83,7 @@ def show_data(result_obj):
                 print('{0!s:<20}{1!s:<50}'.format('  Last Modified', attr_obj.last_modified))
                 print('{0!s:<20}{1!s:<50}\n'.format('  Displayed', attr_obj.displayed))
 
+        #
         #
         # resource security label
         #
@@ -119,7 +122,7 @@ def show_data(result_obj):
             print('{0!s:<20}{1!s:<50}\n'.format('  Web Link', g_associations.weblink))
 
         #
-        # resource associations (groups)
+        # resource associations (indicators)
         #
         i_header = True
         for i_associations in obj.indicator_associations:
@@ -210,7 +213,7 @@ def main():
         # optionally set max results
         tc.set_api_result_limit(500)
 
-        # group object
+        # tasks object
         tasks = tc.tasks()
 
         # retrieve resource
@@ -231,18 +234,17 @@ def main():
         show_data(tasks)
 
     if enable_example3:
-        """ This example adds a filter to pull an groups by id. """
+        """ This example adds a filter to pull an tasks by id. """
 
         # optionally set max results
         tc.set_api_result_limit(500)
 
-        # group object
-        groups = tc.groups()
-
+        # tasks object
+        tasks = tc.tasks()
+        
         # filter results
         try:
-            filter1 = groups.add_filter()
-            filter1.add_owner(owners)
+            filter1 = tasks.add_filter()
             filter1.add_email_id(17)
         except AttributeError as e:
             print('Error: {0!s}'.format(e))
@@ -250,66 +252,63 @@ def main():
 
         # retrieve resource
         try:
-            groups.retrieve()
+            tasks.retrieve()
         except RuntimeError as e:
             print('Error: {0!s}'.format(e))
             sys.exit(1)
 
         # show indicator data
-        show_data(groups)
+        show_data(tasks)
 
     if enable_example4:
         """ This example adds a filter with multiple sub filters.  This request
-            will return any groups that matches any filters. """
+            will return any tasks that matches any filters. """
 
         # optionally set max results
         tc.set_api_result_limit(500)
 
-        # group object
-        groups = tc.groups()
+        # tasks object
+        tasks = tc.tasks()
 
         # filter results
         try:
-            filter1 = groups.add_filter()
-            filter1.add_owner(owners)
-            filter1.add_document_id(19)
-            filter1.add_email_id(17)
-            filter1.add_incident_id(34)
-            filter1.add_incident_id(708996)
-            filter1.add_indicator('10.20.30.40')
-            filter1.add_security_label('TLP Green')
-            filter1.add_signature_id(43)
+            filter1 = tasks.add_filter()
+            filter1.add_document_id(25)
+            filter1.add_email_id(27)
+            filter1.add_incident_id(21)
+            filter1.add_indicator('10.121.82.247')
+            filter1.add_security_label('TLP Red')
+            filter1.add_signature_id(28)
             filter1.add_tag('EXAMPLE')
-            filter1.add_threat_id(38)
-            filter1.add_victim_id(1)
+            filter1.add_threat_id(26)
+            filter1.add_victim_id(2)
         except AttributeError as e:
             print('Error: {0!s}'.format(e))
             sys.exit(1)
 
         # retrieve resource
         try:
-            groups.retrieve()
+            tasks.retrieve()
         except RuntimeError as e:
             print('Error: {0!s}'.format(e))
             sys.exit(1)
 
         # show indicator data
-        show_data(groups)
+        show_data(tasks)
 
     if enable_example5:
         """ This example adds multiple filters to limit the result set.  This request
-            will return only groups that match all filters. """
+            will return only tasks that match all filters. """
 
         # optionally set max results
         tc.set_api_result_limit(500)
 
-        # group object
-        groups = tc.groups()
+        # tasks object
+        tasks = tc.tasks()
 
         # filter results
         try:
-            filter1 = groups.add_filter()
-            filter1.add_owner(owners)
+            filter1 = tasks.add_filter()
             filter1.add_tag('EXAMPLE')
         except AttributeError as e:
             print('Error: {0!s}'.format(e))
@@ -317,23 +316,22 @@ def main():
 
         # filter results
         try:
-            filter2 = groups.add_filter()
+            filter2 = tasks.add_filter()
             filter2.add_filter_operator(FilterSetOperator.AND)
-            filter2.add_owner(owners)
-            filter2.add_indicator('10.20.30.40')
+            filter1.add_indicator('10.121.82.247')
         except AttributeError as e:
             print('Error: {0!s}'.format(e))
             sys.exit(1)
 
         # retrieve resource
         try:
-            groups.retrieve()
+            tasks.retrieve()
         except RuntimeError as e:
             print('Error: {0!s}'.format(e))
             sys.exit(1)
 
         # show indicator data
-        show_data(groups)
+        show_data(tasks)
 
 if __name__ == "__main__":
     main()
