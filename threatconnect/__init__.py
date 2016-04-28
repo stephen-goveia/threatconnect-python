@@ -1,9 +1,4 @@
 """ """
-__author__ = 'ThreatConnect (support@threatconnect.com)'
-__version__ = '2.0'
-__license__ = 'GPLv3'
-__url__ = 'https://github.com/ThreatConnect-Inc/threatconnect-python'
-
 from ThreatConnect import ThreatConnect, create_tc_arg_parser
 from Resources.Adversaries import (Adversaries, AdversaryFilterObject)
 from Resources.Emails import (Emails, EmailFilterObject)
