@@ -177,7 +177,7 @@ def add_task_id(self, data_int):
     ro.set_description('api filter by tasks id {0}'.format(data_int))
     ro.set_http_method(prop['http_method'])
     ro.set_owner_allowed(prop['owner_allowed'])
-    ro.set_request_uri(prop['uri'], ['tasks', data_int])
+    ro.set_request_uri(prop['uri'], [data_int])
     ro.set_resource_pagination(prop['pagination'])
     ro.set_resource_type(self._resource_type)
     self._add_request_objects(ro)
