@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='threatconnect',
-    version='2.4',
+    version='2.4.1',
     description='Python SDK for ThreatConnect API',
     author='ThreatConnect',
     author_email='support@threatconnect.com',
