@@ -695,7 +695,7 @@ class IndicatorObject(object):
     def whois_active(self):
         """ """
         if self._resource_type == ResourceType.HOSTS:
-            return self._dns_active
+            return self._whois_active
         else:
             raise AttributeError(ErrorCodes.e10140.value)
 

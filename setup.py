@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='threatconnect',
-    version='2.4.1',
+    version='2.4.3',
     description='Python SDK for ThreatConnect API',
     author='ThreatConnect',
     author_email='support@threatconnect.com',
@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     url='https://github.com/ThreatConnect-Inc/threatconnect-python',
     download_url='https://github.com/ThreatConnect-Inc/threatconnect-python/tarball/2.4',
-    license='ASL2',
+    license='ASL',
     install_requires=['requests', 'python-dateutil'],
     extras_require={
         ':python_version=="2.7"': ['enum34']

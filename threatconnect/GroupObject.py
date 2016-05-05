@@ -12,7 +12,7 @@ from AttributeObject import parse_attribute, AttributeObject
 # import IndicatorObject  #Causes circular import
 from SecurityLabelObject import parse_security_label
 from TagObject import parse_tag
-# import VictimObject
+import VictimObject
 
 import ApiProperties
 from Config.ResourceType import ResourceType
@@ -132,9 +132,11 @@ class GroupObject(object):
         '_from_address',  # email specific
         '_header',  # email specific
         '_id',
+        '_malware',
         '_matched_filters',
         '_name',
         '_owner_name',
+        '_password',
         '_phase',  # 0 - new; 1 - add; 2 - update
         '_properties',
         '_request_uris',
@@ -162,9 +164,11 @@ class GroupObject(object):
         self._from_address = None
         self._header = None
         self._id = None
+        self._malware = None
         self._matched_filters = []
         self._name = None
         self._owner_name = None
+        self._password = None
         self._phase = 0
         self._properties = {
             '_name': {
@@ -189,6 +193,16 @@ class GroupObject(object):
                 'api_field': 'fileName',
                 'method': 'set_filename',
                 'required': True,
+            }
+            self._properties['_malware'] = {
+                'api_field': 'malware',
+                'method': 'set_malware',
+                'required': False,
+            }
+            self._properties['_password'] = {
+                'api_field': 'password',
+                'method': 'set_password',
+                'required': False,
             }
         elif self._resource_type == ResourceType.EMAILS:
             self._properties['_body'] = {
@@ -488,6 +502,23 @@ class GroupObject(object):
                 self._phase = 2
         else:
             raise RuntimeError(ErrorCodes.e10020.value.format(data))
+            
+    #
+    # malware
+    #
+    @property
+    def malware(self):
+        """ """
+        if self._resource_type in [ResourceType.DOCUMENTS]:
+            return self._malware
+
+    def set_malware(self, data, update=True):
+        """Read-Write group metadata"""
+        if self._resource_type == ResourceType.DOCUMENTS:
+            self._malware = data
+            
+            if update and self._phase == 0:
+                self._phase = 2
 
     #
     # matched filters
@@ -527,6 +558,23 @@ class GroupObject(object):
     def set_owner_name(self, data):
         """Read-Only group metadata"""
         self._owner_name = self._uni(data)
+            
+    #
+    # password
+    #
+    @property
+    def password(self):
+        """ """
+        if self._resource_type == ResourceType.DOCUMENTS:
+            return self._password
+
+    def set_password(self, data, update=True):
+        """Read-Write group metadata"""
+        if self._resource_type == ResourceType.DOCUMENTS:
+            self._password = data
+            
+            if update and self._phase == 0:
+                self._phase = 2
 
     #
     # score (email specific)
@@ -780,6 +828,8 @@ class GroupObjectAdvanced(GroupObject):
         if self._resource_type == ResourceType.DOCUMENTS:
             self._structure['fileName'] = 'file_name'
             self._structure['fileSize'] = 'file_size'
+            self._structure['malware'] = 'malware'
+            self._structure['password'] = 'password'
         elif self._resource_type == ResourceType.EMAILS:
             self._structure['body'] = 'body'
             self._structure['from'] = 'from_address'
@@ -1328,7 +1378,7 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_resource_type(self._resource_type)
 
         for item in self._tc.result_pagination(ro, 'victim'):
-            yield parse_victim(item, api_filter=ro.description, request_uri=ro.request_uri)
+            yield VictimObject.parse_victim(item, api_filter=ro.description, request_uri=ro.request_uri)
 
     #
     # attributes

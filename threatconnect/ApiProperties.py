@@ -142,9 +142,9 @@ def g_properties(group_uri):
             'add_indicator',
             'add_security_label',
             'add_signature_id',
-            'add_threat_id',
             'add_tag',
             'add_task_id',
+            'add_threat_id',
             'add_victim_id',
             # post filters
             'add_pf_name',
@@ -527,10 +527,9 @@ groups_properties = {
         'add_indicator',
         'add_security_label',
         'add_signature_id',
+        'add_tag',
         'add_task_id',
         'add_threat_id',
-        'add_tag',
-        'add_tasks',
         'add_victim_id',
         # post filters
         'add_pf_name',
