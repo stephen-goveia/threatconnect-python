@@ -16,12 +16,15 @@ from threatconnect.Resource import Resource
 class BulkIndicators(Resource):
     """ """
 
-    def __init__(self, tc_obj):
+    def __init__(self, tc_obj, on_demand=False):
         """ """
         super(BulkIndicators, self).__init__(tc_obj)
 
         self._filter_class = BulkIndicatorFilterObject
         self._resource_type = ResourceType.INDICATORS
+        self._on_demand = on_demand
+        if on_demand:
+            tc_obj._bulk_on_demand = True
 
     def _method_wrapper(self, resource_object):
         """ return resource object as new object with additional methods """
@@ -38,6 +41,8 @@ class BulkIndicators(Resource):
         request_object.set_request_uri(resource_properties['bulk']['uri'])
         request_object.set_resource_pagination(resource_properties['bulk']['pagination'])
         request_object.set_resource_type(self._resource_type)
+        if self._on_demand:
+            request_object.add_payload('runNow', True)
 
         return request_object
 
@@ -73,5 +78,8 @@ class BulkIndicatorFilterObject(FilterObject):
         request_object.set_request_uri(self._resource_properties['bulk']['uri'])
         request_object.set_resource_pagination(self._resource_properties['bulk']['pagination'])
         request_object.set_resource_type(self._resource_type)
+        
+        if self.tc._bulk_on_demand:
+            request_object.add_payload('runNow', True)
 
         return request_object
