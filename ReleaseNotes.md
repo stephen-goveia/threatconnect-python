@@ -1,5 +1,8 @@
 # Release Notes
 
+## 2.4.3
+* added bulk on-demand flag (supported in ThreatConnect 4.2+)
+
 ## 2.4.2
 * update whois_active property to return corrected value
 * updates for task filter

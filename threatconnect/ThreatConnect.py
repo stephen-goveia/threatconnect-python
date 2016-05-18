@@ -110,6 +110,7 @@ class ThreatConnect:
         self._api_request_timeout = 30
         self._api_retries = 5  # maximum of 5 minute window
         self._api_sleep = 59  # seconds
+        self._bulk_on_demand = False
         self._enable_report = False
         self._indicators_regex = indicators_regex
         self._proxies = {'https': None}
@@ -880,9 +881,9 @@ class ThreatConnect:
         """ return a bulk container object """
         return Bulk(self)
 
-    def bulk_indicators(self):
+    def bulk_indicators(self, on_demand=False):
         """ return a bulk indicator container object """
-        return BulkIndicators(self)
+        return BulkIndicators(self, on_demand)
 
     def documents(self):
         """ return a document container object """
