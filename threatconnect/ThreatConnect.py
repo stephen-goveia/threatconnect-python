@@ -235,11 +235,11 @@ class ThreatConnect:
 
                     self.tcl.debug('count after post filter: {0:d}'.format(len(obj_list)))
 
-                    # no need to join or intersect on first run
-                    if first_run:
-                        data_set = set(obj_list)
-                        first_run = False
-                        continue
+                # no need to join or intersect on first run
+                if first_run:
+                    data_set = set(obj_list)
+                    first_run = False
+                    continue
 
                 #
                 # depending on the filter type the result will be intersected or joined
