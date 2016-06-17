@@ -1,5 +1,8 @@
 # Release Notes
 
+## 2.4.4
+Fixed issue with Owner filters not working properly.
+
 ## 2.4.3
 * added bulk on-demand flag (supported in ThreatConnect 4.2+)
 
