@@ -982,6 +982,16 @@ class IndicatorObjectAdvanced(IndicatorObject):
                 self._attributes.remove(attribute)
                 break
 
+    def add_false_positive(self):
+        prop = self._resource_properties['false_positive_add']
+        ro = RequestObject()
+        ro.set_http_method(prop['http_method'])
+        ro.set_owner_allowed(prop['owner_allowed'])
+        ro.set_request_uri(prop['uri'].format(self._reference_indicator))
+        ro.set_resource_pagination(prop['pagination'])
+        ro.set_resource_type(self._resource_type)
+        self._resource_container.add_commit_queue(self.id, ro)
+
     def add_file_occurrence(self, fo_file_name=None, fo_path=None, fo_date=None):
         """ add an file occurrence to an indicator """
         if self._resource_type != ResourceType.FILES:

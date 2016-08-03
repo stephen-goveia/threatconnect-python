@@ -36,7 +36,7 @@ tc.report_enable()
 # CHANGE FOR YOUR TESTING ENVIRONMENT
 # - These indicators must be created before running this script
 #
-owner = 'Example Community'  # org or community
+owner = 'System'  # org or community
 lu_indicator = '10.20.30.40'  # indicators for loop update
 mu_indicator = '40.20.30.10'  # indicators id for manual update
 adversary_id = 5  # email resource id to associate with indicator
@@ -44,8 +44,8 @@ prefixes = {
     'ip': '4.3.254',
     'email': 'badguy',
     'file': 'BAD',
-    'host': 'www.badguy',
-    'url': 'http://www.badguy'}
+    'host': 'www.badguy2',
+    'url': 'http://www.badguy2'}
 rn = randint(1, 100)  # random number generator for testing
 
 
@@ -276,6 +276,9 @@ def main():
 
     # (Optional) set security label to newly created resource
     resource.set_security_label('TLP Green')
+
+    # (Optional) set resource as false positive
+    resource.add_false_positive()
 
     try:
         print('Adding resource {0!s}.'.format(resource.indicator))
