@@ -965,14 +965,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
         attr_type = self._uni(attr_type)
         attr_value = self._uni(attr_value)
 
-        # prop = self._resource_properties['attribute_add']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('attribute_add')
 
         ro.set_body(json.dumps({
@@ -1010,28 +1002,10 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_description('Adding false positive to {}'.format(self._reference_indicator))
         self._resource_container.add_commit_queue(self.id, ro)
 
-        # prop = self._resource_properties['false_positive_add']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-        # self._resource_container.add_commit_queue(self.id, ro)
-
     def add_file_occurrence(self, fo_file_name=None, fo_path=None, fo_date=None):
         """ add an file occurrence to an indicator """
         if self._resource_type != ResourceType.FILES:
             raise AttributeError(ErrorCodes.e10150.value)
-
-
-        # prop = self._resource_properties['file_occurrence_add']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
 
         ro = self._create_basic_request_object('file_occurrence_add')
 
@@ -1049,15 +1023,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def add_tag(self, tag):
         """ add a tag to an indicator """
-        # prop = self._resource_properties['tag_add']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(
-        #     self._reference_indicator, self._urlsafe(tag)))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('tag_add', self._urlsafe(tag))
 
         ro.set_description('add tag "{0}" to {1}'.format(tag, self._reference_indicator))
@@ -1065,15 +1030,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def associate_group(self, resource_type, resource_id):
         """ associate a group to indicator by id """
-        # prop = self._resource_properties['association_group_add']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_request_uri(prop['uri'].format(
-        #     self._reference_indicator, group_uri_attribute, resource_id))
-        # ro.set_resource_type(self._resource_type)
-
         group_uri_attribute = ApiProperties.api_properties[resource_type.name]['uri_attribute']
         ro = self._create_basic_request_object(
             'association_group_add', group_uri_attribute, resource_id)
@@ -1278,14 +1234,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def delete(self):
         """ delete indicator """
-        # prop = self._resource_properties['delete']
-        # ro = RequestObject()
-        # ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self.resource_type)
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-
         ro = self._create_basic_request_object('delete')
         ro.set_description('delete indicator {0}.'.format(self._reference_indicator))
 
@@ -1297,15 +1245,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def delete_attribute(self, attr_id):
         """ delete attribute from indicator by id """
-        # prop = self._resource_properties['attribute_delete']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(
-        #     self._reference_indicator, attr_id))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('attribute_delete', attr_id)
 
         ro.set_description('delete attribute id {0} from {1}'.format(attr_id, self._reference_indicator))
@@ -1313,15 +1252,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def delete_security_label(self, label):
         """ set the security label for this indicator """
-        # prop = self._resource_properties['security_label_delete']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(
-        #     self._reference_indicator, self._urlsafe(label)))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('security_label_delete', self._urlsafe(label))
 
         ro.set_description('delete security label "{0}" from {1}'.format(label, self._reference_indicator))
@@ -1329,15 +1259,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def delete_tag(self, tag):
         """ delete tag from indicator """
-        # prop = self._resource_properties['tag_delete']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(
-        #     self._reference_indicator, self._urlsafe(tag)))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('tag_delete', self._urlsafe(tag))
 
         ro.set_description('delete tag "{0}" from {1}'.format(tag, self._reference_indicator))
@@ -1349,15 +1270,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro = self._create_basic_request_object(
             'association_group_delete', group_uri_attribute, resource_id)
 
-        # prop = self._resource_properties['association_group_delete']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(
-        #     self._reference_indicator, group_uri_attribute, resource_id))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro.set_description('disassociate group type {0} id {1} from {2}'.format(
             resource_type.name, resource_id, self._reference_indicator))
         self._resource_container.add_commit_queue(self.id, ro)
@@ -1365,14 +1277,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
     @property
     def group_associations(self):
         """ retrieve associations for this indicator. associations are not stored within the object """
-        # prop = self._resource_properties['association_groups']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('association_groups')
 
         ro.set_owner(self.owner_name)
@@ -1384,14 +1288,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
     @property
     def indicator_associations(self):
         """ retrieve associations for this indicator. associations are not stored within the object """
-        # prop = self._resource_properties['association_indicators']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('association_indicators')
 
         ro.set_owner(self.owner_name)
@@ -1494,14 +1390,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
     def load_attributes(self, automatically_reload=False):
         self._reload_attributes = automatically_reload
         """ retrieve attributes for this indicator """
-        # prop = self._resource_properties['attributes']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('attributes')
 
         ro.set_owner(self.owner_name)
@@ -1546,14 +1434,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
         if self._resource_type != ResourceType.FILES:
             raise AttributeError(ErrorCodes.e10120.value)
 
-        # prop = self._resource_properties['file_occurrences']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('file_occurrences')
 
         ro.set_description('load file occurrence for {0}'.format(self._reference_indicator))
@@ -1570,14 +1450,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def load_security_label(self):
         """ retrieve security label for this indicator """
-        # prop = self._resource_properties['security_label_load']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('security_label_load')
 
         ro.set_description('load security labels for {0}'.format(self._reference_indicator))
@@ -1594,14 +1466,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def load_tags(self):
         """ retrieve tags for this indicator """
-        # prop = self._resource_properties['tags_load']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('tags_load')
 
         ro.set_description('load tags for {0}'.format(self._reference_indicator))
@@ -1620,15 +1484,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def add_security_label(self, label):
         """ set the security label for this indicator """
-        # prop = self._resource_properties['security_label_add']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_request_uri(prop['uri'].format(
-        #     self._reference_indicator, self._urlsafe(label)))
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('security_label_add', self._urlsafe(label))
 
         ro.set_description('add security label "{0}" to {1}'.format(label, self._reference_indicator))
@@ -1636,15 +1491,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def update_attribute(self, attr_id, attr_value):
         """ update indicator attribute by id """
-        # prop = self._resource_properties['attribute_update']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(
-        #     self._reference_indicator, attr_id))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('attribute_update', attr_id)
 
         attr_value = self._uni(attr_value)
@@ -1665,14 +1511,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
     @property
     def victim_associations(self):
         """ retrieve associations for this indicator. associations are not stored within the object """
-        # prop = self._resource_properties['association_victims']
-        # ro = RequestObject()
-        # ro.set_http_method(prop['http_method'])
-        # ro.set_owner_allowed(prop['owner_allowed'])
-        # ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-        # ro.set_resource_pagination(prop['pagination'])
-        # ro.set_resource_type(self._resource_type)
-
         ro = self._create_basic_request_object('association_victims')
 
         ro.set_owner(self.owner_name)
