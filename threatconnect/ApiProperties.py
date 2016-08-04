@@ -348,6 +348,12 @@ def i_properties(indicator_uri):
             'pagination': False,
             'uri': '/v2/indicators/' + indicator_uri + '/{0}',  # indicator value
         },
+        'false_positive_add': {
+            'http_method': 'POST',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + indicator_uri + '/{0}/falsePositive'
+        },
         'filters': [
             'add_adversary_id',
             'add_document_id',
