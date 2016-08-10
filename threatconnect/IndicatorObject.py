@@ -997,6 +997,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
                 break
 
     def add_false_positive(self):
+        """ mark an indicator as a false positive"""
         ro = self._create_basic_request_object('false_positive_add')
 
         ro.set_description('Adding false positive to {}'.format(self._reference_indicator))
