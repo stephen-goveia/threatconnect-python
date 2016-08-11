@@ -134,7 +134,7 @@ class ThreatConnect:
 
     def _api_request_headers(self, ro):
         """ """
-        timestamp = int(time.time())
+        timestamp = str(time.time())
         signature = "{0}:{1}:{2}".format(ro.path_url, ro.http_method, timestamp)
         # python 2.7, does not work on 3.x and not tested on 2.6
         # hmac_signature = hmac.new(self._api_sec, signature, digestmod=hashlib.sha256).digest()
