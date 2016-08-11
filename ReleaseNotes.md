@@ -1,5 +1,8 @@
 # Release Notes
 
+## 2.4.5
+False Positives and Observations support added, with a couple bug fixes
+
 ## 2.4.4
 Fixed issue with Owner filters not working properly.
 

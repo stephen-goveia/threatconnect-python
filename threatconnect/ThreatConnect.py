@@ -134,7 +134,7 @@ class ThreatConnect:
 
     def _api_request_headers(self, ro):
         """ """
-        timestamp = int(time.time())
+        timestamp = str(int(time.time()))
         signature = "{0}:{1}:{2}".format(ro.path_url, ro.http_method, timestamp)
         # python 2.7, does not work on 3.x and not tested on 2.6
         # hmac_signature = hmac.new(self._api_sec, signature, digestmod=hashlib.sha256).digest()
@@ -738,10 +738,14 @@ class ThreatConnect:
         while ro.remaining_results > 0:
             api_response = self.api_request(ro)
 
-            if api_response.headers['content-type'] == 'application/json':
-                api_response_dict = api_response.json()
-                if api_response_dict['status'] == 'Success':
-                    data.extend(api_response_dict['data'][identifier])
+            if api_response.headers['content-type'] != 'application/json':
+                break
+
+            api_response_dict = api_response.json()
+            if api_response_dict['status'] != 'Success':
+                break
+
+            data.extend(api_response_dict['data'][identifier])
 
             # get the number of results returned by the api
             if ro.result_start == 0:

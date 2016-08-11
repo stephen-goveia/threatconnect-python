@@ -14,6 +14,7 @@ from FileOccurrenceObject import parse_file_occurrence
 import GroupObject
 from SecurityLabelObject import parse_security_label
 from TagObject import parse_tag
+from ObservationObject import parse_observation
 
 
 import ApiProperties
@@ -140,6 +141,16 @@ def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_
             indicator.add_tag(tag)
 
     #
+    # observations
+    #
+    if 'observationCount' in indicator_dict:
+        indicator.set_observation_count(indicator_dict['observationCount'])
+
+    if 'lastObserved' in indicator_dict:
+        indicator.set_last_observed(indicator_dict['last_observed'])
+
+
+    #
     # handle both resource containers and individual objects
     #
     if resource_obj is not None:
@@ -184,8 +195,10 @@ class IndicatorObject(object):
         '_ip',  # address specific indicator
         '_size',  # file indicator type specific
         '_last_modified',
+        '_last_observed',   # most recent observation date
         '_matched_filters',
         '_md5',  # file specific indicator
+        '_observation_count',   # most recent observation count
         '_owner_name',
         '_phase',  # 0 - new; 1 - add; 2 - update
         '_properties',
@@ -222,8 +235,10 @@ class IndicatorObject(object):
         self._hostname = None  # host indicator type specific
         self._ip = None  # address indicator type specific
         self._last_modified = None
+        self._last_observed = None
         self._matched_filters = []
         self._md5 = None  # file indicator type specific
+        self._observation_count = None
         self._owner_name = None
         self._phase = 0
         self._reload_attributes = False
@@ -561,6 +576,32 @@ class IndicatorObject(object):
     def set_last_modified(self, data):
         """Read-Only indicator metadata"""
         self._last_modified = data
+
+    #
+    # last_observed
+    #
+    @property
+    def last_observed(self):
+        """ """
+        return self._last_observed
+
+    def set_last_observed(self, data):
+        """ Read-Only observation data """
+        self._last_observed = data
+
+
+    #
+    # observation_count
+    #
+
+    @property
+    def observation_count(self):
+        """ """
+        return self._observation_count
+
+    def set_observation_count(self, data):
+        """ Read-Only observation data """
+        self._observation_count = data
 
     #
     # owner_name
@@ -959,7 +1000,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_resource_type(self._resource_type)
         return ro
 
-
     def add_attribute(self, attr_type, attr_value, attr_displayed='true'):
         """ add an attribute to an indicator """
         attr_type = self._uni(attr_type)
@@ -997,6 +1037,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
                 break
 
     def add_false_positive(self):
+        """ mark an indicator as a false positive"""
         ro = self._create_basic_request_object('false_positive_add')
 
         ro.set_description('Adding false positive to {}'.format(self._reference_indicator))
@@ -1019,6 +1060,17 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_body(json.dumps(json_dict))
 
         ro.set_description('add file occurrence - file "{0}" to "{1}"'.format(fo_file_name.encode('ascii', 'ignore'), self._reference_indicator))
+        self._resource_container.add_commit_queue(self.id, ro)
+
+    def add_observation(self, count, date_observed=None):
+        ro = self._create_basic_request_object('observations_add')
+
+        body = {'count': count}
+        if date_observed:
+            body['dateObserved'] = date_observed
+
+        ro.set_body(json.dumps(body))
+        ro.set_description('add observation to {}'.format(self._reference_indicator))
         self._resource_container.add_commit_queue(self.id, ro)
 
     def add_tag(self, tag):
@@ -1275,6 +1327,18 @@ class IndicatorObjectAdvanced(IndicatorObject):
         self._resource_container.add_commit_queue(self.id, ro)
 
     @property
+    def observations(self):
+        """ retrieve observations for this indicator; observations are not stored within the object"""
+        ro = self._create_basic_request_object('observations_get')
+
+        ro.set_owner(self.owner_name)
+        ro.set_description('retrieve observations for {}'.format(self._reference_indicator))
+
+        for item in self._tc.result_pagination(ro, 'observation'):
+            yield parse_observation(item)
+
+
+    @property
     def group_associations(self):
         """ retrieve associations for this indicator. associations are not stored within the object """
         ro = self._create_basic_request_object('association_groups')
@@ -1447,6 +1511,24 @@ class IndicatorObjectAdvanced(IndicatorObject):
                 data = api_response_dict['data']['fileOccurrence']
                 for item in data:
                     self._resource_obj.add_file_occurrence(parse_file_occurrence(item))  # add to main resource object
+
+    def load_observation_count(self):
+        """ retrieve most recent observation count for indicator;
+            note this is not the same as observations and will be stored on the indicator """
+        ro = self._create_basic_request_object('observation_count_get')
+
+        ro.set_description('load observation count for {}'.format(self._reference_indicator))
+
+        api_response = self._tc.api_request(ro)
+
+        if api_response.headers['content-type'] == 'application/json':
+            api_response_dict = api_response.json()
+            if api_response_dict['status'] == 'Success':
+                # return count for now
+                data = api_response_dict['data']['observationCount']['count']
+                self.set_observation_count(data)
+                if 'lastObserved' in api_response_dict['data']['observationCount']:
+                    self.set_last_observed(api_response_dict['data']['observationCount']['lastObserved'])
 
     def load_security_label(self):
         """ retrieve security label for this indicator """
