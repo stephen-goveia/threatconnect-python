@@ -394,6 +394,24 @@ def i_properties(indicator_uri):
             'pagination': False,
             'uri': '/v2/indicators/' + indicator_uri + '/{0}',  # indicator value
         },
+        'observation_count_get': {
+            'http_method': 'GET',
+            'owner_allowed': False,
+            'pagination': False,
+            'uri': '/v2/indicators/' + indicator_uri + '/{0}/observationCount'  # indicator value
+        },
+        'observations_get': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': True,
+            'uri': '/v2/indicators/' + indicator_uri + '/{0}/observations'  # indicator value
+        },
+        'observations_add': {
+            'http_method': 'POST',
+            'owner_allowed': False,
+            'pagination': False,
+            'uri': '/v2/indicators/' + indicator_uri + '/{0}/observations'  # indicator value
+        },
         'security_label_add': {
             'http_method': 'POST',
             'owner_allowed': True,

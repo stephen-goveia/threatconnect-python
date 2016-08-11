@@ -738,10 +738,14 @@ class ThreatConnect:
         while ro.remaining_results > 0:
             api_response = self.api_request(ro)
 
-            if api_response.headers['content-type'] == 'application/json':
-                api_response_dict = api_response.json()
-                if api_response_dict['status'] == 'Success':
-                    data.extend(api_response_dict['data'][identifier])
+            if api_response.headers['content-type'] != 'application/json':
+                break
+
+            api_response_dict = api_response.json()
+            if api_response_dict['status'] != 'Success':
+                break
+
+            data.extend(api_response_dict['data'][identifier])
 
             # get the number of results returned by the api
             if ro.result_start == 0:
