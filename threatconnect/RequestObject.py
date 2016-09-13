@@ -48,18 +48,18 @@ class RequestObject(object):
 
     def add_payload(self, key, val):
         """ add a key value pair to payload """
-        self._payload[key] = self._uni(val)
+        self._payload[key] = str(self._uni(val))
 
     def empty_payload(self):
         self._payload = {}
 
     def add_header(self, key, val):
         """ add a key value pair to header """
-        self._headers[key] = self._uni(val)
+        self._headers[key] = str(self._uni(val))
 
     def enable_activity_log(self):
         """ enable the TC activity log """
-        self._payload['createActivityLog'] = 'true'
+        self.add_payload('createActivityLog', 'true')
 
     def enable_track(self):
         """ the path url to include in the hmac headers """
@@ -68,12 +68,12 @@ class RequestObject(object):
     def set_body(self, data):
         """ set the POST/PUT body content """
         self._body = data
-        self._headers['Content-Length'] = len(self._body)
+        self.add_header('Content-Length', len(self._body))
 
     def set_content_type(self, data):
         """ allow manual setting of content type """
         self._content_type = self._uni(data)
-        self._headers['Content-Type'] = self._uni(data)
+        self.add_header('Content-Type', data)
 
     def set_description(self, data):
         """ a description of the request """
@@ -87,18 +87,18 @@ class RequestObject(object):
 
             # set content type for commit methods
             if self._content_type is None and data in ['POST', 'PUT']:
-                self._headers['Content-Type'] = 'application/json'
+                self.add_header('Content-Type', 'application/json')
         else:
             raise AttributeError(ErrorCodes.e6000.value.format(data))
 
     def set_modified_since(self, data):
         """ set modified since for indicator requests """
-        self._payload['modifiedSince'] = self._uni(data)
+        self.add_payload('modifiedSince', data)
 
     def set_owner(self, data):
         """ set the owner in the payload and also used for victims """
         self._owner = self._uni(data)
-        self._payload['owner'] = self._uni(data)
+        self.add_payload('owner', data)
 
     def set_owner_allowed(self, data):
         """ indicate if this request supports owners """
@@ -129,12 +129,12 @@ class RequestObject(object):
 
     def set_result_limit(self, data):
         """ per query result limit (500 max) """
-        self._payload['resultLimit'] = self._uni(data)
+        self.add_payload('resultLimit', data)
         self._result_limit = self._uni(data)
 
     def set_result_start(self, data):
         """ position to start retrieving results """
-        self._payload['resultStart'] = self._uni(data)
+        self.add_payload('resultStart', data)
         self._result_start = self._uni(data)
 
     def set_failure_callback(self, callback):

@@ -1,5 +1,9 @@
 # Release Notes
 
+## 2.4.6
+* Updated RequestObject to type all headers and parameters as str.
+* Updated Indicator Object set_indicator require indicator type.
+
 ## 2.4.5
 False Positives and Observations support added, with a couple bug fixes
 

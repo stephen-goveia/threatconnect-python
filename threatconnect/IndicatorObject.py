@@ -443,14 +443,10 @@ class IndicatorObject(object):
         else:
             raise AttributeError(ErrorCodes.e10030.value)
 
-    def set_indicator(self, data, resource_type=None, update=True):
+    def set_indicator(self, data, resource_type, update=True):
         """Read-Write indicator metadata"""
         if self._resource_type is None:
-            if resource_type is None:
-                # get resource type using regex
-                self._resource_type = get_resource_type(self._tc._indicators_regex, data)
-            else:
-                self._resource_type = resource_type
+            self._resource_type = resource_type
 
         # if get_resource_type return None error.
         if not isinstance(self._resource_type, ResourceType):
