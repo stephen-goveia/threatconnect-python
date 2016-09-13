@@ -239,7 +239,7 @@ class IndicatorObject(object):
                 'required': False,
             }
         }
-        self._rating =None
+        self._rating = None
         self._reference_indicator = None
         self._request_uris = []
         self._resource_type = resource_type_enum
