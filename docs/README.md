@@ -1,2 +1,2 @@
 # Documentation
-https://threatconnect-inc.github.io/tc-exchange/
+https://docs.threatconnect.com
