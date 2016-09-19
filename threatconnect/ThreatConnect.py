@@ -29,6 +29,7 @@ from Config.FilterOperator import FilterSetOperator
 from Config.IndicatorType import IndicatorType
 from Config.ResourceType import ResourceType
 from Config.ResourceRegexes import indicators_regex
+from Config.ApiLoggingHandler import ApiLoggingHandler
 
 from IndicatorObject import parse_indicator
 from GroupObject import parse_group
@@ -824,7 +825,8 @@ class ThreatConnect:
         if os.access(file_path, os.W_OK):
             if self.tcl.level > self.log_level[level]:
                 self.tcl.setLevel(self.log_level[level])
-            fh = logging.FileHandler(fqpn)
+            fh = ApiLoggingHandler(fqpn, self)
+            # fh = logging.FileHandler(fqpn)
             # fh.set_name('tc_log_file')  # not supported in python 2.6
             if level in self.log_level.keys():
                 fh.setLevel(self.log_level[level])
