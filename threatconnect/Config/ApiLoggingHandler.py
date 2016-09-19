@@ -38,22 +38,24 @@ class ApiLoggingHandler(FileHandler):
         super(ApiLoggingHandler, self).emit(record)
 
     def flush(self):
-        # make api call
-        ro = RequestObject()
-        ro.set_http_method('POST')
-        ro.set_owner_allowed(True)
-        ro.set_resource_pagination(False)
-        ro.set_request_uri('/v2/logs/app')
-        ro.set_body(self.entries)
+        # check if we have entries to send to the api
+        if len(self.entries) > 0:
+            # make api call
+            ro = RequestObject()
+            ro.set_http_method('POST')
+            ro.set_owner_allowed(True)
+            ro.set_resource_pagination(False)
+            ro.set_request_uri('/v2/logs/app')
+            ro.set_body(self.entries)
 
-        # retrieve and display the results
-        try:
-            self.tc.api_request(ro)
-        except RuntimeError as re:
-            # can't really do anything if it fails
-            lr = LogRecord(level='ERROR',
-                           msg='API LOGGING FAILURE -- Unable to send log entries to api: {}'.format(self.entries))
-            self.entries = []
-            self.emit(lr)
+            # retrieve and display the results
+            try:
+                self.tc.api_request(ro)
+            except RuntimeError as re:
+                # can't really do anything if it fails
+                lr = LogRecord(level='ERROR',
+                               msg='API LOGGING FAILURE -- Unable to send log entries to api: {}'.format(self.entries))
+                self.entries = []
+                self.emit(lr)
 
         super(ApiLoggingHandler, self).flush()
