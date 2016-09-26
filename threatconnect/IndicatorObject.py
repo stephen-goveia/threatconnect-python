@@ -1051,7 +1051,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
             json_dict['fileName'] = fo_file_name
             ro.set_description('add file occurrence - file "{0}" to "{1}"'.format(fo_file_name.encode('ascii', 'ignore'), self._reference_indicator))
         else:
-            ro.set_description('add file occurrence - unnamed file to "{1}"'.format(self._reference_indicator))
+            ro.set_description('add file occurrence - unnamed file to "{0}"'.format(self._reference_indicator))
 
         if fo_path is not None:
             json_dict['path'] = fo_path
