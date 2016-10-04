@@ -81,7 +81,7 @@ def tc_logger():
 class ThreatConnect:
     """ """
 
-    def __init__(self, api_aid, api_sec, api_org, api_url):
+    def __init__(self, api_aid=None, api_sec=None, api_org=None, api_url=None, api_token=None, api_token_expires=None):
         """ """
         # logger
         self.log_level = {
@@ -100,6 +100,8 @@ class ThreatConnect:
         # credentials
         self._api_aid = api_aid
         self._api_sec = api_sec
+        self._api_token = api_token
+        self._api_token_expire = api_token_expires
 
         # user defined values
         self._api_org = api_org
@@ -133,16 +135,46 @@ class ThreatConnect:
         # self._p = psutil.Process(os.getpid())
         # self._memory = self._p.memory_info().rss
 
+    def _renew_token(self):
+        """
+        {
+            "success":true,
+            "apiToken":"2:1:-1:1474673195:poZAT:syqtNUKnGn9ZijE5hQ5/D99aD8dIEdgdDCIMbjk2Poc\u003d",
+            "apiTokenExpires":"1474673195"
+        }
+        """
+        # make api call to get new token
+        url = '{0!s}{1!s}'.format(self._api_url, '/appAuth/appAuth/')
+        link.protocol+'//'+link.hostname+':'+link.port+'/appAuth/?expiredToken='+encodeURIComponent(expiredToken);
+        payload = {'expiredToken': self._api_token}
+
+        token_response = self._session.get(
+                url, params=payload, verify=self._verify_ssl, timeout=self._api_request_timeout,
+                proxies=self._proxies, stream=False)
+
+        # bcs - return new token and set expiration date
+        token_data = token_response.json()
+        self._api_token = token_data['apiToken']
+        self._api_token_expires = token_data['apiTokenExpires']
+
     def _api_request_headers(self, ro):
         """ """
         timestamp = int(time.time())
-        signature = "{0}:{1}:{2}".format(ro.path_url, ro.http_method, timestamp)
-        # python 2.7, does not work on 3.x and not tested on 2.6
-        # hmac_signature = hmac.new(self._api_sec, signature, digestmod=hashlib.sha256).digest()
-        # authorization = 'TC {0}:{1}'.format(self._api_aid, base64.b64encode(hmac_signature))
-        # python 3.x
-        hmac_signature = hmac.new(self._api_sec.encode(), signature.encode(), digestmod=hashlib.sha256).digest()
-        authorization = 'TC {0}:{1}'.format(self._api_aid, base64.b64encode(hmac_signature).decode())
+        if self._api_token is not None and self._api_token_expires is not None:
+            window_padding = 15  # bcs - possible configuration option
+            current_time = int(time.time()) - window_padding
+            if (self._api_token_expires < current_time):
+                self._renew_token();
+            authorization = 'TC-Token {0}'.format(self._api_token)
+
+        elif self._api_aid is not None and self._api_sec is not None:
+            signature = "{0}:{1}:{2}".format(ro.path_url, ro.http_method, timestamp)
+            # python 2.7, does not work on 3.x and not tested on 2.6
+            # hmac_signature = hmac.new(self._api_sec, signature, digestmod=hashlib.sha256).digest()
+            # authorization = 'TC {0}:{1}'.format(self._api_aid, base64.b64encode(hmac_signature))
+            # python 3.x
+            hmac_signature = hmac.new(self._api_sec.encode(), signature.encode(), digestmod=hashlib.sha256).digest()
+            authorization = 'TC {0}:{1}'.format(self._api_aid, base64.b64encode(hmac_signature).decode())
 
         ro.add_header('Timestamp', timestamp)
         ro.add_header('Authorization', authorization)
@@ -445,7 +477,7 @@ class ThreatConnect:
             #
             if api_response.headers['content-type'] == 'application/json':
                 api_response_dict = api_response.json()
-                
+
                 # try and free memory for next api request
                 api_response.close()
                 del api_response  # doesn't appear to clear memory
@@ -591,7 +623,7 @@ class ThreatConnect:
                     for item in data:
                         obj_list.append(
                             parse_group(item, ResourceType.INCIDENTS, resource_obj, ro.description, ro.request_uri))
-                            
+
                 #
                 # METRICS
                 #
@@ -602,7 +634,7 @@ class ThreatConnect:
                 #     for item in data:
                 #         obj_list.append(
                 #             parse_metrics(item, resource_obj, ro.description, ro.request_uri))
-                            
+
                 #
                 # MINE
                 #
@@ -613,7 +645,7 @@ class ThreatConnect:
                 #     for item in data:
                 #         obj_list.append(
                 #             parse_metrics(item, resource_obj, ro.description, ro.request_uri))
-                            
+
                 #
                 # MEMBERS
                 #
@@ -624,7 +656,7 @@ class ThreatConnect:
                 #     for item in data:
                 #         obj_list.append(
                 #             parse_metrics(item, resource_obj, ro.description, ro.request_uri))
-                            
+
                 #
                 # OWNERS
                 #
@@ -799,14 +831,14 @@ class ThreatConnect:
     def set_proxies(self, proxy_address, proxy_port, proxy_user=None, proxy_pass=None):
         """ define proxy server to use with the requests module """
         # "http": "http://user:pass@10.10.1.10:3128/",
-        
+
         # accept host with http(s) or without
         proxy_method = 'http://'
         if re.match('^http', proxy_address):
             proxy_method, proxy_host = proxy_address.split('//')
             proxy_method += '//'
             proxy_address = proxy_host
-        
+
         # TODO: add validation
         if proxy_user is not None and proxy_pass is not None:
             self._proxies['https'] = '{0!s}{1!s}:{2!s}@{3!s}:{4!s}'.format(
@@ -814,7 +846,7 @@ class ThreatConnect:
         else:
             self._proxies['https'] = '{0!s}{1!s}:{2!s}'.format(
                 proxy_method, proxy_address, proxy_port)
-            
+
     def get_proxies(self):
         """ get proxy settings """
         return self._proxies
@@ -914,7 +946,7 @@ class ThreatConnect:
     def signatures(self):
         """ return a signature container object """
         return Signatures(self)
-        
+
     def tasks(self):
         """ return a task container object """
         return Tasks(self)
