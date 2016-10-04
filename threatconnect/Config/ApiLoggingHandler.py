@@ -31,14 +31,13 @@ class ApiLoggingHandler(FileHandler):
 
         # if we've reached the max_entries threshold, flush the handler
         if len(self.entries) > self.max_entries_before_flush:
-            self.flush()
+            self.log_to_api()
             self.entries = []
 
         self.entries.append(entry)
         super(ApiLoggingHandler, self).emit(record)
 
-    def flush(self):
-        # check if we have entries to send to the api
+    def log_to_api(self):
         if len(self.entries) > 0:
             # make api call
             ro = RequestObject()
@@ -59,4 +58,4 @@ class ApiLoggingHandler(FileHandler):
                 self.entries = []
                 self.emit(lr)
 
-        super(ApiLoggingHandler, self).flush()
+            self.entries = []
