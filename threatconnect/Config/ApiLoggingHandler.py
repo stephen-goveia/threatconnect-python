@@ -1,4 +1,4 @@
-from logging import FileHandler, LogRecord
+from logging import FileHandler, makeLogRecord
 from threatconnect.RequestObject import RequestObject
 
 
@@ -53,8 +53,9 @@ class ApiLoggingHandler(FileHandler):
                 self.tc.api_request(ro)
             except RuntimeError as re:
                 # can't really do anything if it fails
-                lr = LogRecord(level='ERROR',
-                               msg='API LOGGING FAILURE -- Unable to send log entries to api: {}'.format(self.entries))
+                error_data = {'level': 'ERROR',
+                              'msg': 'API LOGGING FAILURE -- Unable to send log entries to api: {}'.format(self.entries)}
+                lr = makeLogRecord(error_data)
                 self.entries = []
                 self.emit(lr)
 
