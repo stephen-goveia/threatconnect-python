@@ -1,5 +1,6 @@
 from logging import FileHandler, makeLogRecord
 from threatconnect.RequestObject import RequestObject
+from json import dumps
 
 
 def create_log_entry(record):
@@ -45,7 +46,7 @@ class ApiLoggingHandler(FileHandler):
             ro.set_owner_allowed(True)
             ro.set_resource_pagination(False)
             ro.set_request_uri('/v2/logs/app')
-            ro.set_body(self.entries)
+            ro.set_body(dumps(self.entries))
 
             # retrieve and display the results
             try:
