@@ -1,3 +1,5 @@
+import time
+
 from logging import FileHandler, makeLogRecord
 from threatconnect.RequestObject import RequestObject
 from json import dumps
@@ -6,8 +8,8 @@ from json import dumps
 def create_log_entry(record):
     log_entry = {}
 
-    if hasattr(record, 'asctime'):
-        log_entry['timestamp'] = record.asctime
+    if hasattr(record, 'created'):
+        log_entry['timestamp'] = record.created
 
     if hasattr(record, 'msg'):
         log_entry['message'] = record.msg
@@ -25,7 +27,7 @@ class ApiLoggingHandler(FileHandler):
         super(ApiLoggingHandler, self).__init__(filename)
         self.tc = tc
         self.entries = []
-        self.max_entries_before_flush = max_entries_before_flush;
+        self.max_entries_before_flush = max_entries_before_flush
 
     def emit(self, record):
         entry = create_log_entry(record)
@@ -53,7 +55,8 @@ class ApiLoggingHandler(FileHandler):
                 self.tc.api_request(ro)
             except RuntimeError as re:
                 # can't really do anything if it fails
-                error_data = {'level': 'ERROR',
+                error_data = {'levelname': 'ERROR',
+                              'created': time.time(),
                               'msg': 'API LOGGING FAILURE -- Unable to send log entries to api: {}'.format(self.entries)}
                 lr = makeLogRecord(error_data)
                 self.entries = []
