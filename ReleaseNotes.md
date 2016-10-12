@@ -1,5 +1,8 @@
 # Release Notes
 
+## 2.4.8
+* update for file occurence
+
 ## 2.4.7
 added API logging
 
