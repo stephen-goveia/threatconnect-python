@@ -8,7 +8,7 @@ except ImportError:
     from io import StringIO
 
 """ custom """
-import VictimObject
+from VictimObject import parse_victim
 from AttributeObject import parse_attribute, AttributeObject
 from FileOccurrenceObject import parse_file_occurrence
 import GroupObject
@@ -1049,6 +1049,10 @@ class IndicatorObjectAdvanced(IndicatorObject):
         json_dict = {}
         if fo_file_name is not None:
             json_dict['fileName'] = fo_file_name
+            ro.set_description('add file occurrence - file "{0}" to "{1}"'.format(fo_file_name.encode('ascii', 'ignore'), self._reference_indicator))
+        else:
+            ro.set_description('add file occurrence - unnamed file to "{0}"'.format(self._reference_indicator))
+
         if fo_path is not None:
             json_dict['path'] = fo_path
         if fo_date is not None:
