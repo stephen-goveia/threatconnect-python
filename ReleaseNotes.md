@@ -1,5 +1,8 @@
 # Release Notes
 
+## 2.4.7
+added API logging
+
 ## 2.4.6
 * Updated RequestObject to type all headers and parameters as str.
 * Updated Indicator Object set_indicator require indicator type.

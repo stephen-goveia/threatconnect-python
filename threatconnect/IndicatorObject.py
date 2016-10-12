@@ -1055,7 +1055,8 @@ class IndicatorObjectAdvanced(IndicatorObject):
             json_dict['date'] = fo_date
         ro.set_body(json.dumps(json_dict))
 
-        ro.set_description('add file occurrence - file "{0}" to "{1}"'.format(fo_file_name.encode('ascii', 'ignore'), self._reference_indicator))
+        ro.set_description('add file occurrence - file "{0}" to "{1}"'.format(
+            fo_file_name.encode('ascii', 'ignore'), self._reference_indicator))
         self._resource_container.add_commit_queue(self.id, ro)
 
     def add_observation(self, count, date_observed=None):
