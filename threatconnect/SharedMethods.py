@@ -1,5 +1,6 @@
 """ standard """
 import urllib
+import types
 
 """ custom """
 from Config.ResourceRegexes import md5_re, sha1_re, sha256_re
@@ -74,12 +75,12 @@ def get_indicator_uri_attribute(indicators_regex, indicator):
 
 def uni(data):
     """ convert to unicode when appropriate """
-    if data is None or isinstance(data, (int, list, dict, float)):
+    if data is None or not isinstance(data, types.StringTypes):
         return data
+    elif isinstance(data, unicode):
+        return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
     elif not isinstance(data, unicode):
         return unicode(data, 'utf-8', errors='ignore')
-    else:
-        return data
 
 
 def urlsafe(data):
