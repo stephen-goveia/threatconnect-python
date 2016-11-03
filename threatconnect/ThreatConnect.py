@@ -569,6 +569,22 @@ class ThreatConnect:
                         obj_list.append(parse_indicator(
                             item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 
+
+                #
+                # CUSTOM INDICATORS
+                #
+                elif ro.resource_type == ResourceType.CUSTOM_INDICATORS:
+                    # custom_type_name = {
+                    #     resource_obj.
+                    # }.get('type')
+                    data = api_response_dict['data'][resource_obj.type]
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(parse_indicator(
+                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
+
+
                 #
                 # GROUPS
                 #

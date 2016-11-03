@@ -33,6 +33,7 @@ class ResourceType(Enum):
     FILES = 535
     HOSTS = 545
     URLS = 555
+    CUSTOM_INDICATORS = 565
 
     # victims
     VICTIMS = 905
