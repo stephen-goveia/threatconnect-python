@@ -112,7 +112,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_resource_type(self._resource_type)
         return ro
 
-
     def add_attribute(self, attr_type, attr_value, attr_displayed='true'):
         """ add an attribute to an indicator """
         attr_type = uni(attr_type)
