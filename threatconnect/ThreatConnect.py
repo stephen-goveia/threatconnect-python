@@ -1,7 +1,6 @@
 """ standard """
 import argparse
 import base64
-from datetime import datetime
 import hashlib
 import hmac
 import logging
@@ -9,7 +8,8 @@ import os
 import re
 import socket
 import time
-from DnsResolutionObject import parse_dns_resolution
+from datetime import datetime
+from logging import FileHandler
 
 """ third-party """
 from requests import (exceptions, packages, Request, Session)
@@ -34,10 +34,10 @@ from Config.ApiLoggingHandler import ApiLoggingHandler
 from IndicatorObject import parse_indicator
 from GroupObject import parse_group
 from OwnerObject import parse_owner
-from OwnerMetricsObject import parse_metrics
 from TaskObject import parse_task
 from VictimObject import parse_victim
 from Resources.BatchJobs import BatchJobs, parse_batch_job
+from DnsResolutionObject import parse_dns_resolution
 
 from ReportEntry import ReportEntry
 from Report import Report
@@ -860,8 +860,10 @@ class ThreatConnect:
         if os.access(file_path, os.W_OK):
             if self.tcl.level > self.log_level[level]:
                 self.tcl.setLevel(self.log_level[level])
-            fh = ApiLoggingHandler(fqpn, self)
-            # fh = logging.FileHandler(fqpn)
+            if self._api_token is not None:
+                fh = ApiLoggingHandler(fqpn, self)
+            else:
+                fh = FileHandler(fqpn)
             # fh.set_name('tc_log_file')  # not supported in python 2.6
             if level in self.log_level.keys():
                 fh.setLevel(self.log_level[level])
