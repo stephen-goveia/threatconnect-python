@@ -292,7 +292,7 @@ class ThreatConnect:
         for obj in data_set:
             resource_obj.add_obj(obj)
 
-    def api_request(self, ro):
+    def api_request(self, ro, log=True):
         """ """
         api_response = None
         fail_msg = None
@@ -323,9 +323,10 @@ class ThreatConnect:
         #
         # Debug
         #
-        self.tcl.debug('request_object: {0!s}'.format(ro))
-        self.tcl.debug('url: {0!s}'.format(url))
-        self.tcl.debug('path url: {0!s}'.format(request_prepped.path_url))
+        if log:
+            self.tcl.debug('request_object: {0!s}'.format(ro))
+            self.tcl.debug('url: {0!s}'.format(url))
+            self.tcl.debug('path url: {0!s}'.format(request_prepped.path_url))
 
         #
         # api request (gracefully handle temporary communications issues with the API)
@@ -415,17 +416,19 @@ class ThreatConnect:
         #
         # Debug
         #
-        self.tcl.debug('url: %s', api_response.url)
-        self.tcl.debug('status_code: %s', api_response.status_code)
-        self.tcl.debug('content-length: %s', h_content_length)
-        self.tcl.debug('content-type: %s', h_content_type)
+        if log:
+            self.tcl.debug('url: %s', api_response.url)
+            self.tcl.debug('status_code: %s', api_response.status_code)
+            self.tcl.debug('content-length: %s', h_content_length)
+            self.tcl.debug('content-type: %s', h_content_type)
 
         #
         # Report
         #
         self.report.add_api_call()  # count api calls
         self.report.add_request_time(datetime.now() - start)
-        self.tcl.debug('Request Time: {0!s}'.format(datetime.now() - start))
+        if log:
+            self.tcl.debug('Request Time: {0!s}'.format(datetime.now() - start))
 
         if self._enable_report:
             report_entry = ReportEntry()

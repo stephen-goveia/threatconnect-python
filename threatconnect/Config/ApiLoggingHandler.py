@@ -50,9 +50,9 @@ class ApiLoggingHandler(FileHandler):
             ro.set_request_uri('/v2/logs/app')
             ro.set_body(dumps(self.entries))
 
-            # retrieve and display the results
+            # retrieve and display the results; don't log during api request so we don't end up with duplicate info
             try:
-                self.tc.api_request(ro)
+                self.tc.api_request(ro, log=False)
             except RuntimeError as re:
                 # can't really do anything if it fails
                 error_data = {'levelname': 'ERROR',
