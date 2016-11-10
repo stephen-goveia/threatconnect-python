@@ -1,7 +1,6 @@
 """ standard """
 import argparse
 import base64
-from datetime import datetime
 import hashlib
 import hmac
 import logging
@@ -9,7 +8,8 @@ import os
 import re
 import socket
 import time
-from DnsResolutionObject import parse_dns_resolution
+from datetime import datetime
+from logging import FileHandler
 
 """ third-party """
 from requests import (exceptions, packages, Request, Session)
@@ -34,10 +34,10 @@ from Config.ApiLoggingHandler import ApiLoggingHandler
 from IndicatorObject import parse_indicator
 from GroupObject import parse_group
 from OwnerObject import parse_owner
-from OwnerMetricsObject import parse_metrics
 from TaskObject import parse_task
 from VictimObject import parse_victim
 from Resources.BatchJobs import BatchJobs, parse_batch_job
+from DnsResolutionObject import parse_dns_resolution
 
 from ReportEntry import ReportEntry
 from Report import Report
@@ -292,7 +292,7 @@ class ThreatConnect:
         for obj in data_set:
             resource_obj.add_obj(obj)
 
-    def api_request(self, ro):
+    def api_request(self, ro, log=True):
         """ """
         api_response = None
         fail_msg = None
@@ -323,9 +323,10 @@ class ThreatConnect:
         #
         # Debug
         #
-        self.tcl.debug('request_object: {0!s}'.format(ro))
-        self.tcl.debug('url: {0!s}'.format(url))
-        self.tcl.debug('path url: {0!s}'.format(request_prepped.path_url))
+        if log:
+            self.tcl.debug('request_object: {0!s}'.format(ro))
+            self.tcl.debug('url: {0!s}'.format(url))
+            self.tcl.debug('path url: {0!s}'.format(request_prepped.path_url))
 
         #
         # api request (gracefully handle temporary communications issues with the API)
@@ -415,17 +416,19 @@ class ThreatConnect:
         #
         # Debug
         #
-        self.tcl.debug('url: %s', api_response.url)
-        self.tcl.debug('status_code: %s', api_response.status_code)
-        self.tcl.debug('content-length: %s', h_content_length)
-        self.tcl.debug('content-type: %s', h_content_type)
+        if log:
+            self.tcl.debug('url: %s', api_response.url)
+            self.tcl.debug('status_code: %s', api_response.status_code)
+            self.tcl.debug('content-length: %s', h_content_length)
+            self.tcl.debug('content-type: %s', h_content_type)
 
         #
         # Report
         #
         self.report.add_api_call()  # count api calls
         self.report.add_request_time(datetime.now() - start)
-        self.tcl.debug('Request Time: {0!s}'.format(datetime.now() - start))
+        if log:
+            self.tcl.debug('Request Time: {0!s}'.format(datetime.now() - start))
 
         if self._enable_report:
             report_entry = ReportEntry()
@@ -876,8 +879,10 @@ class ThreatConnect:
         if os.access(file_path, os.W_OK):
             if self.tcl.level > self.log_level[level]:
                 self.tcl.setLevel(self.log_level[level])
-            fh = ApiLoggingHandler(fqpn, self)
-            # fh = logging.FileHandler(fqpn)
+            if self._api_token is not None:
+                fh = ApiLoggingHandler(fqpn, self)
+            else:
+                fh = FileHandler(fqpn)
             # fh.set_name('tc_log_file')  # not supported in python 2.6
             if level in self.log_level.keys():
                 fh.setLevel(self.log_level[level])
