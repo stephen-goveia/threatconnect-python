@@ -3,76 +3,102 @@ import json
 from StringIO import StringIO
 
 import ApiProperties
+import CustomApiProperties
 from AttributeObject import parse_attribute, AttributeObject
 from Config.ResourceType import ResourceType
 from ErrorCodes import ErrorCodes
+from SharedMethods import uni, urlsafe
+
 from FileOccurrenceObject import parse_file_occurrence
 from GroupObject import parse_group
-from IndicatorObject import IndicatorObject, parse_indicator
+from IndicatorObject import IndicatorObject
 from ObservationObject import parse_observation
 from RequestObject import RequestObject
 from SecurityLabelObject import parse_security_label
-from SharedMethods import uni, urlsafe
 from TagObject import parse_tag
-from TypedIndicatorObject import (AddressIndicatorObject,
+from VictimObject import parse_victim
+from IndicatorObjectTyped import (AddressIndicatorObject,
+                                  CustomIndicatorObject,
                                   EmailAddressIndicatorObject,
                                   FileIndicatorObject,
                                   HostIndicatorObject,
                                   UrlIndicatorObject,
-                                  CustomIndicatorObject)
-from VictimObject import parse_victim
+                                  parse_typed_indicator,)
 
 
+def construct_typed_indicator(resource_type):
+    cls = {
+        ResourceType.ADDRESSES: AddressIndicatorObject,
+        ResourceType.CUSTOM_INDICATORS: CustomIndicatorObject,
+        ResourceType.EMAIL_ADDRESSES: EmailAddressIndicatorObject,
+        ResourceType.FILES: FileIndicatorObject,
+        ResourceType.HOSTS: HostIndicatorObject,
+        ResourceType.URLS: UrlIndicatorObject
+    }
+    return cls.get(resource_type)() if resource_type in cls else None
+
+
+def construct_typed_advanced_indicator(tc_obj, resource_container, resource_obj, api_branch=None):
+    """ Creates IndicatorObject of the correct type (assuming resource_obj has its type)"""
+    resource_type = resource_obj.resource_type
+    typed_resource_obj = construct_typed_indicator(resource_type).copy_slots(resource_obj)
+
+    return IndicatorObjectAdvanced(tc_obj, resource_container, typed_resource_obj, api_branch=api_branch)
+
+#
+# class IndicatorObjectAdvanced(AddressIndicatorObject,
+#                               CustomIndicatorObject,
+#                               EmailAddressIndicatorObject,
+#                               FileIndicatorObject,
+#                               HostIndicatorObject,
+#                               UrlIndicatorObject):
 class IndicatorObjectAdvanced(IndicatorObject):
     """ Temporary Object with extended functionality. """
-    __slots__ = (
-        '_resource_container',
-        '_resource_obj',
-        '_resource_properties',
-        '_basic_structure',
-        '_structure',
-        '_tc',
-    )
+    # __slots__ = (
+    #     '_resource_container',
+    #     '_resource_obj',
+    #     '_resource_properties',
+    #     '_basic_structure',
+    #     '_structure',
+    #     '_tc',
+    # )
 
-    def __init__(self, tc_obj, resource_container, resource_obj):
+    def __init__(self, tc_obj=None, resource_container=None, resource_obj=None, api_branch=None):
         """ add methods to resource object """
         super(IndicatorObjectAdvanced, self).__init__()
+        self._resource_container = None
+        self._resource_obj = None
+        self._resource_properties = None
+        self._basic_structure = None
+        self._structure = None
+        self._tc = None
 
-        # dynamically set resource properties to the appropriate dictionary in ApiProperties
-        self._resource_properties = ApiProperties.api_properties[resource_obj.resource_type.name]['properties']
+        if tc_obj is not None and resource_obj is not None and resource_container is not None:
+            if resource_obj.resource_type == ResourceType.CUSTOM_INDICATORS:
+                self._resource_properties = CustomApiProperties.get_custom_indicator_properties(api_branch, api_branch)['properties']
+            else:
+                self._resource_properties = ApiProperties.api_properties[resource_obj.resource_type.name]['properties']
 
-        self._resource_container = resource_container
-        self._resource_obj = resource_obj
-        self._basic_structure = {
-            'confidence': 'confidence',
-            'dateAdded': 'date_added',
-            'description': 'description',
-            'id': 'id',
-            'indicator': 'indicator',
-            'lastModified': 'last_modified',
-            'ownerName': 'owner_name',
-            'rating': 'rating',
-            'type': 'type',
-            'weblink': 'weblink',
-        }
-        self._structure = self._basic_structure.copy()
-        del self._structure['indicator']  # clear up generic indicator name
-        self._tc = tc_obj
+            self._resource_container = resource_container
+            self._resource_obj = resource_obj
+            self._basic_structure = {
+                'confidence': 'confidence',
+                'dateAdded': 'date_added',
+                'description': 'description',
+                'id': 'id',
+                'indicator': 'indicator',
+                'lastModified': 'last_modified',
+                'ownerName': 'owner_name',
+                'rating': 'rating',
+                'type': 'type',
+                'weblink': 'weblink',
+            }
+            self._structure = self._basic_structure.copy()
+            del self._structure['indicator']  # clear up generic indicator name
+            self._tc = tc_obj
 
-        # load data from resource_obj
-        self.load_data(self._resource_obj)
-
-        # Now add in functionaity based on type of indicator
-        cls = {
-            ResourceType.ADDRESSES: AddressIndicatorObject,
-            ResourceType.EMAIL_ADDRESSES: EmailAddressIndicatorObject,
-            ResourceType.FILES: FileIndicatorObject,
-            ResourceType.HOSTS: HostIndicatorObject,
-            ResourceType.URLS: UrlIndicatorObject,
-            ResourceType.CUSTOM_INDICATORS: CustomIndicatorObject
-        }.get(self._resource_type)
-
-        self.__class__ = type('{}Advanced'.format(cls.__name__), (IndicatorObjectAdvanced, cls), self.__dict__)
+            # load data from resource_obj
+            self.load_data(self._resource_obj)
 
         #
         # indicator structure
@@ -94,7 +120,9 @@ class IndicatorObjectAdvanced(IndicatorObject):
             self._structure['source'] = 'source'
             self._structure['text'] = 'indicator'
         elif self._resource_type == ResourceType.CUSTOM_INDICATORS:
+            self._structure['custom_fields'] = 'indicator'
             pass
+            # self._structure['fields'] = self._custom_fields
 
     def _create_basic_request_object(self, prop_type, *extra_uri_params):
         """
@@ -103,11 +131,20 @@ class IndicatorObjectAdvanced(IndicatorObject):
         that are needed to create the uri endpoint string,
         thus they must be in the correct order. See ApiProperties.py
         """
-        prop = self._resource_properties[prop_type]
         ro = RequestObject()
+        if self.resource_type == ResourceType.CUSTOM_INDICATORS:
+            prop = self._custom_fields
+
+        prop = self._resource_properties[prop_type]
+        ro.set_request_uri(prop['uri'].format(self._reference_indicator, *extra_uri_params))
+        # if not isinstance(self, CustomIndicatorObject):
+        #     prop = self._resource_properties[prop_type]
+        #     ro.set_request_uri(prop['uri'].format(self._reference_indicator, *extra_uri_params))
+        # else:
+        #     prop = self._resource_properties[self._type]
+        #     ro.set_request_uri(prop['uri'].format(self._reference_indicator, *extra_uri_params))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
-        ro.set_request_uri(prop['uri'].format(self._reference_indicator, *extra_uri_params))
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
         return ro
@@ -318,6 +355,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
                 self._tc.tcl.debug('Resource Object'.format(self))
                 raise AttributeError(ErrorCodes.e10040.value)
         elif self.phase == 2:
+            print 'properties: {}'.format(self._resource_properties)
             prop = self._resource_properties['update']
             ro.set_description('update indicator {0}.'.format(self._reference_indicator))
             ro.set_http_method(prop['http_method'])
@@ -476,7 +514,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_description('retrieve indicator associations for {0}'.format(self._reference_indicator))
 
         for item in self._tc.result_pagination(ro, 'indicator'):
-            yield parse_indicator(item,
+            yield parse_typed_indicator(item,
                                   api_filter=ro.description,
                                   request_uri=ro.request_uri,
                                   indicators_regex=self._tc._indicators_regex)
@@ -590,7 +628,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
     def load_data(self, resource_obj):
         """ load data from resource object to self """
-        for key in resource_obj.__slots__:
+        for key in set(resource_obj.__slots__ + IndicatorObject.__slots__):
             setattr(self, key, getattr(resource_obj, key))
 
     def load_dns_resolutions(self):
@@ -727,3 +765,43 @@ class IndicatorObjectAdvanced(IndicatorObject):
     def attributes(self):
         """ """
         return self._resource_obj._attributes
+
+# Never ended up using this; save for later?
+#
+# class ClassFactory:
+#     def __init__(self, name, base_classes, class_dict, **kwargs):
+#         self.name = name
+#         self.base_classes = base_classes
+#         self.class_dict = class_dict
+#         self.kwargs = kwargs
+#
+#     def create_class(self):
+#         for key, value in self.kwargs.items():
+#             setattr(self, key, value)
+#
+#         full_dict = {}
+#         for base_class in self.base_classes:
+#             full_dict.update(base_class.__dict__)
+#             # print "{} : {}".format(base_class.__name__, full_dict)
+#
+#         for k, v in self.class_dict.items():
+#             full_dict[k] = v
+#
+#         # print "full: {}".format(full_dict)
+#         newclass = type(self.name, self.base_classes, full_dict) #{"__init__": __init__})
+#         # obj = newclass()
+#
+#         fs = {
+#             'get': lambda: getattr(newclass, '_{}'.format(k)),
+#             'set': lambda k, v: setattr(newclass, '_{}'.format(k), v),
+#             'del': lambda: delattr(newclass, '_{}'.format(k))
+#         }
+#         for k, v in self.class_dict.items():
+#             # setattr(self, k, v)
+#             # setattr(newclass = '_{}')
+#             setattr(newclass, '_{}'.format(k), v)
+#             property(fs['get'](), fs['set'](k, v), fs['del']())
+#             # print k, v
+#
+#         # print "created newclass: {}".format(newclass.__dict__)
+#         return newclass

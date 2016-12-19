@@ -3,6 +3,10 @@ import urllib
 import types
 
 """ custom """
+# from IndicatorObject import IndicatorObject
+# from IndicatorObjectAdvanced import IndicatorObjectAdvanced
+
+from collections import OrderedDict
 from Config.ResourceRegexes import md5_re, sha1_re, sha256_re
 from Config.ResourceType import ResourceType
 
@@ -22,7 +26,8 @@ i_type_to_r_type = {
     'EmailAddress': ResourceType.EMAIL_ADDRESSES,
     'File': ResourceType.FILES,
     'Host': ResourceType.HOSTS,
-    'URL': ResourceType.URLS}
+    'URL': ResourceType.URLS,
+    'Custom': ResourceType.CUSTOM_INDICATORS}
 
 # uri attributes
 resource_uri_attributes = {
@@ -32,6 +37,22 @@ resource_uri_attributes = {
     'HOSTS': 'hosts',
     'URLS': 'urls',
 }
+
+indicator_slots = None
+
+
+# def get_indicator_slots():
+#     """ gets all the named indicator slots (so we know which are custom fields), then flattens the lists """
+#     global indicator_slots
+#
+#     if indicator_slots is None:
+#         # TODO: moweis -- Should this be genericized?
+#         all_slots = list(IndicatorObject.__slots__) + \
+#                     list(IndicatorObjectAdvanced.__slots__) + \
+#                     [list(cls.__slots__) for cls in IndicatorObjectAdvanced.__subclasses__() if hasattr(cls, '__slots__')]
+#         indicator_slots = [slot for slot_sublist in all_slots for slot in slot_sublist]
+#
+#     return indicator_slots
 
 
 def get_hash_type(indicator):
@@ -46,12 +67,16 @@ def get_hash_type(indicator):
 
 def get_resource_type(indicators_regex, indicator):
     """ Get resource type enum from an indicator. """
+    if indicator is None:
+        return None
+
     for indicator_type, regex in indicators_regex.items():
         for rex in regex:
             match = rex.match(indicator)
             if match and match.group(0) == indicator:
                 return ResourceType[indicator_type]
-    return None
+    # if it's none of these, it's custom
+    return ResourceType.CUSTOM_INDICATORS
 
 
 def get_resource_group_type(group_type):
@@ -60,8 +85,8 @@ def get_resource_group_type(group_type):
 
 
 def get_resource_indicator_type(indicator_type):
-    """Get resource type enum from a indicator type."""
-    return i_type_to_r_type[indicator_type]
+    """Get resource type enum from a indicator type. If it's not one of the named types, it's custom"""
+    return i_type_to_r_type[indicator_type] if indicator_type in i_type_to_r_type else ResourceType.CUSTOM_INDICATORS
 
 
 def get_indicator_uri_attribute(indicators_regex, indicator):
@@ -85,6 +110,8 @@ def uni(data):
 
 def urlsafe(data):
     """ url encode value for safe request """
+    if isinstance(data, OrderedDict):
+        return urllib.urlencode(data)
     return urllib.quote(data, safe='~')
 
 

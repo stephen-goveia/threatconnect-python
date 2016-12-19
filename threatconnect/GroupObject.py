@@ -12,6 +12,7 @@ from AttributeObject import parse_attribute, AttributeObject
 # import IndicatorObject  #Causes circular import
 from SecurityLabelObject import parse_security_label
 from TagObject import parse_tag
+from IndicatorObjectTyped import parse_typed_indicator
 import VictimObject
 
 import ApiProperties
@@ -1228,10 +1229,10 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_resource_type(self._resource_type)
 
         for item in self._tc.result_pagination(ro, 'indicator'):
-            import IndicatorObject  #Causes circular import
+            # import IndicatorObject  #Causes circular import
 
-            yield IndicatorObject.parse_indicator(
-                item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
+            # yield IndicatorObject.parse_indicator(
+            yield parse_typed_indicator(item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
 
     @property
     def json(self):
