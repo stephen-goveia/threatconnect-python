@@ -10,7 +10,7 @@ from collections import OrderedDict
 from threatconnect import IndicatorFilterMethods
 from threatconnect import SharedMethods
 
-from threatconnect import ApiProperties, CustomApiProperties
+from threatconnect import ApiProperties
 from threatconnect.Config.IndicatorType import IndicatorType
 from threatconnect.Config.ResourceType import ResourceType
 from threatconnect.ErrorCodes import ErrorCodes
@@ -229,7 +229,7 @@ class IndicatorFilterObject(FilterObject):
             self._resource_type = ResourceType(indicator_type_enum.value)
 
             if self._resource_type == ResourceType.CUSTOM_INDICATORS:
-                self._resource_properties = CustomApiProperties.custom_i_properties(api_branch)
+                self._resource_properties = ApiProperties.custom_i_properties(api_branch)
             else:
                 # dynamically set resource properties to the appropriate dictionary in ApiProperties
                 self._resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']

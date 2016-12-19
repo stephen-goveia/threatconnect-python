@@ -3,7 +3,6 @@ import json
 from StringIO import StringIO
 
 import ApiProperties
-import CustomApiProperties
 from AttributeObject import parse_attribute, AttributeObject
 from Config.ResourceType import ResourceType
 from ErrorCodes import ErrorCodes
@@ -75,7 +74,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
         if tc_obj is not None and resource_obj is not None and resource_container is not None:
             if resource_obj.resource_type == ResourceType.CUSTOM_INDICATORS:
-                self._resource_properties = CustomApiProperties.get_custom_indicator_properties(api_branch, api_branch)['properties']
+                self._resource_properties = ApiProperties.get_custom_indicator_properties(api_branch, api_branch)['properties']
             else:
                 self._resource_properties = ApiProperties.api_properties[resource_obj.resource_type.name]['properties']
 
