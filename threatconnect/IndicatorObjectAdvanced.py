@@ -8,6 +8,8 @@ from Config.ResourceType import ResourceType
 from ErrorCodes import ErrorCodes
 from SharedMethods import uni, urlsafe
 
+# from IndicatorObjectParser import parse_typed_indicator
+
 from FileOccurrenceObject import parse_file_occurrence
 from GroupObject import parse_group
 from IndicatorObject import IndicatorObject
@@ -21,50 +23,28 @@ from IndicatorObjectTyped import (AddressIndicatorObject,
                                   EmailAddressIndicatorObject,
                                   FileIndicatorObject,
                                   HostIndicatorObject,
-                                  UrlIndicatorObject,
-                                  parse_typed_indicator,)
+                                  UrlIndicatorObject,)
 
 
-def construct_typed_indicator(resource_type):
-    cls = {
-        ResourceType.ADDRESSES: AddressIndicatorObject,
-        ResourceType.CUSTOM_INDICATORS: CustomIndicatorObject,
-        ResourceType.EMAIL_ADDRESSES: EmailAddressIndicatorObject,
-        ResourceType.FILES: FileIndicatorObject,
-        ResourceType.HOSTS: HostIndicatorObject,
-        ResourceType.URLS: UrlIndicatorObject
-    }
-    return cls.get(resource_type)() if resource_type in cls else None
+class IndicatorObjectAdvanced(AddressIndicatorObject,
+                              CustomIndicatorObject,
+                              EmailAddressIndicatorObject,
+                              FileIndicatorObject,
+                              HostIndicatorObject,
+                              UrlIndicatorObject):
 
-
-def construct_typed_advanced_indicator(tc_obj, resource_container, resource_obj, api_branch=None):
-    """ Creates IndicatorObject of the correct type (assuming resource_obj has its type)"""
-    resource_type = resource_obj.resource_type
-    typed_resource_obj = construct_typed_indicator(resource_type).copy_slots(resource_obj)
-
-    return IndicatorObjectAdvanced(tc_obj, resource_container, typed_resource_obj, api_branch=api_branch)
-
-#
-# class IndicatorObjectAdvanced(AddressIndicatorObject,
-#                               CustomIndicatorObject,
-#                               EmailAddressIndicatorObject,
-#                               FileIndicatorObject,
-#                               HostIndicatorObject,
-#                               UrlIndicatorObject):
-class IndicatorObjectAdvanced(IndicatorObject):
-    """ Temporary Object with extended functionality. """
-    # __slots__ = (
-    #     '_resource_container',
-    #     '_resource_obj',
-    #     '_resource_properties',
-    #     '_basic_structure',
-    #     '_structure',
-    #     '_tc',
-    # )
-
-    def __init__(self, tc_obj=None, resource_container=None, resource_obj=None, api_branch=None):
+    def __init__(self, tc_obj, resource_container, resource_obj, api_entity=None):
         """ add methods to resource object """
-        super(IndicatorObjectAdvanced, self).__init__()
+        # super(IndicatorObjectAdvanced, self).__init__()
+        cls = {
+            ResourceType.ADDRESSES: AddressIndicatorObject,
+            ResourceType.CUSTOM_INDICATORS: CustomIndicatorObject,
+            ResourceType.EMAIL_ADDRESSES: EmailAddressIndicatorObject,
+            ResourceType.FILES: FileIndicatorObject,
+            ResourceType.HOSTS: HostIndicatorObject,
+            ResourceType.URLS: UrlIndicatorObject
+        }.get(resource_obj.resource_type)
+        super(cls, self).__init__()
         self._resource_container = None
         self._resource_obj = None
         self._resource_properties = None
@@ -74,9 +54,13 @@ class IndicatorObjectAdvanced(IndicatorObject):
 
         if tc_obj is not None and resource_obj is not None and resource_container is not None:
             if resource_obj.resource_type == ResourceType.CUSTOM_INDICATORS:
-                self._resource_properties = ApiProperties.get_custom_indicator_properties(api_branch, api_branch)['properties']
+                custom_indicator_type = tc_obj.indicator_parser.get_custom_indicator_type_by_api_entity(api_entity)
+                api_branch = custom_indicator_type.api_branch
+                self.set_api_branch(api_branch)
+                self.set_api_entity(api_entity)
+                self._resource_properties = ApiProperties.get_custom_indicator_properties(api_entity, api_branch).get('properties')
             else:
-                self._resource_properties = ApiProperties.api_properties[resource_obj.resource_type.name]['properties']
+                self._resource_properties = ApiProperties.api_properties.get(resource_obj.resource_type.name).get('properties')
 
             self._resource_container = resource_container
             self._resource_obj = resource_obj
@@ -97,7 +81,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
             self._tc = tc_obj
 
             # load data from resource_obj
-            self.load_data(self._resource_obj)
+            self.copy_slots(resource_obj)
 
         #
         # indicator structure
@@ -120,7 +104,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
             self._structure['text'] = 'indicator'
         elif self._resource_type == ResourceType.CUSTOM_INDICATORS:
             self._structure['custom_fields'] = 'indicator'
-            pass
+            # pass
             # self._structure['fields'] = self._custom_fields
 
     def _create_basic_request_object(self, prop_type, *extra_uri_params):
@@ -132,16 +116,11 @@ class IndicatorObjectAdvanced(IndicatorObject):
         """
         ro = RequestObject()
         if self.resource_type == ResourceType.CUSTOM_INDICATORS:
-            prop = self._custom_fields
-
-        prop = self._resource_properties[prop_type]
+            all_prop = ApiProperties.get_custom_indicator_properties(api_entity=self.api_entity, api_branch=self.api_branch)
+            prop = all_prop.get('properties').get(prop_type)
+        else:
+            prop = self._resource_properties[prop_type]
         ro.set_request_uri(prop['uri'].format(self._reference_indicator, *extra_uri_params))
-        # if not isinstance(self, CustomIndicatorObject):
-        #     prop = self._resource_properties[prop_type]
-        #     ro.set_request_uri(prop['uri'].format(self._reference_indicator, *extra_uri_params))
-        # else:
-        #     prop = self._resource_properties[self._type]
-        #     ro.set_request_uri(prop['uri'].format(self._reference_indicator, *extra_uri_params))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
         ro.set_resource_pagination(prop['pagination'])
@@ -234,9 +213,13 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_description('add tag "{0}" to {1}'.format(tag, self._reference_indicator))
         self._resource_container.add_commit_queue(self.id, ro)
 
-    def associate_group(self, resource_type, resource_id):
+    def associate_group(self, resource_type, resource_id, api_entity=None):
         """ associate a group to indicator by id """
-        group_uri_attribute = ApiProperties.api_properties[resource_type.name]['uri_attribute']
+        if resource_type is ResourceType.CUSTOM_INDICATORS:
+            api_branch = self._tc.indicator_parser.get_custom_indicator_type_by_api_entity(api_entity).api_branch
+            group_uri_attribute = ApiProperties.get_custom_indicator_properties(api_entity, api_branch).get('uri_attribute')
+        else:
+            group_uri_attribute = ApiProperties.api_properties[resource_type.name]['uri_attribute']
         ro = self._create_basic_request_object(
             'association_group_add', group_uri_attribute, resource_id)
 
@@ -250,7 +233,11 @@ class IndicatorObjectAdvanced(IndicatorObject):
         body_dict = {}
         for prop, values in self._properties.items():
             if getattr(self, prop) is not None:
-                body_dict[values['api_field']] = getattr(self, prop)
+                # handle custom indicators
+                if prop == '_custom_fields':
+                    body_dict.update(getattr(self, prop))
+                else:
+                    body_dict[values['api_field']] = getattr(self, prop)
         return json.dumps(body_dict)
 
     @property
@@ -348,7 +335,10 @@ class IndicatorObjectAdvanced(IndicatorObject):
                 if api_response.headers['content-type'] == 'application/json':
                     api_response_dict = api_response.json()
                     if api_response_dict['status'] == 'Success':
-                        resource_key = ApiProperties.api_properties[self.resource_type.name]['resource_key']
+                        if self.api_branch is not None and self.api_entity is not None:
+                            resource_key = ApiProperties.get_custom_indicator_properties(self.api_entity, self.api_branch).get('resource_key')
+                        else:
+                            resource_key = ApiProperties.api_properties[self.resource_type.name]['resource_key']
                         r_id = api_response_dict['data'][resource_key]['id']
             else:
                 self._tc.tcl.debug('Resource Object'.format(self))
@@ -505,6 +495,27 @@ class IndicatorObjectAdvanced(IndicatorObject):
             yield parse_group(item, api_filter=ro.description, request_uri=ro.request_uri)
 
     @property
+    def indicator(self):
+        if self._resource_type == ResourceType.ADDRESSES:
+            return self._ip
+        elif self._resource_type == ResourceType.EMAIL_ADDRESSES:
+            return self._address
+        elif self._resource_type == ResourceType.FILES:
+            return {
+                'md5': self._md5,
+                'sha1': self._sha1,
+                'sha256': self._sha256,
+            }
+        elif self._resource_type == ResourceType.HOSTS:
+            return self._hostname
+        elif self._resource_type == ResourceType.URLS:
+            return self._text
+        elif self._resource_type == ResourceType.CUSTOM_INDICATORS:
+            return self._custom_fields
+        else:
+            raise AttributeError(ErrorCodes.e10030.value)
+
+    @property
     def indicator_associations(self):
         """ retrieve associations for this indicator. associations are not stored within the object """
         ro = self._create_basic_request_object('association_indicators')
@@ -513,7 +524,7 @@ class IndicatorObjectAdvanced(IndicatorObject):
         ro.set_description('retrieve indicator associations for {0}'.format(self._reference_indicator))
 
         for item in self._tc.result_pagination(ro, 'indicator'):
-            yield parse_typed_indicator(item,
+            yield self._tc.indicator_parser.parse_typed_indicator(item,
                                   api_filter=ro.description,
                                   request_uri=ro.request_uri,
                                   indicators_regex=self._tc._indicators_regex)
@@ -522,6 +533,9 @@ class IndicatorObjectAdvanced(IndicatorObject):
     def json(self):
         """ return the object in json format """
         json_dict = {}
+        # handle custom indicators
+        if self.custom_fields is not None:
+            json_dict.update(self.custom_fields)
         for k, v in self._structure.items():
             # handle file indicators
             if k == 'md5':
@@ -533,12 +547,19 @@ class IndicatorObjectAdvanced(IndicatorObject):
             else:
                 json_dict[k] = getattr(self, v)
 
-        return json.dumps(json_dict, indent=4, sort_keys=True)
+        return json_dict
+
 
     @property
     def keyval(self):
         """ return the object in json format """
         keyval_str = ''
+
+        # handle custom indicators
+        if self.custom_fields is not None:
+            for field in self.custom_fields:
+                keyval_str += '{0}="{1}" '.format(field, self.custom_fields[field])
+
         for k, v in sorted(self._structure.items()):
             # handle file indicators
             if k == 'md5':
@@ -588,6 +609,11 @@ class IndicatorObjectAdvanced(IndicatorObject):
         #
         leef_extension = ""
 
+        # handle custom indicators
+        if self.custom_fields is not None:
+            for field in self.custom_fields:
+                leef_extension += '{0}="{1}" '.format(field, self.custom_fields[field])
+
         for k, v in sorted(self._structure.items()):
             # handle file indicators
             if k == 'md5':
@@ -624,11 +650,6 @@ class IndicatorObjectAdvanced(IndicatorObject):
                 self._resource_obj._attributes = []
                 for item in data:
                     self._resource_obj.add_attribute(parse_attribute(item, self))  # add to main resource object
-
-    def load_data(self, resource_obj):
-        """ load data from resource object to self """
-        for key in set(resource_obj.__slots__ + IndicatorObject.__slots__):
-            setattr(self, key, getattr(resource_obj, key))
 
     def load_dns_resolutions(self):
         """ retrieve dns resolution for this indicator """

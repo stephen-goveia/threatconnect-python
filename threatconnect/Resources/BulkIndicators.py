@@ -8,7 +8,7 @@ from threatconnect import IndicatorFilterMethods
 from threatconnect import ApiProperties
 from threatconnect.Config.ResourceType import ResourceType
 from threatconnect.FilterObject import FilterObject
-from threatconnect.IndicatorObjectAdvanced import construct_typed_advanced_indicator
+# from threatconnect.IndicatorObjectAdvanced import construct_typed_advanced_indicator
 # from threatconnect.IndicatorObjectAdvanced import IndicatorObjectAdvanced
 from threatconnect.RequestObject import RequestObject
 from threatconnect.Resource import Resource
@@ -30,7 +30,7 @@ class BulkIndicators(Resource):
     def _method_wrapper(self, resource_object):
         """ return resource object as new object with additional methods """
         # return IndicatorObjectAdvanced(self.tc, self, resource_object)
-        return construct_typed_advanced_indicator(self.tc, self, resource_object)
+        return self.tc.indicator_parser.construct_typed_advanced_indicator(self.tc, self, resource_object)
 
 
     @property

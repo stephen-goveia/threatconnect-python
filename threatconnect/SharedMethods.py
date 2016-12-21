@@ -110,8 +110,6 @@ def uni(data):
 
 def urlsafe(data):
     """ url encode value for safe request """
-    if isinstance(data, OrderedDict):
-        return urllib.urlencode(data)
     return urllib.quote(data, safe='~')
 
 

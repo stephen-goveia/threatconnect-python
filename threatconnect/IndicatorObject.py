@@ -10,53 +10,54 @@ from Config.ResourceType import ResourceType
 from ErrorCodes import ErrorCodes
 from SharedMethods import get_hash_type, get_resource_indicator_type, i_type_to_r_type
 from SharedMethods import uni, urlsafe
+from collections import OrderedDict
 
 
-def load_data(target_obj, resource_obj):
-    """ load data from resource object to self """
-    for key in resource_obj.__slots__:
-        setattr(target_obj, key, getattr(resource_obj, key))
-
-    return target_obj
-
-
-def parse_base_indicator(indicator_dict, indicators_regex=None):
-    """ """
-    # indicator object
-    indicator = IndicatorObject()
+# def load_data(target_obj, resource_obj):
+#     """ load data from resource object to self """
+#     for key in resource_obj.__slots__:
+#         setattr(target_obj, key, getattr(resource_obj, key))
+#
+#     return target_obj
 
 
-    #
-    # standard values
-    #
-    indicator.set_date_added(indicator_dict['dateAdded'])
-    indicator.set_id(indicator_dict['id'])
-    indicator.set_last_modified(indicator_dict['lastModified'])
-    indicator.set_weblink(indicator_dict['webLink'])
-
-    #
-    # optional values
-    #
-    if 'type' in indicator_dict:
-        indicator.set_type(indicator_dict['type'])  # set type before indicator
-
-    if 'confidence' in indicator_dict:
-        indicator.set_confidence(indicator_dict['confidence'], update=False)
-    if 'description' in indicator_dict:
-        indicator.set_description(indicator_dict['description'], update=False)
-    if 'owner' in indicator_dict:  # nested owner for single indicator result
-        indicator.set_owner_name(indicator_dict['owner']['name'])
-    if 'ownerName' in indicator_dict:
-        indicator.set_owner_name(indicator_dict['ownerName'])
-    if 'rating' in indicator_dict:
-        indicator.set_rating(indicator_dict['rating'], update=False)
-
-    if 'threatAssessConfidence' in indicator_dict:
-        indicator.set_threat_assess_confidence(indicator_dict['threatAssessConfidence'])
-    if 'threatAssessRating' in indicator_dict:
-        indicator.set_threat_assess_rating(indicator_dict['threatAssessRating'])
-
-    return indicator
+# def parse_base_indicator(indicator_dict, indicators_regex=None):
+#     """ """
+#     # indicator object
+#     indicator = IndicatorObject()
+#
+#
+#     #
+#     # standard values
+#     #
+#     indicator.set_date_added(indicator_dict['dateAdded'])
+#     indicator.set_id(indicator_dict['id'])
+#     indicator.set_last_modified(indicator_dict['lastModified'])
+#     indicator.set_weblink(indicator_dict['webLink'])
+#
+#     #
+#     # optional values
+#     #
+#     if 'type' in indicator_dict:
+#         indicator.set_type(indicator_dict['type'])  # set type before indicator
+#
+#     if 'confidence' in indicator_dict:
+#         indicator.set_confidence(indicator_dict['confidence'], update=False)
+#     if 'description' in indicator_dict:
+#         indicator.set_description(indicator_dict['description'], update=False)
+#     if 'owner' in indicator_dict:  # nested owner for single indicator result
+#         indicator.set_owner_name(indicator_dict['owner']['name'])
+#     if 'ownerName' in indicator_dict:
+#         indicator.set_owner_name(indicator_dict['ownerName'])
+#     if 'rating' in indicator_dict:
+#         indicator.set_rating(indicator_dict['rating'], update=False)
+#
+#     if 'threatAssessConfidence' in indicator_dict:
+#         indicator.set_threat_assess_confidence(indicator_dict['threatAssessConfidence'])
+#     if 'threatAssessRating' in indicator_dict:
+#         indicator.set_threat_assess_rating(indicator_dict['threatAssessRating'])
+#
+#     return indicator
 
 
 class IndicatorObject(object):
@@ -67,6 +68,7 @@ class IndicatorObject(object):
         '_attributes',
         '_confidence',
         '_custom_fields',   # custom indicator type specific
+        '_custom_type',     # custom indicator type specific
         '_date_added',
         '_description',
         '_dns_active',  # host indicator type specific
@@ -75,7 +77,6 @@ class IndicatorObject(object):
         '_hostname',  # host specific indicator
         '_id',
         '_ip',  # address specific indicator
-        '_indicator_dict',
         '_size',  # file indicator type specific
         '_last_modified',
         '_last_observed',   # most recent observation date
@@ -107,15 +108,13 @@ class IndicatorObject(object):
     def __init__(self, resource_type_enum=None):
         # Note: this affects child classes as if they are self!
         # e.g the slots in IndicatorObject will not be affected if IndicatorObjectAdvanced.__init__() is invoked
-        for slot in self.__slots__:
-            setattr(self, slot, None)
-
         self._attributes = []
         self._address = None  # email indicator type specific
         self._api_branch = None
         self._api_entity = None
         self._confidence = None
-        self._custom_fields = []  # custom indicator type specific
+        self._custom_fields = {}  # custom indicator type specific
+        self._custom_type = None
         self._date_added = None
         self._description = None
         self._dns_active = None  # host indicator type specific
@@ -168,9 +167,27 @@ class IndicatorObject(object):
         self._weblink = None
         self._whois_active = None  # host indicator type specific
 
+    def _reinit_lists(self):
+        """
+        convenience method to reinitialize lists as... lists;
+        if you add a list field to IndicatorObject, add it here too
+        """
+        lists = [
+            '_attributes',
+            '_file_occurrences',
+            '_dns_resolutions',
+            '_matched_filters',
+            '_request_uris',
+            '_tags',
+        ]
+        for _list in lists:
+            if getattr(self, _list, None):
+                setattr(self, _list, [])
+
     def copy_slots(self, obj_from):
-        for slot in obj_from.__slots__:
+        for slot in IndicatorObject.__slots__:
             setattr(self, slot, getattr(obj_from, slot, None))
+        self._reinit_lists()
         return self
 
     """ shared indicator methods """
@@ -225,16 +242,27 @@ class IndicatorObject(object):
 
     def set_custom_fields(self, data):
         if self.resource_type == ResourceType.CUSTOM_INDICATORS:
-            data = data if isinstance(data, list) else [data]
-            self._custom_fields = uni(data)
+            # data = data if isinstance(data, list) else [data]
+            if isinstance(self._custom_fields, OrderedDict):
+                self._custom_fields = uni(data)
         else:
             raise AttributeError(ErrorCodes.e10100.value)
 
-    def add_custom_fields(self, fields):
-        if isinstance(fields, list):
-            self._custom_fields.extend(fields)
+    # def add_custom_fields(self, fields):
+    #     if isinstance(fields, list):
+    #         self._custom_fields.extend(fields)
+    #     else:
+    #         self._custom_fields.append(fields)
+
+    @property
+    def custom_type(self):
+        return self._custom_type
+
+    def set_custom_type(self, data):
+        if self.resource_type == ResourceType.CUSTOM_INDICATORS:
+            self._custom_type = uni(data)
         else:
-            self._custom_fields.append(fields)
+            raise AttributeError(ErrorCodes.e10100.value)
 
     #
     # date_added
@@ -297,6 +325,7 @@ class IndicatorObject(object):
 
     def add_dns_resolution(self, data_obj):
         """Read-Only indicator metadata"""
+        self._dns_resolutions = self._dns_resolutions if self._dns_resolutions is not None else []
         if self._resource_type == ResourceType.HOSTS:
             if isinstance(data_obj, list):
                 self._dns_resolutions.extend(data_obj)
@@ -345,23 +374,24 @@ class IndicatorObject(object):
     @property
     def indicator(self):
         """ """
+        return self._reference_indicator
         # pass
-        if self._resource_type == ResourceType.ADDRESSES:
-            return self._ip
-        elif self._resource_type == ResourceType.EMAIL_ADDRESSES:
-            return self._address
-        elif self._resource_type == ResourceType.FILES:
-            return {
-                'md5': self._md5,
-                'sha1': self._sha1,
-                'sha256': self._sha256,
-            }
-        elif self._resource_type == ResourceType.HOSTS:
-            return self._hostname
-        elif self._resource_type == ResourceType.URLS:
-            return self._text
-        elif self._resource_type == ResourceType.CUSTOM_INDICATORS:
-            return self._custom_fields
+        # if self._resource_type == ResourceType.ADDRESSES:
+        #     return self._ip
+        # elif self._resource_type == ResourceType.EMAIL_ADDRESSES:
+        #     return self._address
+        # elif self._resource_type == ResourceType.FILES:
+        #     return {
+        #         'md5': self._md5,
+        #         'sha1': self._sha1,
+        #         'sha256': self._sha256,
+        #     }
+        # elif self._resource_type == ResourceType.HOSTS:
+        #     return self._hostname
+        # elif self._resource_type == ResourceType.URLS:
+        #     return self._text
+        # elif self._resource_type == ResourceType.CUSTOM_INDICATORS:
+        #     return self._custom_fields
         # else:
         #     raise AttributeError(ErrorCodes.e10030.value)
 
@@ -814,12 +844,18 @@ class IndicatorObject(object):
         #
         printable_string += '{0!s:40}\n'.format('Retrievable Methods')
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('id', self.id))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('api_branch', self.api_branch))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('api_entity', self.api_entity))
         if isinstance(self.indicator, dict):
             printable_string += ('  {0!s:<28} {1!s:<50}\n'.format('indicator', ''))
             for key in self.indicator:
                 printable_string += ('   {0!s:<10}: {1!s:<70}\n'.format(key, self.indicator[key]))
         else:
             printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('indicator', self.indicator))
+        if self.custom_fields:
+            printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('custom_fields', self.custom_fields))
+            # for key in self.custom_fields:
+            #     printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format(key, self.custom_fields.get(key)))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('resource_type', self.resource_type))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('owner_name', self.owner_name))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('date_added', self.date_added))

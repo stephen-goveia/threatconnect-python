@@ -1341,30 +1341,30 @@ def custom_i_properties(api_branch):
             'pagination': True,
             'uri': '/v2/indicators/' + api_branch + '/{0}/indicators',  # indicator value
         },
-        # 'attributes': {
-        #     'http_method': 'GET',
-        #     'owner_allowed': True,
-        #     'pagination': False,
-        #     'uri': '/v2/indicators/' + api_branch + '/{0}/attributes',  # indicator value
-        # },
-        # 'attribute_add': {
-        #     'http_method': 'POST',
-        #     'owner_allowed': True,
-        #     'pagination': False,
-        #     'uri': '/v2/indicators/' + api_branch + '/{0}/attributes',  # indicator value
-        # },
-        # 'attribute_delete': {
-        #     'http_method': 'DELETE',
-        #     'owner_allowed': True,
-        #     'pagination': False,
-        #     'uri': '/v2/indicators/' + api_branch + '/{0}/attributes/{1}',  # indicator value, attribute id
-        # },
-        # 'attribute_update': {
-        #     'http_method': 'PUT',
-        #     'owner_allowed': True,
-        #     'pagination': False,
-        #     'uri': '/v2/indicators/' + api_branch + '/{0}/attributes/{1}',  # indicator value, attribute id
-        # },
+        'attributes': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/attributes',  # indicator value
+        },
+        'attribute_add': {
+            'http_method': 'POST',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/attributes',  # indicator value
+        },
+        'attribute_delete': {
+            'http_method': 'DELETE',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/attributes/{1}',  # indicator value, attribute id
+        },
+        'attribute_update': {
+            'http_method': 'PUT',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/attributes/{1}',  # indicator value, attribute id
+        },
         'base': {
             'http_method': 'GET',
             'owner_allowed': True,

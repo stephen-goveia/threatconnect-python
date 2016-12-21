@@ -8,6 +8,7 @@ import os
 import re
 import socket
 import time
+import json
 from datetime import datetime
 from logging import FileHandler
 
@@ -31,7 +32,7 @@ from Config.ResourceType import ResourceType
 from Config.ResourceRegexes import indicators_regex
 from Config.ApiLoggingHandler import ApiLoggingHandler
 
-from IndicatorObjectTyped import parse_typed_indicator
+# from IndicatorObjectTyped import parse_typed_indicator
 from GroupObject import parse_group
 from OwnerObject import parse_owner
 from TaskObject import parse_task
@@ -42,6 +43,7 @@ from DnsResolutionObject import parse_dns_resolution
 from ReportEntry import ReportEntry
 from Report import Report
 from RequestObject import RequestObject
+from IndicatorObjectParser import IndicatorObjectParser, parse_typed_indicator
 
 from Resources.Adversaries import Adversaries
 from Resources.Bulk import Bulk
@@ -50,7 +52,7 @@ from Resources.Documents import Documents
 from Resources.Emails import Emails
 from Resources.Groups import Groups
 from Resources.Incidents import Incidents
-from Resources.Indicators import Indicators
+from Resources.Indicators import Indicators, CustomIndicatorFilterObject
 from Resources.Owners import Owners
 from Resources.Tasks import Tasks
 from Resources.Threats import Threats
@@ -132,6 +134,7 @@ class ThreatConnect:
         self.report = Report()
 
         # save custom types for later
+        self._indicator_parser = IndicatorObjectParser(self)
         # self._custom_indicator_types = self._get_custom_types_from_api()
         # self._custom_indicator_types = None
 
@@ -143,47 +146,51 @@ class ThreatConnect:
         #
         # print ""
 
-    def _get_custom_types_from_api(self):
-
-        types = {}
-
-
-        ro = RequestObject()
-        ro.set_http_method('GET')
-        ro.set_request_uri('/v2/types/indicatorTypes')
-        ro.set_owner_allowed(False)
-        ro.set_resource_pagination(True)
-        self._api_request_headers(ro)
-        api_resp = self.api_request(ro)
-        json = api_resp.json()
-        if json.get('data', None) is not None:
-            for indicator_type in json['data']['indicatorType']:
-                if indicator_type.get('custom', 'false') == 'true':
-                    types[indicator_type.get('name')] = indicator_type
-
-        # url = '{0!s}{1!s}'.format(self._api_url, 'v2/types/indicatorTypes')
-        # api_response = self._session.get(url, verify=self._verify_ssl, timeout=self._api_request_timeout,
-        #                                  proxies=self._proxies)
-        # type_json = api_response.json()
-        # if type_json.get('data', None) is not None:
-        #     for indicator_type in type_json['data']['indicatorType']:
-        #         if indicator_type.get('custom', 'false') == 'true':
-        #             types[indicator_type.get('name')] = indicator_type
-
-        return types
+    # def _get_custom_types_from_api(self):
+    #
+    #     types = {}
+    #
+    #
+    #     ro = RequestObject()
+    #     ro.set_http_method('GET')
+    #     ro.set_request_uri('/v2/types/indicatorTypes')
+    #     ro.set_owner_allowed(False)
+    #     ro.set_resource_pagination(True)
+    #     self._api_request_headers(ro)
+    #     api_resp = self.api_request(ro)
+    #     json = api_resp.json()
+    #     if json.get('data', None) is not None:
+    #         for indicator_type in json['data']['indicatorType']:
+    #             if indicator_type.get('custom', 'false') == 'true':
+    #                 types[indicator_type.get('name')] = indicator_type
+    #
+    #     # url = '{0!s}{1!s}'.format(self._api_url, 'v2/types/indicatorTypes')
+    #     # api_response = self._session.get(url, verify=self._verify_ssl, timeout=self._api_request_timeout,
+    #     #                                  proxies=self._proxies)
+    #     # type_json = api_response.json()
+    #     # if type_json.get('data', None) is not None:
+    #     #     for indicator_type in type_json['data']['indicatorType']:
+    #     #         if indicator_type.get('custom', 'false') == 'true':
+    #     #             types[indicator_type.get('name')] = indicator_type
+    #
+    #     return types
+    #
+    # @property
+    # def custom_indicator_types(self):
+    #     return self._custom_indicator_types
+    #
+    # def get_fields_for_custom_type(self, type):
+    #     field_labels = self.custom_indicator_types.get(type, None)
+    #     if field_labels is None:
+    #         return None
+    #
+    #     # max 3 custom fields at the moment, this may change; get names, then remove the Nones
+    #     field_names_with_Nones = [field_labels.get('value{0!s}Label'.format(i), None) for i in range(1, 4)]
+    #     return [field_name for field_name in field_names_with_Nones if field_name is not None]
 
     @property
-    def custom_indicator_types(self):
-        return self._custom_indicator_types
-
-    def get_fields_for_custom_type(self, type):
-        field_labels = self.custom_indicator_types.get(type, None)
-        if field_labels is None:
-            return None
-
-        # max 3 custom fields at the moment, this may change; get names, then remove the Nones
-        field_names_with_Nones = [field_labels.get('value{0!s}Label'.format(i), None) for i in range(1, 4)]
-        return [field_name for field_name in field_names_with_Nones if field_name is not None]
+    def indicator_parser(self):
+        return self._indicator_parser
 
     def _renew_token(self):
         """
@@ -201,13 +208,10 @@ class ThreatConnect:
                 url, params=payload, verify=self._verify_ssl, timeout=self._api_request_timeout,
                 proxies=self._proxies, stream=False)
 
-        print 'TOKEN RESPONSE: {}'.format(token_response.json())
-
         # bcs - return new token and set expiration date
         token_data = token_response.json()
         self._api_token = token_data['apiToken']
         self._api_token_expires = token_data['apiTokenExpires']
-        self._custom_indicator_types = self._get_custom_types_from_api()
 
     def _api_request_headers(self, ro):
         """ """
@@ -216,7 +220,7 @@ class ThreatConnect:
             window_padding = 15  # bcs - possible configuration option
             current_time = int(time.time()) - window_padding
             if (self._api_token_expires < current_time):
-                self._renew_token();
+                self._renew_token()
             authorization = 'TC-Token {0}'.format(self._api_token)
 
         elif self._api_aid is not None and self._api_sec is not None:
@@ -259,12 +263,13 @@ class ThreatConnect:
                 # iterate through all owners
                 for o in owners:
                     self.tcl.debug('owner: {0!s}'.format(o))
+
                     if len(filter_obj) > 0:
                         # request object are for api filters
                         for ro in filter_obj:
                             if ro.owner_allowed:
                                 ro.set_owner(o)
-                            results = self.api_response_handler(resource_obj, ro)
+                            results = self.api_response_handler(resource_obj, ro, api_entity=filter_obj.api_entity)
 
                             if ro.resource_type not in [ResourceType.OWNERS,
                                                         ResourceType.VICTIMS,
@@ -280,7 +285,7 @@ class ThreatConnect:
                         ro = filter_obj.default_request_object
                         if ro.owner_allowed:
                             ro.set_owner(o)
-                        results = self.api_response_handler(resource_obj, ro)
+                        results = self.api_response_handler(resource_obj, ro, api_entity=filter_obj.api_entity)
 
                         if ro.resource_type not in [ResourceType.OWNERS, ResourceType.VICTIMS]:
                             # TODO: should this be done?
@@ -391,7 +396,8 @@ class ThreatConnect:
                 api_response = self._session.send(
                     request_prepped, verify=self._verify_ssl, timeout=self._api_request_timeout,
                     proxies=self._proxies, stream=False)
-                print "API_RESPONSE: {}".format(api_response.json())
+                print "API_RESPONSE:\n{}".format(api_response.json)
+                # print json.dumps(api_response.json(), indent=4, sort_keys=True)
                 break
             except exceptions.ReadTimeout as e:
                 self.tcl.error('Error: {0!s}'.format(e))
@@ -499,7 +505,7 @@ class ThreatConnect:
         #
         return api_response
 
-    def api_response_handler(self, resource_obj, ro):
+    def api_response_handler(self, resource_obj, ro, api_entity=None):
         """ """
         #
         # initialize vars
@@ -634,10 +640,9 @@ class ThreatConnect:
                 # CUSTOM INDICATORS
                 #
                 elif ro.resource_type == ResourceType.CUSTOM_INDICATORS:
-                    # custom_type_name = {
-                    #     resource_obj.
-                    # }.get('type')
-                    data = api_response_dict['data'][resource_obj.type]
+                    # api_entity MUST be provided for Custom Indicators
+                    data = api_response_dict['data'][api_entity]
+                    # data = api_response_dict.get('data')
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:

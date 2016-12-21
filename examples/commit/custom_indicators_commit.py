@@ -1,15 +1,12 @@
 """ standard """
 from collections import OrderedDict
 import ConfigParser
-from datetime import datetime
 from random import randint
-import re
 import sys
 
 """ custom """
 from threatconnect import ThreatConnect
 from threatconnect.Config.IndicatorType import IndicatorType
-from threatconnect.IndicatorObjectTyped import CustomIndicatorField
 
 # configuration file
 config_file = "tc.conf"
@@ -54,24 +51,32 @@ def main():
 
     print "# of indicators retrieved: {}".format(len(resources))
 
-    resources.add_custom_type('Mutex', 'mutexes', 'mutex', field1='key1')
+    # resources.add_custom_type('Mutex', 'mutexes', 'mutex', field1='key1')
 
-    i_ordered_dict = OrderedDict()
-    i_ordered_dict['Fruit'] = 'fruit?'
+    fruit = OrderedDict()
+    fruit['size'] = 'large'
+    fruit['shape'] = 'triangluar'
+    resource = resources.add(fruit, owner=owner, type=IndicatorType.CUSTOM_INDICATORS, api_entity='fruit')
 
+    known_resource = resources.add('0.1.1.0', owner=owner, type=IndicatorType.ADDRESSES)
+    # known_resource2 = resources.add('0.2.2.0', owner=owner, type=IndicatorType.ADDRESSES)
 
-    known_resource = resources.add('1.0.0.1', owner=owner, type=IndicatorType.ADDRESSES)
-    resource = resources.add(i_ordered_dict, owner=owner, type=IndicatorType.CUSTOM_INDICATORS, api_branch='fruits')
-
+    fruit_without_order = dict()
+    fruit_without_order['size'] = 'petite'
+    fruit_without_order['shape'] = 'rotund'
+    resource_without_order = resources.add(fruit_without_order, owner=owner, type=IndicatorType.CUSTOM_INDICATORS, api_entity='fruit')
 
 
     # custom_indicators_commit
 
     try:
-        print('Adding known resource {0!s}.'.format(known_resource.indicator))
+        print('Adding known resources {0!s}.'.format(known_resource.indicator))
         known_resource.commit()
+        # known_resource2.commit()
         print('Adding resource {0!s}.'.format(resource.indicator))
         resource.commit()
+        print('Adding resource without order {0!s}.'.format(resource_without_order.indicator))
+        resource_without_order.commit()
     except RuntimeError as e:
         print('Error: {0!s}'.format(e))
         sys.exit(1)
@@ -85,6 +90,25 @@ def main():
     except RuntimeError as e:
         print('Error: {0!s}'.format(e))
         sys.exit(1)
+
+    # known_resource.associate_group(ResourceType.ADDRESSES, '0.2.2.0')
+    # known_resource.commit()
+    # known_resource.associate_group(ResourceType.CUSTOM_INDICATORS, resource._reference_indicator, api_entity='fruit')
+    # known_resource.commit()
+
+    # print known_resource.indicator_associations
+
+    try:
+        print('Deleting resource {0!s}.'.format(resource.indicator))
+        resource.delete()
+        print('Deleting known_resource {0!s}.'.format(resource.indicator))
+        known_resource.delete()
+        print('Deleting resource_without_order {0!s}.'.format(resource.indicator))
+        resource_without_order.delete()
+    except RuntimeError as e:
+        print('Error: {0!s}'.format(e))
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
