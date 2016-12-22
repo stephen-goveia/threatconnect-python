@@ -177,9 +177,7 @@ class CustomIndicatorObject(IndicatorObject):
         if not isinstance(data, OrderedDict):
             raise AttributeError("Custom Indicator must be an OrderedDict")
 
-        if resource_type == ResourceType.CUSTOM_INDICATORS:
-            self._custom_fields = uni(data)
-        # self._reference_indicator = urlsafe(self.indicator)
+        self._custom_fields = uni(data)
         self._reference_indicator = urlsafe(' : '.join(self._custom_fields.values()))
 
         # additional resource type specific attributes
@@ -192,11 +190,9 @@ class CustomIndicatorObject(IndicatorObject):
     @property
     def indicator(self):
         """
-        returns custom indicator as a map of 1-3 fields
+        returns custom indicator as an OrderedDict of 1-3 fields
         which when delimited represent the indicator
         """
-        # get first value (required) and check if there are others
-        # TODO: Do we not want the fields' names? This only gets the fields' values
 
         return self._custom_fields
 

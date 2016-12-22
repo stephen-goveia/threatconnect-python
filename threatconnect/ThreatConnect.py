@@ -52,7 +52,7 @@ from Resources.Documents import Documents
 from Resources.Emails import Emails
 from Resources.Groups import Groups
 from Resources.Incidents import Incidents
-from Resources.Indicators import Indicators, CustomIndicatorFilterObject
+from Resources.Indicators import Indicators
 from Resources.Owners import Owners
 from Resources.Tasks import Tasks
 from Resources.Threats import Threats
@@ -135,8 +135,6 @@ class ThreatConnect:
 
         # save custom types for later
         self._indicator_parser = IndicatorObjectParser(self)
-        # self._custom_indicator_types = self._get_custom_types_from_api()
-        # self._custom_indicator_types = None
 
         #
         # Memory Testing
@@ -146,47 +144,6 @@ class ThreatConnect:
         #
         # print ""
 
-    # def _get_custom_types_from_api(self):
-    #
-    #     types = {}
-    #
-    #
-    #     ro = RequestObject()
-    #     ro.set_http_method('GET')
-    #     ro.set_request_uri('/v2/types/indicatorTypes')
-    #     ro.set_owner_allowed(False)
-    #     ro.set_resource_pagination(True)
-    #     self._api_request_headers(ro)
-    #     api_resp = self.api_request(ro)
-    #     json = api_resp.json()
-    #     if json.get('data', None) is not None:
-    #         for indicator_type in json['data']['indicatorType']:
-    #             if indicator_type.get('custom', 'false') == 'true':
-    #                 types[indicator_type.get('name')] = indicator_type
-    #
-    #     # url = '{0!s}{1!s}'.format(self._api_url, 'v2/types/indicatorTypes')
-    #     # api_response = self._session.get(url, verify=self._verify_ssl, timeout=self._api_request_timeout,
-    #     #                                  proxies=self._proxies)
-    #     # type_json = api_response.json()
-    #     # if type_json.get('data', None) is not None:
-    #     #     for indicator_type in type_json['data']['indicatorType']:
-    #     #         if indicator_type.get('custom', 'false') == 'true':
-    #     #             types[indicator_type.get('name')] = indicator_type
-    #
-    #     return types
-    #
-    # @property
-    # def custom_indicator_types(self):
-    #     return self._custom_indicator_types
-    #
-    # def get_fields_for_custom_type(self, type):
-    #     field_labels = self.custom_indicator_types.get(type, None)
-    #     if field_labels is None:
-    #         return None
-    #
-    #     # max 3 custom fields at the moment, this may change; get names, then remove the Nones
-    #     field_names_with_Nones = [field_labels.get('value{0!s}Label'.format(i), None) for i in range(1, 4)]
-    #     return [field_name for field_name in field_names_with_Nones if field_name is not None]
 
     @property
     def indicator_parser(self):
@@ -396,8 +353,7 @@ class ThreatConnect:
                 api_response = self._session.send(
                     request_prepped, verify=self._verify_ssl, timeout=self._api_request_timeout,
                     proxies=self._proxies, stream=False)
-                print "API_RESPONSE:\n{}".format(api_response.json)
-                # print json.dumps(api_response.json(), indent=4, sort_keys=True)
+                print "API_RESPONSE: {}".format(api_response.status_code)
                 break
             except exceptions.ReadTimeout as e:
                 self.tcl.error('Error: {0!s}'.format(e))

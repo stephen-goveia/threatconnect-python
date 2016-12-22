@@ -8,11 +8,8 @@ from Config.ResourceType import ResourceType
 from ErrorCodes import ErrorCodes
 from SharedMethods import uni, urlsafe
 
-# from IndicatorObjectParser import parse_typed_indicator
-
 from FileOccurrenceObject import parse_file_occurrence
 from GroupObject import parse_group
-from IndicatorObject import IndicatorObject
 from ObservationObject import parse_observation
 from RequestObject import RequestObject
 from SecurityLabelObject import parse_security_label
@@ -25,6 +22,7 @@ from IndicatorObjectTyped import (AddressIndicatorObject,
                                   HostIndicatorObject,
                                   UrlIndicatorObject,)
 
+from IndicatorObject import IndicatorObject
 
 class IndicatorObjectAdvanced(AddressIndicatorObject,
                               CustomIndicatorObject,
@@ -35,7 +33,6 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
 
     def __init__(self, tc_obj, resource_container, resource_obj, api_entity=None):
         """ add methods to resource object """
-        # super(IndicatorObjectAdvanced, self).__init__()
         cls = {
             ResourceType.ADDRESSES: AddressIndicatorObject,
             ResourceType.CUSTOM_INDICATORS: CustomIndicatorObject,
@@ -55,7 +52,14 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
         if tc_obj is not None and resource_obj is not None and resource_container is not None:
             if resource_obj.resource_type == ResourceType.CUSTOM_INDICATORS:
                 custom_indicator_type = tc_obj.indicator_parser.get_custom_indicator_type_by_api_entity(api_entity)
+                if custom_indicator_type is None and resource_obj.type is not None:
+                    custom_indicator_type = tc_obj.indicator_parser.get_custom_indicator_type_by_name(resource_obj.type)
+
+                if custom_indicator_type is None:
+                    raise AttributeError(ErrorCodes.e010020.value(api_entity))
+
                 api_branch = custom_indicator_type.api_branch
+                api_entity = custom_indicator_type.api_entity
                 self.set_api_branch(api_branch)
                 self.set_api_entity(api_entity)
                 self._resource_properties = ApiProperties.get_custom_indicator_properties(api_entity, api_branch).get('properties')
@@ -104,8 +108,6 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
             self._structure['text'] = 'indicator'
         elif self._resource_type == ResourceType.CUSTOM_INDICATORS:
             self._structure['custom_fields'] = 'indicator'
-            # pass
-            # self._structure['fields'] = self._custom_fields
 
     def _create_basic_request_object(self, prop_type, *extra_uri_params):
         """

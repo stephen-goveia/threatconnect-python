@@ -30,7 +30,7 @@ class BulkIndicators(Resource):
     def _method_wrapper(self, resource_object):
         """ return resource object as new object with additional methods """
         # return IndicatorObjectAdvanced(self.tc, self, resource_object)
-        return self.tc.indicator_parser.construct_typed_advanced_indicator(self.tc, self, resource_object)
+        return self.tc.indicator_parser.construct_typed_advanced_indicator(self, resource_object)
 
 
     @property
@@ -49,14 +49,24 @@ class BulkIndicators(Resource):
 
         return request_object
 
+    def add_filter(self, resource_type=None, api_entity=None):
+        """ add filter to resource container specific to indicator """
+        filter_obj = self._filter_class(self.tc, api_entity=api_entity)
+
+        # append filter object
+        self._filter_objects.append(filter_obj)
+
+        return filter_obj
+
 
 class BulkIndicatorFilterObject(FilterObject):
     """ """
 
-    def __init__(self, tc_obj):
+    def __init__(self, tc_obj, api_entity=None):
         """ """
         super(BulkIndicatorFilterObject, self).__init__(tc_obj)
         self._owners = []
+        self._api_entity = api_entity
 
         self._resource_type = ResourceType.INDICATORS
         self._resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
@@ -70,6 +80,10 @@ class BulkIndicatorFilterObject(FilterObject):
                 self.add_post_filter_names(method_name)
                 method = getattr(IndicatorFilterMethods, method_name)
                 setattr(self, method_name, types.MethodType(method, self))
+
+    @property
+    def api_entity(self):
+        return self._api_entity
 
     @ property
     def default_request_object(self):

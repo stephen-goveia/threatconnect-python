@@ -1001,6 +1001,8 @@ class TaskObjectAdvanced(TaskObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
 
+        from GroupObject import parse_group
+
         for item in self._tc.result_pagination(ro, 'group'):
             yield parse_group(item, api_filter=ro.description, request_uri=ro.request_uri)
 

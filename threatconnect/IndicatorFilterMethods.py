@@ -52,7 +52,7 @@ def add_document_id(self, data_int):
     if not isinstance(data_int, int):
         raise AttributeError(ErrorCodes.e4020.value.format(data_int))
 
-    prop = self._resource_properties['indicator']
+    prop = self._resource_properties['groups']
     ro = RequestObject()
     ro.set_description('api filter by documents id {0}'.format(data_int))
     ro.set_http_method(prop['http_method'])

@@ -135,10 +135,12 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, re
     #
     # summmary means we got all indicators
     #
-    elif 'summary' in indicator_dict:
+    elif 'summary' in indicator_dict and indicator.indicator is None:
         indicator_val = indicator_dict.get('summary')
         resource_type = get_resource_type(indicators_regex, indicator_val)
         if indicator.resource_type == ResourceType.CUSTOM_INDICATORS:
+            indicator = CustomIndicatorObject().copy_slots(indicator)
+
             # summary comes in as a colon delimited string; we don't want that
             _type = indicator_dict.get('type', None)
             if _type is None or resource_obj is None:
@@ -148,6 +150,9 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, re
             if custom_indicator_type is None:
                 raise AttributeError("Type is not currently supported for Custom Indicator initialization: {}".format(_type))
 
+            indicator.set_api_entity(custom_indicator_type.api_entity)
+            indicator.set_api_branch(custom_indicator_type.api_branch)
+
             # get the type and field names, then check the dict for those names
             field_names = resource_obj.tc.indicator_parser.get_field_labels(custom_indicator_type)
             field_values = indicator_val.split(" : ")
@@ -156,8 +161,21 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, re
                 custom_fields[field_names[i]]=field_values[i]
                 # custom_field = CustomIndicatorField(field_names[i], value=field_values[i])
                 # indicator.add_custom_fields(custom_field)
+            indicator.set_custom_fields(custom_fields)
+            indicator.set_indicator(custom_fields)
         else:
             resource_type = indicator.resource_type
+            cls = {
+                ResourceType.ADDRESSES: AddressIndicatorObject,
+                ResourceType.CUSTOM_INDICATORS: CustomIndicatorObject,
+                ResourceType.EMAIL_ADDRESSES: EmailAddressIndicatorObject,
+                ResourceType.FILES: FileIndicatorObject,
+                ResourceType.HOSTS: HostIndicatorObject,
+                ResourceType.URLS: UrlIndicatorObject
+            }
+            typed_indicator = cls.get(resource_type)() if resource_type in cls else None
+            typed_indicator.copy_slots(indicator)
+            indicator = typed_indicator
             indicator.set_indicator(indicator_dict['summary'], resource_type)
 
     #
@@ -174,24 +192,16 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, re
         if custom_indicator_type is None:
             raise AttributeError("Type is not currently supported for Custom Indicator initialization: {}".format(_type))
 
+        indicator.set_api_entity(custom_indicator_type.api_entity)
+        indicator.set_api_branch(custom_indicator_type.api_branch)
         # get the type and field names, then check the dict for those names
         field_names = resource_obj.tc.indicator_parser.get_field_labels(custom_indicator_type)
         custom_fields = OrderedDict()
         for field_name in field_names:
             field_val = "{0!s}".format(indicator_dict.get(field_name)).strip()
-            custom_fields[field_name]=field_val
-            # custom_fields.append(CustomIndicatorField(field_name, value=field_val))
-            # indicator.add_custom_fields(custom_field)
+            custom_fields[field_name] = field_val
+        indicator.set_custom_fields(custom_fields)
         indicator.set_indicator(custom_fields)
-
-        # field_labels = tc_obj.custom_indicator_types.get(_type)
-        # for i in range(1, 4):
-        #     field_name = field_labels.get('value{0!s}Label'.format(i), None)
-        #     if field_name is not None:
-        #         # the field name must exist in indicator_dict if it exists in custom_indicator_types's dict
-        #         field_val = "{0!s}".format(indicator_dict.get(field_name)).strip()
-        #         fields[field_name] = field_val
-
 
 
     #

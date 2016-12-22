@@ -9,12 +9,9 @@ except ImportError:
 
 """ custom """
 from AttributeObject import parse_attribute, AttributeObject
-# import IndicatorObject  #Causes circular import
 from SecurityLabelObject import parse_security_label
 from TagObject import parse_tag
-# from IndicatorObjectTyped import parse_typed_indicator
-# from IndicatorObjectParser import parse_typed_indicator
-import VictimObject
+# from threatconnect import VictimObject
 
 import ApiProperties
 from Config.ResourceType import ResourceType
@@ -1376,6 +1373,8 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_request_uri(prop['uri'].format(self._id))
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
+
+        from threatconnect import VictimObject
 
         for item in self._tc.result_pagination(ro, 'victim'):
             yield VictimObject.parse_victim(item, api_filter=ro.description, request_uri=ro.request_uri)

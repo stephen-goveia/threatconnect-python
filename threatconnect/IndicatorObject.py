@@ -13,53 +13,6 @@ from SharedMethods import uni, urlsafe
 from collections import OrderedDict
 
 
-# def load_data(target_obj, resource_obj):
-#     """ load data from resource object to self """
-#     for key in resource_obj.__slots__:
-#         setattr(target_obj, key, getattr(resource_obj, key))
-#
-#     return target_obj
-
-
-# def parse_base_indicator(indicator_dict, indicators_regex=None):
-#     """ """
-#     # indicator object
-#     indicator = IndicatorObject()
-#
-#
-#     #
-#     # standard values
-#     #
-#     indicator.set_date_added(indicator_dict['dateAdded'])
-#     indicator.set_id(indicator_dict['id'])
-#     indicator.set_last_modified(indicator_dict['lastModified'])
-#     indicator.set_weblink(indicator_dict['webLink'])
-#
-#     #
-#     # optional values
-#     #
-#     if 'type' in indicator_dict:
-#         indicator.set_type(indicator_dict['type'])  # set type before indicator
-#
-#     if 'confidence' in indicator_dict:
-#         indicator.set_confidence(indicator_dict['confidence'], update=False)
-#     if 'description' in indicator_dict:
-#         indicator.set_description(indicator_dict['description'], update=False)
-#     if 'owner' in indicator_dict:  # nested owner for single indicator result
-#         indicator.set_owner_name(indicator_dict['owner']['name'])
-#     if 'ownerName' in indicator_dict:
-#         indicator.set_owner_name(indicator_dict['ownerName'])
-#     if 'rating' in indicator_dict:
-#         indicator.set_rating(indicator_dict['rating'], update=False)
-#
-#     if 'threatAssessConfidence' in indicator_dict:
-#         indicator.set_threat_assess_confidence(indicator_dict['threatAssessConfidence'])
-#     if 'threatAssessRating' in indicator_dict:
-#         indicator.set_threat_assess_rating(indicator_dict['threatAssessRating'])
-#
-#     return indicator
-
-
 class IndicatorObject(object):
     __slots__ = (
         '_api_branch',  # TODO: Make all indicator types use this
@@ -106,8 +59,6 @@ class IndicatorObject(object):
     )
 
     def __init__(self, resource_type_enum=None):
-        # Note: this affects child classes as if they are self!
-        # e.g the slots in IndicatorObject will not be affected if IndicatorObjectAdvanced.__init__() is invoked
         self._attributes = []
         self._address = None  # email indicator type specific
         self._api_branch = None
@@ -375,157 +326,10 @@ class IndicatorObject(object):
     def indicator(self):
         """ """
         return self._reference_indicator
-        # pass
-        # if self._resource_type == ResourceType.ADDRESSES:
-        #     return self._ip
-        # elif self._resource_type == ResourceType.EMAIL_ADDRESSES:
-        #     return self._address
-        # elif self._resource_type == ResourceType.FILES:
-        #     return {
-        #         'md5': self._md5,
-        #         'sha1': self._sha1,
-        #         'sha256': self._sha256,
-        #     }
-        # elif self._resource_type == ResourceType.HOSTS:
-        #     return self._hostname
-        # elif self._resource_type == ResourceType.URLS:
-        #     return self._text
-        # elif self._resource_type == ResourceType.CUSTOM_INDICATORS:
-        #     return self._custom_fields
-        # else:
-        #     raise AttributeError(ErrorCodes.e10030.value)
 
     def set_indicator(self, data, resource_type=None, update=True):
         """Read-Write indicator metadata"""
-        if resource_type is not None:
-            self._resource_type = resource_type
-
-        # if get_resource_type return None error.
-        if not isinstance(self._resource_type, ResourceType):
-            raise AttributeError(ErrorCodes.e10030.value)
-
-        #
-        # address
-        #
-        if self._resource_type == ResourceType.ADDRESSES:
-            self._ip = uni(data)
-            self._reference_indicator = urlsafe(self._ip)
-
-            # additional resource type specific attributes
-            self._properties['_ip'] = {
-                'api_field': 'ip',
-                'method': 'set_indicator',
-                'required': True,
-            }
-
-        #
-        # email_address
-        #
-        if self._resource_type == ResourceType.EMAIL_ADDRESSES:
-            self._address = uni(data)
-            self._reference_indicator = urlsafe(self._address)
-
-            # additional resource type specific attributes
-            self._properties['_address'] = {
-                'api_field': 'address',
-                'method': 'set_indicator',
-                'required': True,
-            }
-
-        #
-        # files
-        #
-        if self._resource_type == ResourceType.FILES:
-            # handle different hash type
-            hash_type = get_hash_type(data)
-            if hash_type == 'MD5':
-                self._md5 = data
-                if self._reference_indicator is None:  # reference indicator for attr, tag, etc adds
-                    self._reference_indicator = urlsafe(self._md5)
-            elif hash_type == 'SHA1':
-                self._sha1 = data
-                if self._reference_indicator is None:  # reference indicator for attr, tag, etc adds
-                    self._reference_indicator = urlsafe(self._sha1)
-            elif hash_type == 'SHA256':
-                self._sha256 = data
-                if self._reference_indicator is None:  # reference indicator for attr, tag, etc adds
-                    self._reference_indicator = urlsafe(self._sha256)
-
-            self._properties['_md5'] = {
-                'api_field': 'md5',
-                'method': 'set_indicator',
-                'required': True,
-            }
-            self._properties['_sha1'] = {
-                'api_field': 'sha1',
-                'method': 'set_indicator',
-                'required': True,
-            }
-            self._properties['_sha256'] = {
-                'api_field': 'sha256',
-                'method': 'set_indicator',
-                'required': True,
-            }
-            self._properties['_size'] = {
-                'api_field': 'size',
-                'method': 'set_size',
-                'required': False,
-            }
-
-            if update and self._phase == 0:
-                self._phase = 2
-
-        #
-        # hosts
-        #
-        if self._resource_type == ResourceType.HOSTS:
-            self._hostname = uni(data)
-            self._reference_indicator = urlsafe(self._hostname)
-
-            # additional resource type specific attributes
-            self._properties['_hostname'] = {
-                'api_field': 'hostName',
-                'method': 'set_indicator',
-                'required': True,
-            }
-            self._properties['_dns_active'] = {
-                'api_field': 'dnsActive',
-                'method': 'set_dns_active',
-                'required': False,
-            }
-            self._properties['_whois_active'] = {
-                'api_field': 'whoisActive',
-                'method': 'set_whois_active',
-                'required': False,
-            }
-
-        #
-        # urls
-        #
-        if self._resource_type == ResourceType.URLS:
-            self._text = uni(data)
-            self._reference_indicator = urlsafe(self._text)
-
-            # additional resource type specific attributes
-            self._properties['_text'] = {
-                'api_field': 'text',
-                'method': 'set_indicator',
-                'required': True,
-            }
-
-        #
-        # custom
-        #
-        if self._resource_type == ResourceType.CUSTOM_INDICATORS:
-            self._reference_indicator = urlsafe(data)
-            print data
-            raise AttributeError()
-            # self._custom_fields = uni(data)
-            # if isinstance(data, OrderedDict):
-            #     self._custom_fields = uni(data)
-            # else:
-            #     raise AttributeError(ErrorCodes.e10100.value)
-
+        pass
 
     #
     # last_modified
