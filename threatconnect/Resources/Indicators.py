@@ -57,7 +57,6 @@ class Indicators(Resource):
 
     def add(self, indicator, owner=None, type=None, api_entity=None):
         """ add indicator to resource container """
-        print 'IN ADD'
 
         if type is not None:
             if isinstance(type, IndicatorType):
@@ -79,9 +78,6 @@ class Indicators(Resource):
                 resource_obj.set_indicator(indicator, ResourceType(type.value), False)
                 resource_obj.set_owner_name(owner)
                 resource_obj.set_phase(1)  # set resource api phase (1 = add)
-
-                print 'resource_obj: {}'.format(resource_obj)
-                print 'class: {}'.format(resource_obj.__class__)
 
                 return self._method_wrapper(resource_obj)
 
