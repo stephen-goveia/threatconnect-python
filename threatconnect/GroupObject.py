@@ -11,7 +11,6 @@ except ImportError:
 from AttributeObject import parse_attribute, AttributeObject
 from SecurityLabelObject import parse_security_label
 from TagObject import parse_tag
-# from threatconnect import VictimObject
 
 import ApiProperties
 from Config.ResourceType import ResourceType
@@ -921,7 +920,7 @@ class GroupObjectAdvanced(GroupObject):
     #         indicator, self._name))
     #     ro.set_http_method(prop['http_method'])
     #     ro.set_owner_allowed(prop['owner_allowed'])
-    #     ro.set_resource_pagination(prop['pagination'])
+    #     ro.st_resource_pagination(prop['pagination'])
     #     custom_type = self._tc.indicator_parser.get_custom_indicator_type_by_api_entity(api_entity)
     #     ro.set_request_uri(prop['uri'].format(custom_type.api_branch, indicator._reference_indicator, self.id))
     #     ro.set_resource_type(self._resource_type)

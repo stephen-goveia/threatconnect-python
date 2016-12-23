@@ -1,7 +1,5 @@
 """ ApiProperties """
 
-#groups/incidents/{id}/indicators/{type}
-
 #
 # g_properties
 #
