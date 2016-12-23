@@ -1,7 +1,11 @@
 # Release Notes
 
+## 2.4.9
+* Custom Indicator support
+* Python 3.x compatibility
+
 ## 2.4.8
-* update for file occurence
+* update for file occurrence
 
 ## 2.4.7
 added API logging
