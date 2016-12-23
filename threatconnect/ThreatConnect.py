@@ -590,7 +590,6 @@ class ThreatConnect:
                 elif ro.resource_type == ResourceType.CUSTOM_INDICATORS:
                     # api_entity MUST be provided for Custom Indicators
                     data = api_response_dict['data'][api_entity]
-                    # data = api_response_dict.get('data')
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
