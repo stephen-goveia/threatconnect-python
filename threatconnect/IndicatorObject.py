@@ -1,190 +1,27 @@
 """ standard """
-import csv
-import json
-import urllib
 try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
 
 """ custom """
-from VictimObject import parse_victim
-from AttributeObject import parse_attribute, AttributeObject
-from FileOccurrenceObject import parse_file_occurrence
-import GroupObject
-from SecurityLabelObject import parse_security_label
-from TagObject import parse_tag
-from ObservationObject import parse_observation
 
-
-import ApiProperties
 from Config.ResourceType import ResourceType
 from ErrorCodes import ErrorCodes
-
-from RequestObject import RequestObject
-from SharedMethods import get_resource_type, get_hash_type, get_resource_indicator_type
-
-
-def parse_indicator(indicator_dict, resource_obj=None, api_filter=None, request_uri=None, indicators_regex=None):
-    """ """
-    # indicator object
-    indicator = IndicatorObject()
-
-    #
-    # standard values
-    #
-    indicator.set_date_added(indicator_dict['dateAdded'])
-    indicator.set_id(indicator_dict['id'])
-    indicator.set_last_modified(indicator_dict['lastModified'])
-    indicator.set_weblink(indicator_dict['webLink'])
-
-    #
-    # optional values
-    #
-    if 'type' in indicator_dict:
-        indicator.set_type(indicator_dict['type'])  # set type before indicator
-
-    if 'confidence' in indicator_dict:
-        indicator.set_confidence(indicator_dict['confidence'], update=False)
-    if 'description' in indicator_dict:
-        indicator.set_description(indicator_dict['description'], update=False)
-    if 'owner' in indicator_dict:  # nested owner for single indicator result
-        indicator.set_owner_name(indicator_dict['owner']['name'])
-    if 'ownerName' in indicator_dict:
-        indicator.set_owner_name(indicator_dict['ownerName'])
-    if 'rating' in indicator_dict:
-        indicator.set_rating(indicator_dict['rating'], update=False)
-    if 'summary' in indicator_dict:
-        resource_type = get_resource_type(indicators_regex, indicator_dict['summary'])
-        indicator.set_indicator(indicator_dict['summary'], resource_type)
-    if 'threatAssessConfidence' in indicator_dict:
-        indicator.set_threat_assess_confidence(indicator_dict['threatAssessConfidence'])
-    if 'threatAssessRating' in indicator_dict:
-        indicator.set_threat_assess_rating(indicator_dict['threatAssessRating'])
-
-    #
-    # address
-    #
-    if 'ip' in indicator_dict:
-        indicator.set_indicator(indicator_dict['ip'], ResourceType.ADDRESSES)
-        if indicator.type is None:
-            indicator.set_type('Address')  # set type before indicator
-
-    #
-    # email address
-    #
-    if 'address' in indicator_dict:
-        indicator.set_indicator(indicator_dict['address'], ResourceType.EMAIL_ADDRESSES)
-        if indicator.type is None:
-            indicator.set_type('EmailAddress')  # set type before indicator
-
-    #
-    # files
-    #
-    if 'md5' in indicator_dict:
-        indicator.set_indicator(indicator_dict['md5'], ResourceType.FILES)
-        if indicator.type is None:
-            indicator.set_type('File')  # set type before indicator
-
-    if 'sha1' in indicator_dict:
-        indicator.set_indicator(indicator_dict['sha1'], ResourceType.FILES)
-        if indicator.type is None:
-            indicator.set_type('File')  # set type before indicator
-
-    if 'sha256' in indicator_dict:
-        indicator.set_indicator(indicator_dict['sha256'], ResourceType.FILES)
-        if indicator.type is None:
-            indicator.set_type('File')  # set type before indicator
-
-    if 'size' in indicator_dict:
-        indicator.set_size(indicator_dict['size'], update=False)
-
-    #
-    # hosts
-    #
-    if 'hostName' in indicator_dict:
-        indicator.set_indicator(indicator_dict['hostName'], ResourceType.HOSTS)
-        if indicator.type is None:
-            indicator.set_type('Host')  # set type before indicator
-
-    if 'dnsActive' in indicator_dict:
-        indicator.set_dns_active(indicator_dict['dnsActive'], update=False)
-
-    if 'whoisActive' in indicator_dict:
-        indicator.set_whois_active(indicator_dict['whoisActive'], update=False)
-
-    #
-    # urls
-    #
-    if 'text' in indicator_dict:
-        indicator.set_indicator(indicator_dict['text'], ResourceType.URLS)
-        if indicator.type is None:
-            indicator.set_type('URL')  # set type before indicator
-
-    if 'source' in indicator_dict:
-        indicator.set_source(indicator_dict['source'], update=False)
-
-    #
-    # attributes
-    #
-    if 'attribute' in indicator_dict:
-        for attribute_dict in indicator_dict['attribute']:
-            attribute = parse_attribute(attribute_dict, indicator)
-            indicator.add_attribute(attribute)
-
-    #
-    # tag
-    #
-    if 'tag' in indicator_dict:
-        for tag_dict in indicator_dict['tag']:
-            tag = parse_tag(tag_dict)
-            indicator.add_tag(tag)
-
-    #
-    # observations
-    #
-    if 'observationCount' in indicator_dict:
-        indicator.set_observation_count(indicator_dict['observationCount'])
-
-    if 'lastObserved' in indicator_dict:
-        indicator.set_last_observed(indicator_dict['last_observed'])
-
-
-    #
-    # handle both resource containers and individual objects
-    #
-    if resource_obj is not None:
-        # store the resource object in the master resource object list
-        # must be submitted after parameters are set for indexing to work
-        roi = resource_obj.add_master_resource_obj(indicator, indicator_dict['id'])
-
-        # BCS - This causes a bug on searching for a single indicator over multiple
-        #       owners, only 1 indicator is returned.
-        # roi = resource_obj.add_master_resource_obj(indicator, indicator.indicator)
-
-        # retrieve the resource object and update data
-        return resource_obj.get_resource_by_identity(roi)
-
-    #
-    # filter (set after retrieving stored object)
-    #
-    if api_filter is not None:
-        indicator.add_matched_filter(api_filter)
-
-    #
-    # request_uri (set after retrieving stored object)
-    #
-    if request_uri is not None:
-        indicator.add_request_uri(request_uri)
-
-    return indicator
+from SharedMethods import get_hash_type, get_resource_indicator_type, i_type_to_r_type
+from SharedMethods import uni, urlsafe
+from collections import OrderedDict
 
 
 class IndicatorObject(object):
     __slots__ = (
+        '_api_branch',  # TODO: Make all indicator types use this
+        '_api_entity',  # TODO: Make all indicator types use this
         '_address',  # email address specific indicator
         '_attributes',
         '_confidence',
+        '_custom_fields',   # custom indicator type specific
+        '_custom_type',     # custom indicator type specific
         '_date_added',
         '_description',
         '_dns_active',  # host indicator type specific
@@ -198,6 +35,7 @@ class IndicatorObject(object):
         '_last_observed',   # most recent observation date
         '_matched_filters',
         '_md5',  # file specific indicator
+        '_name',    # custom indicator type specific
         '_observation_count',   # most recent observation count
         '_owner_name',
         '_phase',  # 0 - new; 1 - add; 2 - update
@@ -223,7 +61,11 @@ class IndicatorObject(object):
     def __init__(self, resource_type_enum=None):
         self._attributes = []
         self._address = None  # email indicator type specific
+        self._api_branch = None
+        self._api_entity = None
         self._confidence = None
+        self._custom_fields = {}  # custom indicator type specific
+        self._custom_type = None
         self._date_added = None
         self._description = None
         self._dns_active = None  # host indicator type specific
@@ -238,6 +80,7 @@ class IndicatorObject(object):
         self._last_observed = None
         self._matched_filters = []
         self._md5 = None  # file indicator type specific
+        self._name = None
         self._observation_count = None
         self._owner_name = None
         self._phase = 0
@@ -257,7 +100,12 @@ class IndicatorObject(object):
         self._rating = None
         self._reference_indicator = None
         self._request_uris = []
-        self._resource_type = resource_type_enum
+        # this is ugly and will probably break
+        if resource_type_enum is not None:
+            for i_type, r_type in i_type_to_r_type.iteritems():
+                if r_type == resource_type_enum:
+                    self.set_type(i_type)
+
         self._security_label = None
         self._sha1 = None  # file indicator type specific
         self._sha256 = None  # file indicator type specific
@@ -270,35 +118,54 @@ class IndicatorObject(object):
         self._weblink = None
         self._whois_active = None  # host indicator type specific
 
-    #
-    # unicode
-    #
-    @staticmethod
-    def _uni(data):
-        """ """
-        if data is None or isinstance(data, (int, list, dict)):
-            return data
-        elif isinstance(data, unicode):
-            return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
-        elif not isinstance(data, unicode):
-            return unicode(data, 'utf-8', errors='ignore')
-        else:
-            return data
+    def _reinit_lists(self):
+        """
+        convenience method to reinitialize lists as... lists;
+        if you add a list field to IndicatorObject, add it here too
+        """
+        lists = [
+            '_attributes',
+            '_file_occurrences',
+            '_dns_resolutions',
+            '_matched_filters',
+            '_request_uris',
+            '_tags',
+        ]
+        for _list in lists:
+            if getattr(self, _list, None):
+                setattr(self, _list, [])
 
-    #
-    # urlsafe
-    #
-    @staticmethod
-    def _urlsafe(data):
-        """ url encode value for safe request """
-        return urllib.quote(data, safe='~')
+    def copy_slots(self, obj_from):
+        for slot in IndicatorObject.__slots__:
+            setattr(self, slot, getattr(obj_from, slot, None))
+        self._reinit_lists()
+        return self
 
     """ shared indicator methods """
 
     #
+    # api_branch
+    #
+    def set_api_branch(self, api_branch):
+        self._api_branch = api_branch
+
+    @property
+    def api_branch(self):
+        return self._api_branch
+
+    #
+    # api_entity
+    #
+    @property
+    def api_entity(self):
+        return self._api_entity
+
+    def set_api_entity(self, api_entity):
+        self._api_entity = api_entity
+
+    #
     # confidence
     #
-
     @property
     def confidence(self):
         """ """
@@ -316,6 +183,37 @@ class IndicatorObject(object):
 
         if update and self._phase == 0:
             self._phase = 2
+
+    #
+    # custom_fields
+    #
+    @property
+    def custom_fields(self):
+        return self._custom_fields
+
+    def set_custom_fields(self, data):
+        if self.resource_type == ResourceType.CUSTOM_INDICATORS:
+            # data = data if isinstance(data, list) else [data]
+            if isinstance(self._custom_fields, OrderedDict):
+                self._custom_fields = uni(data)
+        else:
+            raise AttributeError(ErrorCodes.e10100.value)
+
+    # def add_custom_fields(self, fields):
+    #     if isinstance(fields, list):
+    #         self._custom_fields.extend(fields)
+    #     else:
+    #         self._custom_fields.append(fields)
+
+    @property
+    def custom_type(self):
+        return self._custom_type
+
+    def set_custom_type(self, data):
+        if self.resource_type == ResourceType.CUSTOM_INDICATORS:
+            self._custom_type = uni(data)
+        else:
+            raise AttributeError(ErrorCodes.e10100.value)
 
     #
     # date_added
@@ -339,7 +237,7 @@ class IndicatorObject(object):
 
     def set_description(self, data, update=True):
         """Read-Write indicator metadata"""
-        self._description = self._uni(data)
+        self._description = uni(data)
 
         if update and self._phase == 0:
             self._phase = 2
@@ -358,7 +256,7 @@ class IndicatorObject(object):
     def set_dns_active(self, data, update=True):
         """ """
         if self._resource_type == ResourceType.HOSTS:
-            self._dns_active = self._uni(data)
+            self._dns_active = uni(data)
         else:
             raise AttributeError(ErrorCodes.e10100.value)
 
@@ -378,6 +276,7 @@ class IndicatorObject(object):
 
     def add_dns_resolution(self, data_obj):
         """Read-Only indicator metadata"""
+        self._dns_resolutions = self._dns_resolutions if self._dns_resolutions is not None else []
         if self._resource_type == ResourceType.HOSTS:
             if isinstance(data_obj, list):
                 self._dns_resolutions.extend(data_obj)
@@ -426,140 +325,11 @@ class IndicatorObject(object):
     @property
     def indicator(self):
         """ """
-        if self._resource_type == ResourceType.ADDRESSES:
-            return self._ip
-        elif self._resource_type == ResourceType.EMAIL_ADDRESSES:
-            return self._address
-        elif self._resource_type == ResourceType.FILES:
-            return {
-                'md5': self._md5,
-                'sha1': self._sha1,
-                'sha256': self._sha256,
-            }
-        elif self._resource_type == ResourceType.HOSTS:
-            return self._hostname
-        elif self._resource_type == ResourceType.URLS:
-            return self._text
-        else:
-            raise AttributeError(ErrorCodes.e10030.value)
+        return self._reference_indicator
 
-    def set_indicator(self, data, resource_type, update=True):
+    def set_indicator(self, data, resource_type=None, update=True):
         """Read-Write indicator metadata"""
-        if self._resource_type is None:
-            self._resource_type = resource_type
-
-        # if get_resource_type return None error.
-        if not isinstance(self._resource_type, ResourceType):
-            raise AttributeError(ErrorCodes.e10030.value)
-
-        #
-        # address
-        #
-        if self._resource_type == ResourceType.ADDRESSES:
-            self._ip = self._uni(data)
-            self._reference_indicator = self._urlsafe(self._ip)
-
-            # additional resource type specific attributes
-            self._properties['_ip'] = {
-                'api_field': 'ip',
-                'method': 'set_indicator',
-                'required': True,
-            }
-
-        #
-        # email_address
-        #
-        if self._resource_type == ResourceType.EMAIL_ADDRESSES:
-            self._address = self._uni(data)
-            self._reference_indicator = self._urlsafe(self._address)
-
-            # additional resource type specific attributes
-            self._properties['_address'] = {
-                'api_field': 'address',
-                'method': 'set_indicator',
-                'required': True,
-            }
-
-        #
-        # files
-        #
-        if self._resource_type == ResourceType.FILES:
-            # handle different hash type
-            hash_type = get_hash_type(data)
-            if hash_type == 'MD5':
-                self._md5 = data
-                if self._reference_indicator is None:  # reference indicator for attr, tag, etc adds
-                    self._reference_indicator = self._urlsafe(self._md5)
-            elif hash_type == 'SHA1':
-                self._sha1 = data
-                if self._reference_indicator is None:  # reference indicator for attr, tag, etc adds
-                    self._reference_indicator = self._urlsafe(self._sha1)
-            elif hash_type == 'SHA256':
-                self._sha256 = data
-                if self._reference_indicator is None:  # reference indicator for attr, tag, etc adds
-                    self._reference_indicator = self._urlsafe(self._sha256)
-
-            self._properties['_md5'] = {
-                'api_field': 'md5',
-                'method': 'set_indicator',
-                'required': True,
-            }
-            self._properties['_sha1'] = {
-                'api_field': 'sha1',
-                'method': 'set_indicator',
-                'required': True,
-            }
-            self._properties['_sha256'] = {
-                'api_field': 'sha256',
-                'method': 'set_indicator',
-                'required': True,
-            }
-            self._properties['_size'] = {
-                'api_field': 'size',
-                'method': 'set_size',
-                'required': False,
-            }
-
-            if update and self._phase == 0:
-                self._phase = 2
-
-        #
-        # hosts
-        #
-        if self._resource_type == ResourceType.HOSTS:
-            self._hostname = self._uni(data)
-            self._reference_indicator = self._urlsafe(self._hostname)
-
-            # additional resource type specific attributes
-            self._properties['_hostname'] = {
-                'api_field': 'hostName',
-                'method': 'set_indicator',
-                'required': True,
-            }
-            self._properties['_dns_active'] = {
-                'api_field': 'dnsActive',
-                'method': 'set_dns_active',
-                'required': False,
-            }
-            self._properties['_whois_active'] = {
-                'api_field': 'whoisActive',
-                'method': 'set_whois_active',
-                'required': False,
-            }
-
-        #
-        # urls
-        #
-        if self._resource_type == ResourceType.URLS:
-            self._text = self._uni(data)
-            self._reference_indicator = self._urlsafe(self._text)
-
-            # additional resource type specific attributes
-            self._properties['_text'] = {
-                'api_field': 'text',
-                'method': 'set_indicator',
-                'required': True,
-            }
+        pass
 
     #
     # last_modified
@@ -587,6 +357,17 @@ class IndicatorObject(object):
 
 
     #
+    # name
+    #
+    @property
+    def name(self):
+        return self._name
+
+    def set_name(self, name):
+        self._name = uni(name)
+
+
+    #
     # observation_count
     #
 
@@ -609,7 +390,7 @@ class IndicatorObject(object):
 
     def set_owner_name(self, data):
         """Read-Only indicator metadata"""
-        self._owner_name = self._uni(data)
+        self._owner_name = uni(data)
 
     #
     # matched filters
@@ -654,7 +435,7 @@ class IndicatorObject(object):
     def set_size(self, data, update=True):
         """ """
         if self._resource_type == ResourceType.FILES:
-            self._size = self._uni(str(data))
+            self._size = uni(str(data))
         else:
             raise AttributeError(ErrorCodes.e10130.value)
 
@@ -671,7 +452,7 @@ class IndicatorObject(object):
 
     def set_source(self, data, update=True):
         """ """
-        self._source = self._uni(data)
+        self._source = uni(data)
 
         if update and self._phase == 0:
             self._phase = 2
@@ -710,7 +491,7 @@ class IndicatorObject(object):
 
     def set_type(self, data):
         """ """
-        self._type = self._uni(data)
+        self._type = uni(data)
         self._resource_type = get_resource_indicator_type(self._type)
 
     #
@@ -723,7 +504,7 @@ class IndicatorObject(object):
 
     def set_weblink(self, data):
         """ """
-        self._weblink = self._uni(data)
+        self._weblink = uni(data)
 
     #
     # whois_active (host indicator type specific)
@@ -739,7 +520,7 @@ class IndicatorObject(object):
     def set_whois_active(self, data, update=True):
         """ """
         if self._resource_type == ResourceType.HOSTS:
-            self._whois_active = self._uni(data)
+            self._whois_active = uni(data)
         else:
             raise AttributeError(ErrorCodes.e10140.value)
 
@@ -829,9 +610,9 @@ class IndicatorObject(object):
         """ """
         return self._resource_type
 
-    # def set_resource_type(self, data):
-    #     """ """
-    #     self._resource_type = data
+    def _set_resource_type(self, data):
+        """ """
+        self._resource_type = data
 
     #
     # validate
@@ -867,13 +648,18 @@ class IndicatorObject(object):
         #
         printable_string += '{0!s:40}\n'.format('Retrievable Methods')
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('id', self.id))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('api_branch', self.api_branch))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('api_entity', self.api_entity))
         if isinstance(self.indicator, dict):
             printable_string += ('  {0!s:<28} {1!s:<50}\n'.format('indicator', ''))
-            printable_string += ('   {0!s:<10}: {1!s:<70}\n'.format('md5', self.indicator['md5']))
-            printable_string += ('   {0!s:<10}: {1!s:<70}\n'.format('sha1', self.indicator['sha1']))
-            printable_string += ('   {0!s:<10}: {1!s:<70}\n'.format('sha256', self.indicator['sha256']))
+            for key in self.indicator:
+                printable_string += ('   {0!s:<10}: {1!s:<70}\n'.format(key, self.indicator[key]))
         else:
             printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('indicator', self.indicator))
+        if self.custom_fields:
+            printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('custom_fields', self.custom_fields))
+            # for key in self.custom_fields:
+            #     printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format(key, self.custom_fields.get(key)))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('resource_type', self.resource_type))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('owner_name', self.owner_name))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('date_added', self.date_added))
@@ -919,694 +705,3 @@ class IndicatorObject(object):
                 printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('', item))
 
         return printable_string
-
-
-class IndicatorObjectAdvanced(IndicatorObject):
-    """ Temporary Object with extended functionality. """
-    __slots__ = (
-        '_resource_container',
-        '_resource_obj',
-        '_resource_properties',
-        '_basic_structure',
-        '_structure',
-        '_tc',
-    )
-
-    def __init__(self, tc_obj, resource_container, resource_obj):
-        """ add methods to resource object """
-        super(IndicatorObject, self).__init__()
-
-        # dynamically set resource properties to the appropriate dictionary in ApiProperties
-        self._resource_properties = ApiProperties.api_properties[resource_obj.resource_type.name]['properties']
-
-        self._resource_container = resource_container
-        self._resource_obj = resource_obj
-        self._basic_structure = {
-            'confidence': 'confidence',
-            'dateAdded': 'date_added',
-            'description': 'description',
-            'id': 'id',
-            'indicator': 'indicator',
-            'lastModified': 'last_modified',
-            'ownerName': 'owner_name',
-            'rating': 'rating',
-            'type': 'type',
-            'weblink': 'weblink',
-        }
-        self._structure = self._basic_structure.copy()
-        del self._structure['indicator']  # clear up generic indicator name
-        self._tc = tc_obj
-
-        # load data from resource_obj
-        self.load_data(self._resource_obj)
-
-        #
-        # indicator structure
-        #
-        if self._resource_type == ResourceType.ADDRESSES:
-            self._structure['ip'] = 'indicator'
-        elif self._resource_type == ResourceType.EMAIL_ADDRESSES:
-            self._structure['address'] = 'indicator'
-        elif self._resource_type == ResourceType.FILES:
-            self._structure['md5'] = 'indicator'
-            self._structure['sha1'] = 'indicator'
-            self._structure['sha256'] = 'indicator'
-            self._structure['size'] = 'size'
-        elif self._resource_type == ResourceType.HOSTS:
-            self._structure['dnsActive'] = 'dns_active'
-            self._structure['hostName'] = 'indicator'
-            self._structure['whoisActive'] = 'whois_active'
-        elif self._resource_type == ResourceType.URLS:
-            self._structure['source'] = 'source'
-            self._structure['text'] = 'indicator'
-
-    def _create_basic_request_object(self, prop_type, *extra_uri_params):
-        """
-        Creates a RequestObject and populates it based on prop_type.
-        extra_uri_params are anything other than self._reference_indicator
-        that are needed to create the uri endpoint string,
-        thus they must be in the correct order. See ApiProperties.py
-        """
-        prop = self._resource_properties[prop_type]
-        ro = RequestObject()
-        ro.set_http_method(prop['http_method'])
-        ro.set_owner_allowed(prop['owner_allowed'])
-        ro.set_request_uri(prop['uri'].format(self._reference_indicator, *extra_uri_params))
-        ro.set_resource_pagination(prop['pagination'])
-        ro.set_resource_type(self._resource_type)
-        return ro
-
-    def add_attribute(self, attr_type, attr_value, attr_displayed='true'):
-        """ add an attribute to an indicator """
-        attr_type = self._uni(attr_type)
-        attr_value = self._uni(attr_value)
-
-        ro = self._create_basic_request_object('attribute_add')
-
-        ro.set_body(json.dumps({
-            'type': attr_type,
-            'value': attr_value,
-            'displayed': attr_displayed}))
-        try:
-            ro.set_description('add attribute type "{0}" with value "{1}" to {2}'.format(
-                attr_type,
-                attr_value.encode('ascii', 'ignore'),
-                self._reference_indicator.encode('utf-8', 'ignore')))
-        except:
-            ro.set_description('add attribute type "{0}" with value "unencodable" to {1}'.format(
-                attr_type,
-                self._reference_indicator.encode('utf-8', 'ignore')))
-
-        callback = lambda status: self.__add_attribute_failure(attr_type, attr_value)
-        ro.set_failure_callback(callback)
-        self._resource_container.add_commit_queue(self.id, ro)
-        attribute = AttributeObject(self)
-        attribute.set_type(attr_type)
-        attribute.set_value(attr_value)
-        attribute.set_displayed(attr_displayed)
-        self._resource_obj.add_attribute(attribute)
-
-    def __add_attribute_failure(self, attr_type, attr_value):
-        for attribute in self._attributes:
-            if attribute.type == attr_type and attribute.value == attr_value:
-                self._attributes.remove(attribute)
-                break
-
-    def add_false_positive(self):
-        """ mark an indicator as a false positive"""
-        ro = self._create_basic_request_object('false_positive_add')
-
-        ro.set_description('Adding false positive to {}'.format(self._reference_indicator))
-        self._resource_container.add_commit_queue(self.id, ro)
-
-    def add_file_occurrence(self, fo_file_name=None, fo_path=None, fo_date=None):
-        """ add an file occurrence to an indicator """
-        if self._resource_type != ResourceType.FILES:
-            raise AttributeError(ErrorCodes.e10150.value)
-
-        ro = self._create_basic_request_object('file_occurrence_add')
-
-        json_dict = {}
-        if fo_file_name is not None:
-            json_dict['fileName'] = fo_file_name
-            ro.set_description('add file occurrence - file "{0}" to "{1}"'.format(fo_file_name.encode('ascii', 'ignore'), self._reference_indicator))
-        else:
-            ro.set_description('add file occurrence - unnamed file to "{0}"'.format(self._reference_indicator))
-
-        if fo_path is not None:
-            json_dict['path'] = fo_path
-        if fo_date is not None:
-            json_dict['date'] = fo_date
-        ro.set_body(json.dumps(json_dict))
-
-        ro.set_description('add file occurrence - file "{0}" to "{1}"'.format(
-            fo_file_name.encode('ascii', 'ignore'), self._reference_indicator))
-        self._resource_container.add_commit_queue(self.id, ro)
-
-    def add_observation(self, count, date_observed=None):
-        ro = self._create_basic_request_object('observations_add')
-
-        body = {'count': count}
-        if date_observed:
-            body['dateObserved'] = date_observed
-
-        ro.set_body(json.dumps(body))
-        ro.set_description('add observation to {}'.format(self._reference_indicator))
-        self._resource_container.add_commit_queue(self.id, ro)
-
-    def add_tag(self, tag):
-        """ add a tag to an indicator """
-        ro = self._create_basic_request_object('tag_add', self._urlsafe(tag))
-
-        ro.set_description('add tag "{0}" to {1}'.format(tag, self._reference_indicator))
-        self._resource_container.add_commit_queue(self.id, ro)
-
-    def associate_group(self, resource_type, resource_id):
-        """ associate a group to indicator by id """
-        group_uri_attribute = ApiProperties.api_properties[resource_type.name]['uri_attribute']
-        ro = self._create_basic_request_object(
-            'association_group_add', group_uri_attribute, resource_id)
-
-        ro.set_description('associate group type "{0}" id {1} to {2}'.format(
-            resource_type.name, resource_id, self._reference_indicator))
-        self._resource_container.add_commit_queue(self.id, ro)
-
-    @property
-    def gen_body(self):
-        """ generate json body for POST and PUT API requests """
-        body_dict = {}
-        for prop, values in self._properties.items():
-            if getattr(self, prop) is not None:
-                body_dict[values['api_field']] = getattr(self, prop)
-        return json.dumps(body_dict)
-
-    @property
-    def cef(self):
-        """ return indicator in CEF format """
-
-        # Version - integer
-        cef_version = '0'
-
-        # Vendor - string
-        cef_device_vendor = 'threatconnect'
-
-        # Product - string
-        cef_device_product = 'threatconnect'
-
-        # Product Version - integer
-        cef_product_version = 2
-
-        # CEF Signature (id) - string (in this case id is integer)
-        cef_signature_id = self.id
-
-        # Severity - integer
-        # The value should be integer 1-10 with 10 be highest.
-        # If threatconnect only goes up to 5 some modifications might be a good idea.
-        # This could be an algorithm between rating and confidence
-        if self.rating is not None:
-            cef_severity = (self.rating * 2)
-        else:
-            cef_severity = 0
-
-        # CEF Name (description) - string
-        if self.description is not None:
-            cef_name = self.description
-        else:
-            cef_name = "null"
-
-        #
-        # CEF Extension
-        #
-        cef_extension = ""
-
-        for k, v in sorted(self._structure.items()):
-            # handle file indicators
-            if k == 'md5':
-                cef_extension += '{0}="{1}" '.format(k, getattr(self, v)['md5'])
-            elif k == 'sha1':
-                cef_extension += '{0}="{1}" '.format(k, getattr(self, v)['sha1'])
-            elif k == 'sha256':
-                cef_extension += '{0}="{1}" '.format(k, getattr(self, v)['sha256'])
-            elif k == 'description':
-                continue  # used above
-            elif k == 'id':
-                continue  # used above
-            elif k == 'rating':
-                continue  # used above
-            else:
-                cef_extension += '{0}="{1}" '.format(k, self.cef_format_extension(getattr(self, v)))
-
-        # Build CEF String
-        return "CEF:{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}".format(
-            cef_version, cef_device_vendor, cef_device_product, cef_product_version,
-            cef_signature_id, cef_name, cef_severity, cef_extension)
-
-    # @staticmethod
-    # def cef_format_prefix(data):
-    #     formatted = data.replace('|', '\|').replace('"\"', '\\')
-    #     return formatted
-
-    @staticmethod
-    def cef_format_extension(data):
-        if data is None or isinstance(data, (int, float)):
-            return data
-        else:
-            formatted = data.replace('"\"', '\\').replace('=', '\=')
-        return formatted
-
-    def commit(self):
-        """ commit indicator and related associations, attributes, security labels and tags """
-        r_id = self.id
-        ro = RequestObject()
-        ro.set_body(self.gen_body)
-        if self.owner_name is not None:
-            ro.set_owner(self.owner_name)
-        ro.set_resource_type(self.resource_type)
-        if self.phase == 1:
-            prop = self._resource_properties['add']
-            ro.set_description('adding indicator {0}.'.format(self._reference_indicator))
-            ro.set_http_method(prop['http_method'])
-            ro.set_owner_allowed(prop['owner_allowed'])
-            ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-            ro.set_resource_pagination(prop['pagination'])
-            # validate all required fields are present
-            if self.validate:
-                api_response = self._tc.api_request(ro)
-                if api_response.headers['content-type'] == 'application/json':
-                    api_response_dict = api_response.json()
-                    if api_response_dict['status'] == 'Success':
-                        resource_key = ApiProperties.api_properties[self.resource_type.name]['resource_key']
-                        r_id = api_response_dict['data'][resource_key]['id']
-            else:
-                self._tc.tcl.debug('Resource Object'.format(self))
-                raise AttributeError(ErrorCodes.e10040.value)
-        elif self.phase == 2:
-            prop = self._resource_properties['update']
-            ro.set_description('update indicator {0}.'.format(self._reference_indicator))
-            ro.set_http_method(prop['http_method'])
-            ro.set_owner_allowed(prop['owner_allowed'])
-            ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-            ro.set_resource_pagination(prop['pagination'])
-            api_response = self._tc.api_request(ro)
-            if api_response.headers['content-type'] == 'application/json':
-                api_response_dict = api_response.json()
-                if api_response_dict['status'] != 'Success':
-                    self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
-
-        # submit all attributes, tags or associations
-        for ro in self._resource_container.commit_queue(self.id):
-            if self.owner_name is not None:
-                ro.set_owner(self.owner_name)
-            # replace the id
-            if self.phase == 1 and self.id != r_id:
-                request_uri = str(ro.request_uri.replace(str(self.id), str(r_id)))
-                ro.set_request_uri(request_uri)
-            api_response2 = self._tc.api_request(ro)
-            if api_response2.headers['content-type'] == 'application/json':
-                api_response_dict2 = api_response2.json()
-                if api_response_dict2['status'] != 'Success':
-                    self._tc.tcl.error('API Request Failure: [{0}]'.format(ro.description))
-
-        if r_id is not None:
-            self.set_id(r_id)
-
-        self._resource_container.clear_commit_queue_id(self.id)
-
-        self.set_phase(0)
-
-        if self._reload_attributes:
-            self.load_attributes(automatically_reload=True)
-
-        # return object
-        return self
-
-    @property
-    def csv(self):
-        """ return the object in json format """
-
-        indicator = None
-        csv_dict = {'indicator': None}
-        for k, v in self._basic_structure.items():
-            # skip indicator and handle outside of loop
-            if k == 'indicator':
-                indicator = getattr(self, v)
-                continue
-            csv_dict[k] = getattr(self, v)
-
-        outfile = StringIO()
-        writer = csv.DictWriter(outfile, quotechar='"', fieldnames=sorted(csv_dict.keys()))
-
-        if isinstance(indicator, dict):
-            for k, v in indicator.items():
-                if v is not None:
-                    csv_dict['indicator'] = v
-                    writer.writerow(csv_dict)
-        else:
-            csv_dict['indicator'] = indicator
-            writer.writerow(csv_dict)
-
-        return outfile.getvalue().rstrip()
-
-    @property
-    def csv_header(self):
-        """ return the object in json format """
-
-        csv_dict = {}
-        for k, v in self._basic_structure.items():
-            csv_dict[k] = v
-
-        outfile = StringIO()
-        # not supported in python 2.6
-        # writer = csv.DictWriter(outfile, fieldnames=sorted(csv_dict.keys()))
-        # writer.writeheader()
-
-        csv_header = ','.join(sorted(csv_dict.keys()))
-        outfile.write(csv_header)
-
-        return outfile.getvalue().rstrip()
-
-    def delete(self):
-        """ delete indicator """
-        ro = self._create_basic_request_object('delete')
-        ro.set_description('delete indicator {0}.'.format(self._reference_indicator))
-
-        if self.owner_name is not None:
-            ro.set_owner(self.owner_name)
-
-        self._tc.api_request(ro)
-        self.set_phase(3)
-
-    def delete_attribute(self, attr_id):
-        """ delete attribute from indicator by id """
-        ro = self._create_basic_request_object('attribute_delete', attr_id)
-
-        ro.set_description('delete attribute id {0} from {1}'.format(attr_id, self._reference_indicator))
-        self._resource_container.add_commit_queue(self.id, ro)
-
-    def delete_security_label(self, label):
-        """ set the security label for this indicator """
-        ro = self._create_basic_request_object('security_label_delete', self._urlsafe(label))
-
-        ro.set_description('delete security label "{0}" from {1}'.format(label, self._reference_indicator))
-        self._resource_container.add_commit_queue(self.id, ro)
-
-    def delete_tag(self, tag):
-        """ delete tag from indicator """
-        ro = self._create_basic_request_object('tag_delete', self._urlsafe(tag))
-
-        ro.set_description('delete tag "{0}" from {1}'.format(tag, self._reference_indicator))
-        self._resource_container.add_commit_queue(self.id, ro)
-
-    def disassociate_group(self, resource_type, resource_id):
-        """ disassociate group from indicator """
-        group_uri_attribute = ApiProperties.api_properties[resource_type.name]['uri_attribute']
-        ro = self._create_basic_request_object(
-            'association_group_delete', group_uri_attribute, resource_id)
-
-        ro.set_description('disassociate group type {0} id {1} from {2}'.format(
-            resource_type.name, resource_id, self._reference_indicator))
-        self._resource_container.add_commit_queue(self.id, ro)
-
-    @property
-    def observations(self):
-        """ retrieve observations for this indicator; observations are not stored within the object"""
-        ro = self._create_basic_request_object('observations_get')
-
-        ro.set_owner(self.owner_name)
-        ro.set_description('retrieve observations for {}'.format(self._reference_indicator))
-
-        for item in self._tc.result_pagination(ro, 'observation'):
-            yield parse_observation(item)
-
-
-    @property
-    def group_associations(self):
-        """ retrieve associations for this indicator. associations are not stored within the object """
-        ro = self._create_basic_request_object('association_groups')
-
-        ro.set_owner(self.owner_name)
-        ro.set_description('retrieve group associations for {0}'.format(self._reference_indicator))
-
-        for item in self._tc.result_pagination(ro, 'group'):
-            yield GroupObject.parse_group(item, api_filter=ro.description, request_uri=ro.request_uri)
-
-    @property
-    def indicator_associations(self):
-        """ retrieve associations for this indicator. associations are not stored within the object """
-        ro = self._create_basic_request_object('association_indicators')
-
-        ro.set_owner(self.owner_name)
-        ro.set_description('retrieve indicator associations for {0}'.format(self._reference_indicator))
-
-        for item in self._tc.result_pagination(ro, 'indicator'):
-            yield parse_indicator(
-                item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
-
-    @property
-    def json(self):
-        """ return the object in json format """
-        json_dict = {}
-        for k, v in self._structure.items():
-            # handle file indicators
-            if k == 'md5':
-                json_dict[k] = getattr(self, v)['md5']
-            elif k == 'sha1':
-                json_dict[k] = getattr(self, v)['sha1']
-            elif k == 'sha256':
-                json_dict[k] = getattr(self, v)['sha256']
-            else:
-                json_dict[k] = getattr(self, v)
-
-        return json.dumps(json_dict, indent=4, sort_keys=True)
-
-    @property
-    def keyval(self):
-        """ return the object in json format """
-        keyval_str = ''
-        for k, v in sorted(self._structure.items()):
-            # handle file indicators
-            if k == 'md5':
-                keyval_str += '{0}="{1}" '.format(k, getattr(self, v)['md5'])
-            elif k == 'sha1':
-                keyval_str += '{0}="{1}" '.format(k, getattr(self, v)['sha1'])
-            elif k == 'sha256':
-                keyval_str += '{0}="{1}" '.format(k, getattr(self, v)['sha256'])
-            else:
-                keyval_str += '{0}="{1}" '.format(k, getattr(self, v))
-
-        return keyval_str
-
-    @property
-    def leef(self):
-        """ return indicator in LEEF format """
-
-        """
-        https://www-01.ibm.com/support/knowledgecenter/SSMPHH_9.1.0/com.ibm.guardium91.doc/
-            appendices/topics/leef_mapping.html
-
-        example:
-        Jan 18 11:07:53 host LEEF:Version|Vendor|Product|Version|EventID|
-        Key1=Value1<tab>Key2=Value2<tab>Key3=Value3<tab>...<tab>KeyN=ValueN
-
-        Jan 18 11:07:53 192.168.1.1 LEEF:1.0|QRadar|QRM|1.0|NEW_PORT_DISCOVERD|
-        src=172.5.6.67 dst=172.50.123.1 sev=5 cat=anomaly msg=there are spaces in this message
-        """
-
-        # Version - integer
-        leef_version = '0'
-
-        # Vendor - string
-        leef_device_vendor = 'threatconnect'
-
-        # Product - string
-        leef_device_product = 'threatconnect'
-
-        # Product Version - integer
-        leef_product_version = 2
-
-        # LEEF Signature (id) - string (in this case id is integer)
-        leef_event_id = self.id
-
-        #
-        # LEEF Extension
-        #
-        leef_extension = ""
-
-        for k, v in sorted(self._structure.items()):
-            # handle file indicators
-            if k == 'md5':
-                leef_extension += '{0}="{1}" '.format(k, getattr(self, v)['md5'])
-            elif k == 'sha1':
-                leef_extension += '{0}="{1}" '.format(k, getattr(self, v)['sha1'])
-            elif k == 'sha256':
-                leef_extension += '{0}="{1}" '.format(k, getattr(self, v)['sha256'])
-            elif k == 'dateAdded':
-                leef_extension += '{0}="{1}" '.format('devTime', getattr(self, v))
-            elif k == 'rating':
-                leef_extension += '{0}="{1}" '.format('severity', getattr(self, v))
-            else:
-                leef_extension += '{0}="{1}" '.format(k, getattr(self, v))
-
-        # Build LEEF String
-        return "LEEF:{0}|{1}|{2}|{3}|{4}|{5}".format(
-            leef_version, leef_device_vendor, leef_device_product,
-            leef_product_version, leef_event_id, leef_extension)
-
-    def load_attributes(self, automatically_reload=False):
-        self._reload_attributes = automatically_reload
-        """ retrieve attributes for this indicator """
-        ro = self._create_basic_request_object('attributes')
-
-        ro.set_owner(self.owner_name)
-        ro.set_description('load attributes for {0}'.format(self._reference_indicator))
-        api_response = self._tc.api_request(ro)
-
-        if api_response.headers['content-type'] == 'application/json':
-            api_response_dict = api_response.json()
-            if api_response_dict['status'] == 'Success':
-                data = api_response_dict['data']['attribute']
-                self._resource_obj._attributes = []
-                for item in data:
-                    self._resource_obj.add_attribute(parse_attribute(item, self))  # add to main resource object
-
-    def load_data(self, resource_obj):
-        """ load data from resource object to self """
-        for key in resource_obj.__slots__:
-            setattr(self, key, getattr(resource_obj, key))
-
-    def load_dns_resolutions(self):
-        """ retrieve dns resolution for this indicator """
-        if self._resource_type != ResourceType.HOSTS:
-            raise AttributeError(ErrorCodes.e10110.value)
-
-        # can't use _create_basic_request_object() because resource_type is different here
-        prop = self._resource_properties['dns_resolution']
-        ro = RequestObject()
-        ro.set_description('load dns resolution for {0}'.format(self._reference_indicator))
-        ro.set_http_method(prop['http_method'])
-        ro.set_owner_allowed(prop['owner_allowed'])
-        ro.set_resource_pagination(prop['pagination'])
-        ro.set_request_uri(prop['uri'].format(self._reference_indicator))
-        ro.set_owner(self.owner_name)
-        ro.set_resource_type(ResourceType.DNS_RESOLUTIONS)
-
-        data = self._tc.api_response_handler(self, ro)
-        for item in data:
-                self._resource_obj.add_dns_resolution(item)  # add to main resource object
-
-    def load_file_occurrence(self):
-        """ retrieve file occurrence for this indicator """
-        if self._resource_type != ResourceType.FILES:
-            raise AttributeError(ErrorCodes.e10120.value)
-
-        ro = self._create_basic_request_object('file_occurrences')
-
-        ro.set_description('load file occurrence for {0}'.format(self._reference_indicator))
-
-        ro.set_owner(self.owner_name)
-        api_response = self._tc.api_request(ro)
-
-        if api_response.headers['content-type'] == 'application/json':
-            api_response_dict = api_response.json()
-            if api_response_dict['status'] == 'Success':
-                data = api_response_dict['data']['fileOccurrence']
-                for item in data:
-                    self._resource_obj.add_file_occurrence(parse_file_occurrence(item))  # add to main resource object
-
-    def load_observation_count(self):
-        """ retrieve most recent observation count for indicator;
-            note this is not the same as observations and will be stored on the indicator """
-        ro = self._create_basic_request_object('observation_count_get')
-
-        ro.set_description('load observation count for {}'.format(self._reference_indicator))
-
-        api_response = self._tc.api_request(ro)
-
-        if api_response.headers['content-type'] == 'application/json':
-            api_response_dict = api_response.json()
-            if api_response_dict['status'] == 'Success':
-                # return count for now
-                data = api_response_dict['data']['observationCount']['count']
-                self.set_observation_count(data)
-                if 'lastObserved' in api_response_dict['data']['observationCount']:
-                    self.set_last_observed(api_response_dict['data']['observationCount']['lastObserved'])
-
-    def load_security_label(self):
-        """ retrieve security label for this indicator """
-        ro = self._create_basic_request_object('security_label_load')
-
-        ro.set_description('load security labels for {0}'.format(self._reference_indicator))
-        ro.set_owner(self.owner_name)
-
-        api_response = self._tc.api_request(ro)
-
-        if api_response.headers['content-type'] == 'application/json':
-            api_response_dict = api_response.json()
-            if api_response_dict['status'] == 'Success':
-                data = api_response_dict['data']['securityLabel']
-                for item in data:
-                    self._security_label = parse_security_label(item)  # add to main resource object
-
-    def load_tags(self):
-        """ retrieve tags for this indicator """
-        ro = self._create_basic_request_object('tags_load')
-
-        ro.set_description('load tags for {0}'.format(self._reference_indicator))
-        ro.set_owner(self.owner_name)
-        api_response = self._tc.api_request(ro)
-
-        if api_response.headers['content-type'] == 'application/json':
-            api_response_dict = api_response.json()
-            if api_response_dict['status'] == 'Success':
-                data = api_response_dict['data']['tag']
-                for item in data:
-                    self._resource_obj.add_tag(parse_tag(item))  # add to main resource object
-
-    def set_security_label(self, label):
-        self.add_security_label(label)
-
-    def add_security_label(self, label):
-        """ set the security label for this indicator """
-        ro = self._create_basic_request_object('security_label_add', self._urlsafe(label))
-
-        ro.set_description('add security label "{0}" to {1}'.format(label, self._reference_indicator))
-        self._resource_container.add_commit_queue(self.id, ro)
-
-    def update_attribute(self, attr_id, attr_value):
-        """ update indicator attribute by id """
-        ro = self._create_basic_request_object('attribute_update', attr_id)
-
-        attr_value = self._uni(attr_value)
-        ro.set_body(json.dumps({'value': attr_value}))
-        try:
-            ro.set_description('update attribute id {0} with value "{1}" on {2}'.format(
-                attr_id,
-                attr_value,
-                self._reference_indicator))
-        except:
-            ro.set_description('update attribute id {0} with value "unencodable" on {1}'.format(
-                attr_id,
-                self._reference_indicator))
-
-
-        self._resource_container.add_commit_queue(self.id, ro)
-
-    @property
-    def victim_associations(self):
-        """ retrieve associations for this indicator. associations are not stored within the object """
-        ro = self._create_basic_request_object('association_victims')
-
-        ro.set_owner(self.owner_name)
-        ro.set_description('retrieve victim associations for {0}'.format(self._reference_indicator))
-
-
-        for item in self._tc.result_pagination(ro, 'victim'):
-            yield parse_victim(item, api_filter=ro.description, request_uri=ro.request_uri)
-
-    #
-    # attributes
-    #
-    @property
-    def attributes(self):
-        """ """
-        return self._resource_obj._attributes

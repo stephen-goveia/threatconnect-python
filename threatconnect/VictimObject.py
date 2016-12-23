@@ -9,7 +9,6 @@ except ImportError:
 
 """ custom """
 from AttributeObject import parse_attribute, AttributeObject
-import GroupObject
 from SecurityLabelObject import parse_security_label
 from VictimAssetObject import parse_victim_asset
 from TagObject import parse_tag
@@ -811,8 +810,10 @@ class VictimObjectAdvanced(VictimObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
 
+        from threatconnect import GroupObject
+
         for item in self._tc.result_pagination(ro, 'group'):
-            yield threatconnect.GroupObject.parse_group(item, api_filter=ro.description, request_uri=ro.request_uri)
+            yield GroupObject.parse_group(item, api_filter=ro.description, request_uri=ro.request_uri)
 
     @property
     def indicator_associations(self):
@@ -828,7 +829,7 @@ class VictimObjectAdvanced(VictimObject):
         ro.set_resource_type(self._resource_type)
 
         for item in self._tc.result_pagination(ro, 'indicator'):
-            yield threatconnect.IndicatorObject.parse_indicator(
+            yield self._tc.indicator_parser.parse_typed_indicator(
                 item, api_filter=ro.description, request_uri=ro.request_uri)
 
     @property

@@ -1,4 +1,5 @@
 """ standard """
+import types
 import urllib
 
 """ custom """
@@ -21,7 +22,8 @@ i_type_to_r_type = {
     'EmailAddress': ResourceType.EMAIL_ADDRESSES,
     'File': ResourceType.FILES,
     'Host': ResourceType.HOSTS,
-    'URL': ResourceType.URLS}
+    'URL': ResourceType.URLS,
+    'Custom': ResourceType.CUSTOM_INDICATORS}
 
 # uri attributes
 resource_uri_attributes = {
@@ -45,12 +47,16 @@ def get_hash_type(indicator):
 
 def get_resource_type(indicators_regex, indicator):
     """ Get resource type enum from an indicator. """
+    if indicator is None:
+        return None
+
     for indicator_type, regex in indicators_regex.items():
         for rex in regex:
             match = rex.match(indicator)
             if match and match.group(0) == indicator:
                 return ResourceType[indicator_type]
-    return None
+    # if it's none of these, it's custom
+    return ResourceType.CUSTOM_INDICATORS
 
 
 def get_resource_group_type(group_type):
@@ -59,8 +65,8 @@ def get_resource_group_type(group_type):
 
 
 def get_resource_indicator_type(indicator_type):
-    """Get resource type enum from a indicator type."""
-    return i_type_to_r_type[indicator_type]
+    """Get resource type enum from a indicator type. If it's not one of the named types, it's custom"""
+    return i_type_to_r_type[indicator_type] if indicator_type in i_type_to_r_type else ResourceType.CUSTOM_INDICATORS
 
 
 def get_indicator_uri_attribute(indicators_regex, indicator):
@@ -74,12 +80,12 @@ def get_indicator_uri_attribute(indicators_regex, indicator):
 
 def uni(data):
     """ convert to unicode when appropriate """
-    if data is None or isinstance(data, (int, list, dict, float)):
+    if data is None or not isinstance(data, types.StringTypes):
         return data
+    elif isinstance(data, unicode):
+        return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode
     elif not isinstance(data, unicode):
         return unicode(data, 'utf-8', errors='ignore')
-    else:
-        return data
 
 
 def urlsafe(data):

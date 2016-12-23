@@ -77,6 +77,9 @@ def main():
     # (Optional) iterate through all results if retrieve was used above
     for res in resources:
 
+        if res.indicator is None:
+            continue
+
         # (Optional) match a particular resource by ID, Name or any other supported attribute.
         if lu_indicator == res.indicator or lu_indicator in res.indicator:
             #
@@ -175,7 +178,9 @@ def main():
     #
 
     # this requires that the resource was instantiated at the beginning of the script.
-    resource = resources.add('4.3.254.{0:d}'.format(rn), owner)
+    s = '4.3.1.{0:d}'.format(rn)
+    print "S IS {}".format(s)
+    resource = resources.add(s, owner=owner, type=ResourceType.ADDRESSES)
     resource.set_confidence(rn)
     resource.set_rating(randint(1, 5))
 
