@@ -1,12 +1,8 @@
 """ standard """
-import urllib
 import types
+import urllib
 
 """ custom """
-# from IndicatorObject import IndicatorObject
-# from IndicatorObjectAdvanced import IndicatorObjectAdvanced
-
-from collections import OrderedDict
 from Config.ResourceRegexes import md5_re, sha1_re, sha256_re
 from Config.ResourceType import ResourceType
 
@@ -37,22 +33,6 @@ resource_uri_attributes = {
     'HOSTS': 'hosts',
     'URLS': 'urls',
 }
-
-indicator_slots = None
-
-
-# def get_indicator_slots():
-#     """ gets all the named indicator slots (so we know which are custom fields), then flattens the lists """
-#     global indicator_slots
-#
-#     if indicator_slots is None:
-#         # TODO: moweis -- Should this be genericized?
-#         all_slots = list(IndicatorObject.__slots__) + \
-#                     list(IndicatorObjectAdvanced.__slots__) + \
-#                     [list(cls.__slots__) for cls in IndicatorObjectAdvanced.__subclasses__() if hasattr(cls, '__slots__')]
-#         indicator_slots = [slot for slot_sublist in all_slots for slot in slot_sublist]
-#
-#     return indicator_slots
 
 
 def get_hash_type(indicator):
