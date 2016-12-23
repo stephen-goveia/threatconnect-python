@@ -2,7 +2,6 @@
 import re
 import types
 import uuid
-import pprint
 
 """ custom """
 # parent classes
@@ -16,12 +15,10 @@ from threatconnect.Config.IndicatorType import IndicatorType
 from threatconnect.Config.ResourceType import ResourceType
 from threatconnect.ErrorCodes import ErrorCodes
 from threatconnect.FilterObject import FilterObject
-from threatconnect.IndicatorObject import IndicatorObject
 from threatconnect.SharedMethods import get_resource_type
 from threatconnect.RequestObject import RequestObject
 from threatconnect.Resource import Resource
-from threatconnect.IndicatorObjectTyped import CustomIndicatorObject
-# from threatconnect.IndicatorObjectAdvanced import construct_typed_indicator, construct_typed_advanced_indicator
+
 
 class Indicators(Resource):
     """ """
@@ -57,7 +54,6 @@ class Indicators(Resource):
 
     def add(self, indicator, owner=None, type=None, api_entity=None):
         """ add indicator to resource container """
-
         if type is not None:
             if isinstance(type, IndicatorType):
                 if type == IndicatorType.CUSTOM_INDICATORS and not isinstance(indicator, OrderedDict):
@@ -106,7 +102,6 @@ class Indicators(Resource):
 
     def update(self, indicator, owner=None):
         """ add indicator to resource container """
-        print 'IN UPDATE'
         # resource object
         resource_type = get_resource_type(self.tc._indicators_regex, indicator)
         resource_obj = self.tc.indicator_parser.construct_typed_indicator(resource_type)

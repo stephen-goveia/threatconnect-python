@@ -8,7 +8,6 @@ import os
 import re
 import socket
 import time
-import json
 from datetime import datetime
 from logging import FileHandler
 
@@ -32,7 +31,6 @@ from Config.ResourceType import ResourceType
 from Config.ResourceRegexes import indicators_regex
 from Config.ApiLoggingHandler import ApiLoggingHandler
 
-# from IndicatorObjectTyped import parse_typed_indicator
 from GroupObject import parse_group
 from OwnerObject import parse_owner
 from TaskObject import parse_task
@@ -42,7 +40,6 @@ from DnsResolutionObject import parse_dns_resolution
 
 from ReportEntry import ReportEntry
 from Report import Report
-from RequestObject import RequestObject
 from IndicatorObjectParser import IndicatorObjectParser, parse_typed_indicator
 
 from Resources.Adversaries import Adversaries
@@ -142,7 +139,6 @@ class ThreatConnect:
         # self._p = psutil.Process(os.getpid())
         # self._memory = self._p.memory_info().rss
         #
-        # print ""
 
 
     @property
@@ -191,7 +187,6 @@ class ThreatConnect:
 
         ro.add_header('Timestamp', timestamp)
         ro.add_header('Authorization', authorization)
-        print ro.headers
 
     def api_filter_handler(self, resource_obj, filter_objs):
         """ """
@@ -349,11 +344,9 @@ class ThreatConnect:
         #
         for i in range(1, self._api_retries + 1, 1):
             try:
-                print "REQUEST_PREPPED: {} => {} :: {}".format(request_prepped.method, request_prepped.path_url, request_prepped.body)
                 api_response = self._session.send(
                     request_prepped, verify=self._verify_ssl, timeout=self._api_request_timeout,
                     proxies=self._proxies, stream=False)
-                print "API_RESPONSE: {}".format(api_response.status_code)
                 break
             except exceptions.ReadTimeout as e:
                 self.tcl.error('Error: {0!s}'.format(e))
@@ -541,7 +534,6 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        print "ITEM: {}".format(item)
                         obj_list.append(parse_typed_indicator(
                                 item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
 

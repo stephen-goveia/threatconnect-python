@@ -1,8 +1,8 @@
 """ standard """
-from collections import OrderedDict
 import ConfigParser
-from random import randint
 import sys
+from collections import OrderedDict
+from random import randint
 
 """ custom """
 from threatconnect import ThreatConnect
@@ -32,7 +32,6 @@ tc.report_enable()
 owner = 'System'  # org or community
 rn = randint(1, 100)  # random number generator for testing
 
-
 def main():
     """ """
     # set threat connect log (tcl) level
@@ -40,7 +39,7 @@ def main():
     tc.set_tcl_console_level('critical')
     tc.report_enable()
 
-    # (Required) Instantiate a Resource Object
+    # # (Required) Instantiate a Resource Object
     resources = tc.indicators()
 
     try:
@@ -51,28 +50,21 @@ def main():
 
     print "# of indicators retrieved: {}".format(len(resources))
 
-    # resources.add_custom_type('Mutex', 'mutexes', 'mutex', field1='key1')
-
     fruit = OrderedDict()
     fruit['size'] = 'large'
     fruit['shape'] = 'triangluar'
     resource = resources.add(fruit, owner=owner, type=IndicatorType.CUSTOM_INDICATORS, api_entity='fruit')
 
     known_resource = resources.add('0.1.1.0', owner=owner, type=IndicatorType.ADDRESSES)
-    # known_resource2 = resources.add('0.2.2.0', owner=owner, type=IndicatorType.ADDRESSES)
 
     fruit_without_order = dict()
     fruit_without_order['size'] = 'petite'
     fruit_without_order['shape'] = 'rotund'
     resource_without_order = resources.add(fruit_without_order, owner=owner, type=IndicatorType.CUSTOM_INDICATORS, api_entity='fruit')
 
-
-    # custom_indicators_commit
-
     try:
         print('Adding known resources {0!s}.'.format(known_resource.indicator))
         known_resource.commit()
-        # known_resource2.commit()
         print('Adding resource {0!s}.'.format(resource.indicator))
         resource.commit()
         print('Adding resource without order {0!s}.'.format(resource_without_order.indicator))
@@ -91,13 +83,6 @@ def main():
         print('Error: {0!s}'.format(e))
         sys.exit(1)
 
-    # known_resource.associate_group(ResourceType.ADDRESSES, '0.2.2.0')
-    # known_resource.commit()
-    # known_resource.associate_group(ResourceType.CUSTOM_INDICATORS, resource._reference_indicator, api_entity='fruit')
-    # known_resource.commit()
-
-    # print known_resource.indicator_associations
-
     try:
         print('Deleting resource {0!s}.'.format(resource.indicator))
         resource.delete()
@@ -108,6 +93,58 @@ def main():
     except RuntimeError as e:
         print('Error: {0!s}'.format(e))
         sys.exit(1)
+
+
+    # # inc_resources = tc.incidents()
+    # # inc_resource = inc_resources.add('TEST_INDCIDENT', owner=owner)
+    # # inc_resource.set_name('LU Incident #{0:d}'.format(randint(1, 30)))
+    # #
+    # # # additional properties can be updated
+    # # inc_resource.set_event_date('2015-03-{0:d}T00:00:00Z'.format(randint(1, 30)))
+    # #
+    # # inc_resource.commit()
+    # #
+    # #
+    # # ind_resources = tc.indicators()
+    # # fruit = OrderedDict()
+    # # fruit['size'] = 'baby'
+    # # fruit['shape'] = 'cakes'
+    # # ind_resource = ind_resources.add(fruit, owner='OpenSource', type=IndicatorType.CUSTOM_INDICATORS, api_entity='fruit')
+    # # ind_resource.commit()
+    # #
+    # ind_resources = tc.indicators()
+    #
+    # filter = ind_resources.add_filter(IndicatorType.CUSTOM_INDICATORS, api_entity='fruit')
+    # # filter = ind_resources.add_filter(IndicatorType.ADDRESSES)
+    # # filter.add_filter_operator(FilterSetOperator.OR)
+    # filter.add_owner('OpenSource')
+    #
+    # ind_resources.retrieve()
+    # inc_resources = tc.incidents().retrieve()
+    #
+    # # ind_resources.retrieve()
+    # # addr = ind_resources.add('1.2.3.1', owner=owner, type=IndicatorType.ADDRESSES)
+    # # addr.commit()
+    # # print "{0!s} indicators found".format(len(ind_resources))
+    # # for x in inc_resources:
+    # #     x.associate_indicator(IndicatorType.ADDRESSES, addr.indicator)
+    # #     x.commit()
+    # #
+    # # for x in inc_resources.retrieve():
+    # #     print "{} : {}".format(x, x.indicator_associations)
+    # for j in ind_resources:
+    #     for i in inc_resources:
+    #         i.associate_custom_indicator(j, api_entity='fruit')
+    #         i.commit()
+    #
+    # # for i in tc.incidents().retrieve():
+    # #     # print "Incident: {}".format(i.id)
+    # #     for assoc in i.indicator_custom_associations('fruit'):
+    # #         print "Association: {}".format(assoc.indicator)
+    #
+    #
+    #
+    # # ind_resource.associate_group()
 
 
 if __name__ == "__main__":

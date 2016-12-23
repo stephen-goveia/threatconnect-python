@@ -1,5 +1,6 @@
 """ ApiProperties """
 
+#groups/incidents/{id}/indicators/{type}
 
 #
 # g_properties
@@ -13,6 +14,18 @@ def g_properties(group_uri):
             'pagination': False,
             'uri': '/v2/groups/' + group_uri,
         },
+        # 'association_custom_indicator_add': {
+        #     'http_method': 'POST',
+        #     'owner_allowed': True,
+        #     'pagination': False,
+        #     'uri': '/v2/indicators/{0}/{1}/groups/' + group_uri + '/{2}',   # indicator type, indicator id, group id
+        # },
+        # 'association_custom_indicators': {
+        #     'http_method': 'GET',
+        #     'owner_allowed': True,
+        #     'pagination': True,
+        #     'uri': '/v2/indicators/{0}/{1}/groups/' + group_uri,   # indicator type, indicator id
+        # },
         'association_groups': {
             'http_method': 'GET',
             'owner_allowed': True,

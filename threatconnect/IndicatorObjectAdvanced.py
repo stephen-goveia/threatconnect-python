@@ -6,23 +6,21 @@ import ApiProperties
 from AttributeObject import parse_attribute, AttributeObject
 from Config.ResourceType import ResourceType
 from ErrorCodes import ErrorCodes
-from SharedMethods import uni, urlsafe
-
 from FileOccurrenceObject import parse_file_occurrence
 from GroupObject import parse_group
-from ObservationObject import parse_observation
-from RequestObject import RequestObject
-from SecurityLabelObject import parse_security_label
-from TagObject import parse_tag
-from VictimObject import parse_victim
 from IndicatorObjectTyped import (AddressIndicatorObject,
                                   CustomIndicatorObject,
                                   EmailAddressIndicatorObject,
                                   FileIndicatorObject,
                                   HostIndicatorObject,
                                   UrlIndicatorObject,)
+from ObservationObject import parse_observation
+from RequestObject import RequestObject
+from SecurityLabelObject import parse_security_label
+from SharedMethods import uni, urlsafe
+from TagObject import parse_tag
+from VictimObject import parse_victim
 
-from IndicatorObject import IndicatorObject
 
 class IndicatorObjectAdvanced(AddressIndicatorObject,
                               CustomIndicatorObject,
@@ -346,7 +344,6 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
                 self._tc.tcl.debug('Resource Object'.format(self))
                 raise AttributeError(ErrorCodes.e10040.value)
         elif self.phase == 2:
-            print 'properties: {}'.format(self._resource_properties)
             prop = self._resource_properties['update']
             ro.set_description('update indicator {0}.'.format(self._reference_indicator))
             ro.set_http_method(prop['http_method'])
@@ -787,43 +784,3 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
     def attributes(self):
         """ """
         return self._resource_obj._attributes
-
-# Never ended up using this; save for later?
-#
-# class ClassFactory:
-#     def __init__(self, name, base_classes, class_dict, **kwargs):
-#         self.name = name
-#         self.base_classes = base_classes
-#         self.class_dict = class_dict
-#         self.kwargs = kwargs
-#
-#     def create_class(self):
-#         for key, value in self.kwargs.items():
-#             setattr(self, key, value)
-#
-#         full_dict = {}
-#         for base_class in self.base_classes:
-#             full_dict.update(base_class.__dict__)
-#             # print "{} : {}".format(base_class.__name__, full_dict)
-#
-#         for k, v in self.class_dict.items():
-#             full_dict[k] = v
-#
-#         # print "full: {}".format(full_dict)
-#         newclass = type(self.name, self.base_classes, full_dict) #{"__init__": __init__})
-#         # obj = newclass()
-#
-#         fs = {
-#             'get': lambda: getattr(newclass, '_{}'.format(k)),
-#             'set': lambda k, v: setattr(newclass, '_{}'.format(k), v),
-#             'del': lambda: delattr(newclass, '_{}'.format(k))
-#         }
-#         for k, v in self.class_dict.items():
-#             # setattr(self, k, v)
-#             # setattr(newclass = '_{}')
-#             setattr(newclass, '_{}'.format(k), v)
-#             property(fs['get'](), fs['set'](k, v), fs['del']())
-#             # print k, v
-#
-#         # print "created newclass: {}".format(newclass.__dict__)
-#         return newclass

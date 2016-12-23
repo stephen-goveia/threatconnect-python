@@ -1,5 +1,4 @@
 from collections import OrderedDict
-import pprint
 from Config.ResourceType import ResourceType
 
 from SharedMethods import get_resource_type
@@ -15,7 +14,6 @@ from IndicatorObjectTyped import (AddressIndicatorObject,
                                   FileIndicatorObject,
                                   HostIndicatorObject,
                                   UrlIndicatorObject,)
-                                  # parse_typed_indicator,)
 
 
 def parse_base_indicator(indicator_dict, indicators_regex=None):
@@ -293,12 +291,15 @@ class CustomIndicatorType(object):
         '_case_preference'
     )
 
-    def __init__(self, name=None, parsable=False, api_branch=None, api_entity=None, fields=[], case_preference="LOWER"):
+    def __init__(self, name=None, parsable=False, api_branch=None, api_entity=None, fields=None, case_preference="LOWER"):
         self._name = name
         self._parsable = parsable
         self._api_branch = api_branch
         self._api_entity = api_entity
-        self._fields = fields if isinstance(fields, list) else [fields]
+        if self._fields is not None:
+            self._fields = fields if isinstance(fields, list) else [fields]
+        else:
+            self._fields = []
         self._case_preference = case_preference
 
     @property
