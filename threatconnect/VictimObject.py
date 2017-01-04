@@ -835,7 +835,7 @@ class VictimObjectAdvanced(VictimObject):
                                         api_filter=ro.description,
                                         request_uri=ro.request_uri,
                                         indicators_regex=self._tc._indicators_regex,
-                                        resource_obj=self._resource_container)
+                                        indicator_parser=self._tc.indicator_parser)
 
     @property
     def json(self):

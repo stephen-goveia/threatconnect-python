@@ -529,10 +529,11 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
 
         for item in self._tc.result_pagination(ro, 'indicator'):
             yield parse_typed_indicator(item,
-                                  api_filter=ro.description,
-                                  request_uri=ro.request_uri,
-                                  indicators_regex=self._tc._indicators_regex,
-                                  resource_obj=self._resource_container)
+                                        api_filter=ro.description,
+                                        request_uri=ro.request_uri,
+                                        indicators_regex=self._tc._indicators_regex,
+                                        resource_obj=self._resource_container,
+                                        indicator_parser=self._tc.indicator_parser)
 
     @property
     def json(self):
