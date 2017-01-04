@@ -524,13 +524,10 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
 
         ro.set_owner(self.owner_name)
         ro.set_description('retrieve indicator associations for {0}'.format(self._reference_indicator))
+
         from IndicatorObjectParser import parse_typed_indicator
 
         for item in self._tc.result_pagination(ro, 'indicator'):
-            print(type(self._tc.indicator_parser))
-            print(dir(self._tc.indicator_parser))
-            # yield self._tc.indicator_parser.parse_typed_indicator(item,
-
             yield parse_typed_indicator(item,
                                   api_filter=ro.description,
                                   request_uri=ro.request_uri,

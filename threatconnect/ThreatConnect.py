@@ -237,7 +237,10 @@ class ThreatConnect:
                         ro = filter_obj.default_request_object
                         if ro.owner_allowed:
                             ro.set_owner(o)
-                        results = self.api_response_handler(resource_obj, ro, api_entity=filter_obj.api_entity)
+                        if hasattr(filter_obj, 'api_entity'):
+                            results = self.api_response_handler(resource_obj, ro, api_entity=filter_obj.api_entity)
+                        else:
+                            results = self.api_response_handler(resource_obj, ro)
 
                         if ro.resource_type not in [ResourceType.OWNERS, ResourceType.VICTIMS]:
                             # TODO: should this be done?
