@@ -1,6 +1,10 @@
 # Release Notes
 
+## 2.4.10
+* Custom Indicator Bugfixes
+
 ## 2.4.9
+** DEPRECATED
 * Custom Indicator support
 * Python 3.x compatibility
 
