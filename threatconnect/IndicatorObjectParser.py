@@ -55,7 +55,8 @@ def parse_base_indicator(indicator_dict, indicators_regex=None):
     return indicator
 
 
-def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, request_uri=None, indicators_regex=None):
+def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
+                          request_uri=None, indicators_regex=None, indicator_parser=None):
     indicator = parse_base_indicator(indicator_dict, indicators_regex=indicators_regex)
 
     # Get the correct type and instantiate it
@@ -141,10 +142,10 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, re
 
             # summary comes in as a colon delimited string; we don't want that
             _type = indicator_dict.get('type', None)
-            if _type is None or resource_obj is None:
+            if _type is None or indicator_parser is None:
                 raise AttributeError("No type found for Custom Indicator during initialization")
 
-            custom_indicator_type = resource_obj.tc.indicator_parser.get_custom_indicator_type_by_name(_type)
+            custom_indicator_type = indicator_parser.get_custom_indicator_type_by_name(_type)
             if custom_indicator_type is None:
                 raise AttributeError("Type is not currently supported for Custom Indicator initialization: {}".format(_type))
 
@@ -152,7 +153,7 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, re
             indicator.set_api_branch(custom_indicator_type.api_branch)
 
             # get the type and field names, then check the dict for those names
-            field_names = resource_obj.tc.indicator_parser.get_field_labels(custom_indicator_type)
+            field_names = indicator_parser.get_field_labels(custom_indicator_type)
             field_values = indicator_val.split(" : ")
             custom_fields = OrderedDict()
             for i in range(0, len(field_values)):
@@ -183,17 +184,17 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, re
         indicator = CustomIndicatorObject().copy_slots(indicator)
         # type MUST exist as well as tc_obj for us to continue
         _type = indicator_dict.get('type', None)
-        if _type is None or resource_obj is None:
+        if _type is None or indicator_parser is None:
             raise AttributeError("No type found for Custom Indicator during initialization")
 
-        custom_indicator_type = resource_obj.tc.indicator_parser.get_custom_indicator_type_by_name(_type)
+        custom_indicator_type = indicator_parser.get_custom_indicator_type_by_name(_type)
         if custom_indicator_type is None:
             raise AttributeError("Type is not currently supported for Custom Indicator initialization: {}".format(_type))
 
         indicator.set_api_entity(custom_indicator_type.api_entity)
         indicator.set_api_branch(custom_indicator_type.api_branch)
         # get the type and field names, then check the dict for those names
-        field_names = resource_obj.tc.indicator_parser.get_field_labels(custom_indicator_type)
+        field_names = indicator_parser.get_field_labels(custom_indicator_type)
         custom_fields = OrderedDict()
         for field_name in field_names:
             field_val = "{0!s}".format(indicator_dict.get(field_name)).strip()
@@ -232,6 +233,7 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, re
     # handle both resource containers and individual objects
     #
     if resource_obj is not None:
+        # and not isinstance(resource_obj, IndicatorObjectAdvanced):
         # store the resource object in the master resource object list
         # must be submitted after parameters are set for indexing to work
         roi = resource_obj.add_master_resource_obj(indicator, indicator_dict['id'])
@@ -296,10 +298,9 @@ class CustomIndicatorType(object):
         self._parsable = parsable
         self._api_branch = api_branch
         self._api_entity = api_entity
-        if self._fields is not None:
+        self._fields = []
+        if fields is not None:
             self._fields = fields if isinstance(fields, list) else [fields]
-        else:
-            self._fields = []
         self._case_preference = case_preference
 
     @property
@@ -343,8 +344,6 @@ class CustomIndicatorType(object):
 
     # def set_case_preference(self, data):
     #     self._case_preference = data
-
-
 
 
 class IndicatorObjectParser(object):

@@ -1020,9 +1020,14 @@ class TaskObjectAdvanced(TaskObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
 
+        from IndicatorObjectParser import parse_typed_indicator
+
         for item in self._tc.result_pagination(ro, 'indicator'):
-            yield self._tc.indicator_parser.parse_typed_indicator(
-                item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
+            yield parse_typed_indicator(item,
+                                        api_filter=ro.description,
+                                        request_uri=ro.request_uri,
+                                        indicators_regex=self._tc._indicators_regex,
+                                        indicator_parser=self._tc.indicator_parser)
 
     @property
     def json(self):

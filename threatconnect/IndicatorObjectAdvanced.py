@@ -293,6 +293,9 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
                 continue  # used above
             elif k == 'rating':
                 continue  # used above
+            elif k == 'custom_fields':
+                for label, value in getattr(self, v).items():
+                    cef_extension += '{0}="{1}" '.format(label, value)
             else:
                 cef_extension += '{0}="{1}" '.format(k, self.cef_format_extension(getattr(self, v)))
 
@@ -522,11 +525,15 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
         ro.set_owner(self.owner_name)
         ro.set_description('retrieve indicator associations for {0}'.format(self._reference_indicator))
 
+        from IndicatorObjectParser import parse_typed_indicator
+
         for item in self._tc.result_pagination(ro, 'indicator'):
-            yield self._tc.indicator_parser.parse_typed_indicator(item,
-                                  api_filter=ro.description,
-                                  request_uri=ro.request_uri,
-                                  indicators_regex=self._tc._indicators_regex)
+            yield parse_typed_indicator(item,
+                                        api_filter=ro.description,
+                                        request_uri=ro.request_uri,
+                                        indicators_regex=self._tc._indicators_regex,
+                                        resource_obj=self._resource_container,
+                                        indicator_parser=self._tc.indicator_parser)
 
     @property
     def json(self):

@@ -1346,6 +1346,13 @@ def custom_i_properties(api_branch):
             'pagination': False,
             'uri': '/v2/indicators/' + api_branch,
         },
+        # bcs - check with Mohammad
+        'association_groups': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': True,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/groups',  # indicator value
+        },
         'association_indicators': {
             'http_method': 'GET',
             'owner_allowed': True,

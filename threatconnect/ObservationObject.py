@@ -11,10 +11,10 @@ def parse_observation(dict):
 
 
 class ObservationObject(object):
-    __slots__ = {
+    __slots__ = (
         '_count',
         '_date_observed'
-    }
+    )
 
     def __init__(self):
         self._count = None

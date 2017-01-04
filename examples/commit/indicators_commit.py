@@ -9,6 +9,7 @@ import sys
 
 """ custom """
 from threatconnect import ThreatConnect
+from threatconnect.Config.IndicatorType import IndicatorType
 from threatconnect.Config.ResourceType import ResourceType
 
 # configuration file
@@ -180,7 +181,7 @@ def main():
     # this requires that the resource was instantiated at the beginning of the script.
     s = '4.3.1.{0:d}'.format(rn)
     print "S IS {}".format(s)
-    resource = resources.add(s, owner=owner, type=ResourceType.ADDRESSES)
+    resource = resources.add(s, owner=owner, type=IndicatorType.ADDRESSES)
     resource.set_confidence(rn)
     resource.set_rating(randint(1, 5))
 
@@ -267,7 +268,7 @@ def main():
     #
 
     # this requires that the resource was instantiated at the beginning of the script.
-    resource = resources.add('{0!s}_{1!s}.com'.format(prefixes['host'], str(rn).zfill(3)), owner)
+    resource = resources.add('{0!s}{1!s}.com'.format(prefixes['host'], str(rn).zfill(3)), owner)
 
     resource.set_confidence(rn)
     resource.set_rating(randint(1, 5))
