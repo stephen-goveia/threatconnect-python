@@ -136,7 +136,6 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
     #
     elif 'summary' in indicator_dict and indicator.indicator is None:
         indicator_val = indicator_dict.get('summary')
-        print(str(indicator))
         resource_type = get_resource_type(indicators_regex, indicator_val)
         if indicator.resource_type == ResourceType.CUSTOM_INDICATORS:
             indicator = CustomIndicatorObject().copy_slots(indicator)
@@ -146,7 +145,6 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
             if _type is None or indicator_parser is None:
                 raise AttributeError("No type found for Custom Indicator during initialization")
 
-            print(dir(resource_obj))
             custom_indicator_type = indicator_parser.get_custom_indicator_type_by_name(_type)
             if custom_indicator_type is None:
                 raise AttributeError("Type is not currently supported for Custom Indicator initialization: {}".format(_type))
