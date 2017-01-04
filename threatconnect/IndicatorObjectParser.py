@@ -135,6 +135,7 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, re
     #
     elif 'summary' in indicator_dict and indicator.indicator is None:
         indicator_val = indicator_dict.get('summary')
+        print(str(indicator))
         resource_type = get_resource_type(indicators_regex, indicator_val)
         if indicator.resource_type == ResourceType.CUSTOM_INDICATORS:
             indicator = CustomIndicatorObject().copy_slots(indicator)
@@ -142,9 +143,13 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, re
             # summary comes in as a colon delimited string; we don't want that
             _type = indicator_dict.get('type', None)
             if _type is None or resource_obj is None:
+                print('indicator_dict', indicator_dict)
+                print('_type', _type)
+                print('resource_obj', resource_obj)
                 raise AttributeError("No type found for Custom Indicator during initialization")
 
-            custom_indicator_type = resource_obj.tc.indicator_parser.get_custom_indicator_type_by_name(_type)
+            print(dir(resource_obj))
+            custom_indicator_type = resource_obj._tc.indicator_parser.get_custom_indicator_type_by_name(_type)
             if custom_indicator_type is None:
                 raise AttributeError("Type is not currently supported for Custom Indicator initialization: {}".format(_type))
 
@@ -232,6 +237,7 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, re
     # handle both resource containers and individual objects
     #
     if resource_obj is not None:
+        # and not isinstance(resource_obj, IndicatorObjectAdvanced):
         # store the resource object in the master resource object list
         # must be submitted after parameters are set for indexing to work
         roi = resource_obj.add_master_resource_obj(indicator, indicator_dict['id'])
@@ -296,10 +302,9 @@ class CustomIndicatorType(object):
         self._parsable = parsable
         self._api_branch = api_branch
         self._api_entity = api_entity
-        if self._fields is not None:
+        self._fields = []
+        if fields is not None:
             self._fields = fields if isinstance(fields, list) else [fields]
-        else:
-            self._fields = []
         self._case_preference = case_preference
 
     @property

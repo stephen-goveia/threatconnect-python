@@ -114,12 +114,19 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
         that are needed to create the uri endpoint string,
         thus they must be in the correct order. See ApiProperties.py
         """
+        print('prop_type', prop_type)
         ro = RequestObject()
         if self.resource_type == ResourceType.CUSTOM_INDICATORS:
             all_prop = ApiProperties.get_custom_indicator_properties(api_entity=self.api_entity, api_branch=self.api_branch)
+            print('all_prop', all_prop['properties']['association_groups'])
             prop = all_prop.get('properties').get(prop_type)
+            print('custom')
         else:
             prop = self._resource_properties[prop_type]
+            print('not custom')
+        print('extra_uri_params', extra_uri_params)
+        print('prop', prop)
+        print('self._reference_indicator', self._reference_indicator)
         ro.set_request_uri(prop['uri'].format(self._reference_indicator, *extra_uri_params))
         ro.set_http_method(prop['http_method'])
         ro.set_owner_allowed(prop['owner_allowed'])
@@ -521,12 +528,17 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
 
         ro.set_owner(self.owner_name)
         ro.set_description('retrieve indicator associations for {0}'.format(self._reference_indicator))
+        from IndicatorObjectParser import parse_typed_indicator
 
         for item in self._tc.result_pagination(ro, 'indicator'):
-            yield self._tc.indicator_parser.parse_typed_indicator(item,
+            print(type(self._tc.indicator_parser))
+            print(dir(self._tc.indicator_parser))
+            # yield self._tc.indicator_parser.parse_typed_indicator(item,
+            yield parse_typed_indicator(item,
                                   api_filter=ro.description,
                                   request_uri=ro.request_uri,
-                                  indicators_regex=self._tc._indicators_regex)
+                                  indicators_regex=self._tc._indicators_regex,
+                                  resource_obj=self._resource_obj)
 
     @property
     def json(self):
