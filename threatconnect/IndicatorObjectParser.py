@@ -149,7 +149,7 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None, re
                 raise AttributeError("No type found for Custom Indicator during initialization")
 
             print(dir(resource_obj))
-            custom_indicator_type = resource_obj._tc.indicator_parser.get_custom_indicator_type_by_name(_type)
+            custom_indicator_type = resource_obj.tc.indicator_parser.get_custom_indicator_type_by_name(_type)
             if custom_indicator_type is None:
                 raise AttributeError("Type is not currently supported for Custom Indicator initialization: {}".format(_type))
 
