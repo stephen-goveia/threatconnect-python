@@ -142,8 +142,11 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
 
             # summary comes in as a colon delimited string; we don't want that
             _type = indicator_dict.get('type', None)
-            if _type is None or indicator_parser is None:
-                raise AttributeError("No type found for Custom Indicator during initialization")
+            if _type is None:
+                if indicator_parser is None and resource_obj is not None:
+                    indicator_parser = resource_obj._tc.indicator_parser
+                if indicator_parser is None:
+                    raise AttributeError("No type found for Custom Indicator during initialization")
 
             custom_indicator_type = indicator_parser.get_custom_indicator_type_by_name(_type)
             if custom_indicator_type is None:
@@ -184,8 +187,11 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
         indicator = CustomIndicatorObject().copy_slots(indicator)
         # type MUST exist as well as tc_obj for us to continue
         _type = indicator_dict.get('type', None)
-        if _type is None or resource_obj is None:
-            raise AttributeError("No type found for Custom Indicator during initialization")
+        if _type is None:
+            if indicator_parser is None and resource_obj is not None:
+                indicator_parser = resource_obj._tc.indicator_parser
+            if indicator_parser is None:
+                raise AttributeError("No type found for Custom Indicator during initialization")
 
         custom_indicator_type = indicator_parser.get_custom_indicator_type_by_name(_type)
         if custom_indicator_type is None:
