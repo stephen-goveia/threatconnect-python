@@ -1,19 +1,17 @@
 from setuptools import setup, find_packages
 
-#
-# PATCH 1
-#
+version = '2.4.10'
 
 setup(
     name='threatconnect',
-    version='2.4.8',
+    version=version,
     description='Python SDK for ThreatConnect API',
     author='ThreatConnect',
     author_email='support@threatconnect.com',
     # package_dir = {'': 'src'},
     packages=find_packages(),
     url='https://github.com/ThreatConnect-Inc/threatconnect-python',
-    download_url='https://github.com/ThreatConnect-Inc/threatconnect-python/tarball/2.4',
+    download_url='https://github.com/ThreatConnect-Inc/threatconnect-python/tarball/{}'.format(version),
     license='ASL',
     install_requires=['requests', 'python-dateutil'],
     extras_require={

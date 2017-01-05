@@ -31,6 +31,20 @@ def add_adversary_id(self, data_int):
     ro.set_resource_type(self._resource_type)
     self._add_request_objects(ro)
 
+# def add_custom_type_id(self, data_int):
+#     # validation of data input
+#     if not isinstance(data_int, int):
+#         raise AttributeError(ErrorCodes.e4000.value.format(data_int))
+#
+#     prop = self._resource_properties['groups']
+#     ro = RequestObject()
+#     ro.set_description('api filter by adversary id {0}'.format(data_int))
+#     ro.set_http_method(prop['http_method'])
+#     ro.set_owner_allowed(prop['owner_allowed'])
+#     ro.set_request_uri(prop['uri'], ['adversaries', data_int])
+#     ro.set_resource_pagination(prop['pagination'])
+#     ro.set_resource_type(self._resource_type)
+#     self._add_request_objects(ro)
 
 def add_document_id(self, data_int):
     """ filter api results by document id """

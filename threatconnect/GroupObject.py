@@ -9,10 +9,8 @@ except ImportError:
 
 """ custom """
 from AttributeObject import parse_attribute, AttributeObject
-# import IndicatorObject  #Causes circular import
 from SecurityLabelObject import parse_security_label
 from TagObject import parse_tag
-import VictimObject
 
 import ApiProperties
 from Config.ResourceType import ResourceType
@@ -914,7 +912,41 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
 
-    def associate_indicator(self, indicator_type, indicator):
+    # def associate_custom_indicator(self, indicator, api_entity):
+    #     """ associate a indicator to group by id """
+    #     prop = self._resource_properties['association_custom_indicator_add']
+    #     ro = RequestObject()
+    #     ro.set_description('associate indicator {0} to "{1}"'.format(
+    #         indicator, self._name))
+    #     ro.set_http_method(prop['http_method'])
+    #     ro.set_owner_allowed(prop['owner_allowed'])
+    #     ro.st_resource_pagination(prop['pagination'])
+    #     custom_type = self._tc.indicator_parser.get_custom_indicator_type_by_api_entity(api_entity)
+    #     ro.set_request_uri(prop['uri'].format(custom_type.api_branch, indicator._reference_indicator, self.id))
+    #     ro.set_resource_type(self._resource_type)
+    #     self._resource_container.add_commit_queue(self.id, ro)
+
+    # def indicator_custom_associations(self, api_entity=None):
+    #     """ retrieve associations for this group. associations are not stored within the object """
+    # prop = self._resource_properties['association_custom_indicators']
+    # custom_type = self._tc.indicator_parser.get_custom_indicator_type_by_api_entity(api_entity)
+    #
+    # ro = RequestObject()
+    # ro.set_description('retrieve custom indicator associations for {0} of type {1!s}'.format(self._name, custom_type.name))
+    # ro.set_owner(self.owner_name)
+    # ro.set_http_method(prop['http_method'])
+    # ro.set_owner(self.owner_name)
+    # ro.set_owner_allowed(prop['owner_allowed'])
+    #
+    # ro.set_request_uri(prop['uri'].format(custom_type.api_branch, self.id))
+    # ro.set_resource_pagination(prop['pagination'])
+    # ro.set_resource_type(self._resource_type)
+    #
+    # for item in self._tc.result_pagination(ro, api_entity):
+    #     yield self._tc.indicator_parser.parse_typed_indicator(
+    #         item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
+
+    def associate_indicator(self, indicator_type, indicator, api_entity=None):
         """ associate a indicator to group by id """
         prop = self._resource_properties['association_indicator_add']
         ro = RequestObject()
@@ -1227,11 +1259,14 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
 
-        for item in self._tc.result_pagination(ro, 'indicator'):
-            import IndicatorObject  #Causes circular import
+        from IndicatorObjectParser import parse_typed_indicator
 
-            yield IndicatorObject.parse_indicator(
-                item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
+        for item in self._tc.result_pagination(ro, 'indicator'):
+            yield parse_typed_indicator(item,
+                                        api_filter=ro.description,
+                                        request_uri=ro.request_uri,
+                                        indicators_regex=self._tc._indicators_regex,
+                                        indicator_parser=self._tc.indicator_parser)
 
     @property
     def json(self):
@@ -1376,6 +1411,8 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_request_uri(prop['uri'].format(self._id))
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
+
+        from threatconnect import VictimObject
 
         for item in self._tc.result_pagination(ro, 'victim'):
             yield VictimObject.parse_victim(item, api_filter=ro.description, request_uri=ro.request_uri)

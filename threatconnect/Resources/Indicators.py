@@ -5,6 +5,8 @@ import uuid
 
 """ custom """
 # parent classes
+from collections import OrderedDict
+
 from threatconnect import IndicatorFilterMethods
 from threatconnect import SharedMethods
 
@@ -13,7 +15,6 @@ from threatconnect.Config.IndicatorType import IndicatorType
 from threatconnect.Config.ResourceType import ResourceType
 from threatconnect.ErrorCodes import ErrorCodes
 from threatconnect.FilterObject import FilterObject
-from threatconnect.IndicatorObject import IndicatorObject, IndicatorObjectAdvanced
 from threatconnect.SharedMethods import get_resource_type
 from threatconnect.RequestObject import RequestObject
 from threatconnect.Resource import Resource
@@ -21,7 +22,6 @@ from threatconnect.Resource import Resource
 
 class Indicators(Resource):
     """ """
-
     def __init__(self, tc_obj):
         """ """
         super(Indicators, self).__init__(tc_obj)
@@ -32,26 +32,51 @@ class Indicators(Resource):
 
     def _method_wrapper(self, resource_object):
         """ return resource object as new object with additional methods """
-        return IndicatorObjectAdvanced(self.tc, self, resource_object)
+        return self.tc.indicator_parser.construct_typed_advanced_indicator(self, resource_object)
 
-    def add(self, indicator, owner=None, type=None):
+    # def add_custom_type(self, api_entity, api_branch, name,
+    #                     field1, field1_t='text', field2=None, field2_t=None, field3=None, field3_t=None):
+    #     # save the fields for construction later
+    #     custom_indicator = CustomIndicatorObject()
+    #     custom_indicator.set_api_entity(api_entity)
+    #     custom_indicator.set_api_branch(api_branch)
+    #     # custom_indicator.set_api_uri(api_uri)
+    #     custom_indicator.set_name(name)
+    #     custom_dict = OrderedDict()
+    #     custom_dict[field1] = None
+    #     if field2 is not None:
+    #         custom_dict[field2] = None
+    #     if field3 is not None:
+    #         custom_dict[field3] = None
+    #     custom_indicator.set_custom_fields(custom_dict)
+    #
+    #     # todo include POST to api
+
+    def add(self, indicator, owner=None, type=None, api_entity=None):
         """ add indicator to resource container """
-
         if type is not None:
             if isinstance(type, IndicatorType):
+                if type == IndicatorType.CUSTOM_INDICATORS and not isinstance(indicator, OrderedDict):
+                    # change dicts to be Ordered before calling set_indicator
+                    field_names = self.tc.indicator_parser.get_field_labels_by_api_entity(api_entity)
+                    ordered_indicator = OrderedDict()
+                    for field_name in field_names:
+                        ordered_indicator[field_name] = indicator.get(field_name)
+
+                    indicator = ordered_indicator
+
                 # generate unique temporary id
                 resource_id = uuid.uuid4().int
 
                 # resource object
-                resource_obj = IndicatorObject()
+                resource_obj = self.tc.indicator_parser.construct_typed_indicator(ResourceType(type.value), api_entity=api_entity)
                 resource_obj.set_id(int(resource_id))  # set temporary resource id
-                # resource_obj.set_resource_type(ResourceType(type.value)) # set this before indicator
                 resource_obj.set_indicator(indicator, ResourceType(type.value), False)
                 resource_obj.set_owner_name(owner)
                 resource_obj.set_phase(1)  # set resource api phase (1 = add)
 
-                # return object for modification
                 return self._method_wrapper(resource_obj)
+
             else:
                 raise AttributeError(ErrorCodes.e10060.name.format(indicator))
 
@@ -61,10 +86,11 @@ class Indicators(Resource):
             # generate unique temporary id
             resource_id = uuid.uuid4().int
 
-            # resource object
-            resource_obj = IndicatorObject()
-            resource_obj.set_id(int(resource_id))  # set temporary resource id
             resource_type = get_resource_type(self.tc._indicators_regex, indicator)
+
+            # resource object
+            resource_obj = self.tc.indicator_parser.construct_typed_indicator(resource_type)
+            resource_obj.set_id(int(resource_id))  # set temporary resource id
             resource_obj.set_indicator(indicator, resource_type, False)
             resource_obj.set_owner_name(owner)
             resource_obj.set_phase(1)  # set resource api phase (1 = add)
@@ -77,9 +103,9 @@ class Indicators(Resource):
     def update(self, indicator, owner=None):
         """ add indicator to resource container """
         # resource object
-        resource_obj = IndicatorObject()
         resource_type = get_resource_type(self.tc._indicators_regex, indicator)
-        resource_obj.set_indicator(indicator, resource_type)  # set temporary resource id
+        resource_obj = self.tc.indicator_parser.construct_typed_indicator(resource_type)
+        resource_obj.set_indicator(indicator, resource_type=resource_type, update=True)  # set temporary resource id
         resource_obj.set_owner_name(owner)
         resource_obj.set_phase(2)  # set resource api phase (1 = add)
 
@@ -92,7 +118,8 @@ class Indicators(Resource):
         resource_id = indicator
 
         # resource object
-        resource_obj = IndicatorObject()
+        resource_type = get_resource_type(self.tc._indicators_regex, indicator)
+        resource_obj = self.tc.indicator_parser.construct_typed_indicator(resource_type)
         resource_obj.set_id(int(resource_id))  # set temporary resource id
         resource_obj.set_owner_name(owner)
         resource_obj.set_phase(2)  # set resource api phase (1 = add)
@@ -103,16 +130,20 @@ class Indicators(Resource):
         # return object for modification
         return wrapper
 
-    def add_filter(self, resource_type=None):
+    def add_filter(self, resource_type=None, api_entity=None):
         """ add filter to resource container specific to indicator """
-        filter_obj = self._filter_class(self.tc, resource_type, self._modified_since)
+        filter_obj = self._filter_class(self.tc,
+                                        indicator_type_enum=resource_type,
+                                        modified_since=self._modified_since,
+                                        api_entity=api_entity)
+
 
         # append filter object
         self._filter_objects.append(filter_obj)
 
         return filter_obj
 
-    @ property
+    @property
     def default_request_object(self):
         """ default request when no filters are provided """
         resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
@@ -152,27 +183,43 @@ class Indicators(Resource):
 
 class IndicatorFilterObject(FilterObject):
     """ """
-    def __init__(self, tc_obj, indicator_type_enum=None, modified_since=None):
+    def __init__(self, tc_obj, indicator_type_enum=None, modified_since=None, api_entity=None):
         """ init filter object containing api and post filter methods """
         super(IndicatorFilterObject, self).__init__(tc_obj)
         self._owners = []
         self._modified_since = modified_since
+        self._api_entity = api_entity
 
+        self.add_resource_properties(indicator_type_enum)
+        self.add_filter_methods()
+
+    def add_resource_properties(self, indicator_type_enum):
         # get resource type from indicator type
         if isinstance(indicator_type_enum, IndicatorType):
-            # get resource type from indicator type number
-            self._resource_type = ResourceType(indicator_type_enum.value)
+            if indicator_type_enum is IndicatorType.CUSTOM_INDICATORS:
+                self._resource_type = ResourceType.CUSTOM_INDICATORS
 
-            # dynamically set resource properties to the appropriate dictionary in ApiProperties
-            self._resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
+                custom_indicator_type = self.tc.indicator_parser.get_custom_indicator_type_by_api_entity(self.api_entity)
+                if custom_indicator_type is None:
+                    raise AttributeError("api_entity supplied to add_filter method is invalid; " +
+                                         "no custom type exists with this api_entity")
+
+                api_branch = custom_indicator_type.api_branch
+                self._resource_properties = ApiProperties.get_custom_indicator_properties(self._api_entity, api_branch)['properties']
+            # get resource type from indicator type number
+            else:
+                self._resource_type = ResourceType(indicator_type_enum.value)
+                self._resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
+
         else:
             self._resource_type = ResourceType.INDICATORS
             self._resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
 
+    def add_filter_methods(self):
         #
         # add_obj filter methods
         #
-        for method_name in self._resource_properties['filters']:
+        for method_name in self._resource_properties.get('filters'):
             if re.findall('add_pf_', method_name):
                 self.add_post_filter_names(method_name)
             else:
@@ -180,7 +227,11 @@ class IndicatorFilterObject(FilterObject):
             method = getattr(IndicatorFilterMethods, method_name)
             setattr(self, method_name, types.MethodType(method, self))
 
-    @ property
+    @property
+    def api_entity(self):
+        return self._api_entity
+
+    @property
     def default_request_object(self):
         """ default request when only a owner filter is provided """
         request_object = RequestObject()

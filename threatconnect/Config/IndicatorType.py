@@ -9,3 +9,4 @@ class IndicatorType(Enum):
     FILES = 535
     HOSTS = 545
     URLS = 555
+    CUSTOM_INDICATORS = 565

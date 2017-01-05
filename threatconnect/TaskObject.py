@@ -10,18 +10,15 @@ except ImportError:
 """ custom """
 from AttributeObject import parse_attribute, AttributeObject
 from GroupObject import parse_group
-# import IndicatorObject  #Causes circular import
 from SecurityLabelObject import parse_security_label
 from TagObject import parse_tag
 from VictimObject import parse_victim
-# import VictimObject
 
 import ApiProperties
 from Config.ResourceType import ResourceType
 from ErrorCodes import ErrorCodes
 
 from RequestObject import RequestObject
-from SharedMethods import get_resource_group_type
 
 
 def parse_task(task_dict, resource_type=ResourceType.TASKS, resource_obj=None, api_filter=None, request_uri=None):
@@ -1004,6 +1001,8 @@ class TaskObjectAdvanced(TaskObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
 
+        from GroupObject import parse_group
+
         for item in self._tc.result_pagination(ro, 'group'):
             yield parse_group(item, api_filter=ro.description, request_uri=ro.request_uri)
 
@@ -1021,11 +1020,14 @@ class TaskObjectAdvanced(TaskObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
 
-        for item in self._tc.result_pagination(ro, 'indicator'):
-            import IndicatorObject  #Causes circular import
+        from IndicatorObjectParser import parse_typed_indicator
 
-            yield IndicatorObject.parse_indicator(
-                item, api_filter=ro.description, request_uri=ro.request_uri, indicators_regex=self._tc._indicators_regex)
+        for item in self._tc.result_pagination(ro, 'indicator'):
+            yield parse_typed_indicator(item,
+                                        api_filter=ro.description,
+                                        request_uri=ro.request_uri,
+                                        indicators_regex=self._tc._indicators_regex,
+                                        indicator_parser=self._tc.indicator_parser)
 
     @property
     def json(self):

@@ -1,6 +1,5 @@
 """ ApiProperties """
 
-
 #
 # g_properties
 #
@@ -13,6 +12,18 @@ def g_properties(group_uri):
             'pagination': False,
             'uri': '/v2/groups/' + group_uri,
         },
+        # 'association_custom_indicator_add': {
+        #     'http_method': 'POST',
+        #     'owner_allowed': True,
+        #     'pagination': False,
+        #     'uri': '/v2/indicators/{0}/{1}/groups/' + group_uri + '/{2}',   # indicator type, indicator id, group id
+        # },
+        # 'association_custom_indicators': {
+        #     'http_method': 'GET',
+        #     'owner_allowed': True,
+        #     'pagination': True,
+        #     'uri': '/v2/indicators/{0}/{1}/groups/' + group_uri,   # indicator type, indicator id
+        # },
         'association_groups': {
             'http_method': 'GET',
             'owner_allowed': True,
@@ -1314,3 +1325,229 @@ api_properties = {
         'uri_attribute': 'attributes'
     }
 }
+
+# ===========
+# Custom
+# ===========
+
+""" ApiProperties """
+
+
+
+#
+# i_properties
+#
+def custom_i_properties(api_branch):
+    """ """
+    properties = {
+        'add': {
+            'http_method': 'POST',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch,
+        },
+        # bcs - check with Mohammad
+        'association_groups': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': True,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/groups',  # indicator value
+        },
+        'association_indicators': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': True,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/indicators',  # indicator value
+        },
+        'attributes': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/attributes',  # indicator value
+        },
+        'attribute_add': {
+            'http_method': 'POST',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/attributes',  # indicator value
+        },
+        'attribute_delete': {
+            'http_method': 'DELETE',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/attributes/{1}',  # indicator value, attribute id
+        },
+        'attribute_update': {
+            'http_method': 'PUT',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/attributes/{1}',  # indicator value, attribute id
+        },
+        'base': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': True,
+            'uri': '/v2/indicators/' + api_branch + '',
+        },
+        'delete': {
+            'http_method': 'DELETE',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}',  # indicator value
+        },
+        'false_positive_add': {
+            'http_method': 'POST',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/falsePositive'
+        },
+        'filters': [
+            'add_adversary_id',
+            'add_document_id',
+            'add_email_id',
+            'add_incident_id',
+            'add_indicator',
+            'add_security_label',
+            # 'add_signature_id',
+            'add_tag',
+            'add_task_id',
+            'add_threat_id',
+            'add_victim_id',
+            # post filters
+            'add_pf_attribute',
+            'add_pf_confidence',
+            'add_pf_date_added',
+            'add_pf_last_modified',
+            'add_pf_rating',
+            'add_pf_tag',
+            'add_pf_threat_assess_confidence',
+            'add_pf_threat_assess_rating',
+            'add_pf_type'],
+        # 'groups': {
+        #     'http_method': 'GET',
+        #     'owner_allowed': False,
+        #     'pagination': True,
+        #     'uri': '/v2/groups/{0}/{1}/indicators/' + api_branch  # group type, group value
+        # },
+        'indicator': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}',  # indicator value
+        },
+        'id': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}',  # indicator value
+        },
+        'observation_count_get': {
+            'http_method': 'GET',
+            'owner_allowed': False,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/observationCount'  # indicator value
+        },
+        'observations_get': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': True,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/observations'  # indicator value
+        },
+        'observations_add': {
+            'http_method': 'POST',
+            'owner_allowed': False,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/observations'  # indicator value
+        },
+        'security_label_add': {
+            'http_method': 'POST',
+            'owner_allowed': True,
+            'pagination': True,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/securityLabels/{1}',  # indicator value, security label
+        },
+        'security_label_delete': {
+            'http_method': 'DELETE',
+            'owner_allowed': True,
+            'pagination': True,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/securityLabels/{1}',  # indicator value, security label
+        },
+        'security_label_load': {
+            'http_method': 'GET',
+            'owner_allowed': False,
+            'pagination': True,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/securityLabels',  # indicator value
+        },
+        'security_labels': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': True,
+            'uri': '/v2/securityLabels/{0}/indicators/' + api_branch  # security labels
+        },
+        'tag_add': {
+            'http_method': 'POST',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/tags/{1}',  # indicator value, security label
+        },
+        'tag_delete': {
+            'http_method': 'DELETE',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/tags/{1}',  # indicator value, security label
+        },
+        'tags': {
+            'http_method': 'GET',
+            'owner_allowed': True,
+            'pagination': True,
+            'uri': '/v2/tags/{0}/indicators/' + api_branch,  # tag name
+        },
+        'tags_load': {
+            'http_method': 'GET',
+            'owner_allowed': False,
+            'pagination': True,
+            'uri': '/v2/indicators/' + api_branch + '/{0}/tags',  # indicator value
+        },
+        # 'type_add': {
+        #     'http_method': 'POST',
+        #     'owner_allowed': False,
+        #     'pagination': True,
+        #     'uri': '??'
+        # },
+        'type_get': {
+            'http_method': 'GET',
+            'owner_allowed': False,
+            'pagination': True,
+            'uri': 'v2/types/indicatorTypes/{0}'    # indicator type (api_entity for custom)
+        },
+        'types_get': {
+            'http_method': 'GET',
+            'owner_allowed': False,
+            'pagination': True,
+            'uri': '/v2/types/indicatorTypes'
+        },
+        'update': {
+            'http_method': 'PUT',
+            'owner_allowed': True,
+            'pagination': False,
+            'uri': '/v2/indicators/' + api_branch + '/{0}',  # indicator value
+        },
+    }
+
+
+
+    # properties['add_custom_type'] = {
+    #     'http_method': 'GET',
+    #     'uri': '/v2/indicators/{0}',
+    #     'owner_allowed': True,
+    #     'pagination': False
+    # }
+
+    return properties
+
+
+def get_custom_indicator_properties(api_entity, api_branch):
+    return {
+        'properties': custom_i_properties(api_branch),
+        'resource_key': api_entity,
+        'uri_attribute': api_branch
+    }

@@ -1,7 +1,6 @@
 """ standard """
 import argparse
 import base64
-from datetime import datetime
 import hashlib
 import hmac
 import logging
@@ -9,7 +8,8 @@ import os
 import re
 import socket
 import time
-from DnsResolutionObject import parse_dns_resolution
+from datetime import datetime
+from logging import FileHandler
 
 """ third-party """
 from requests import (exceptions, packages, Request, Session)
@@ -31,16 +31,17 @@ from Config.ResourceType import ResourceType
 from Config.ResourceRegexes import indicators_regex
 from Config.ApiLoggingHandler import ApiLoggingHandler
 
-from IndicatorObject import parse_indicator
 from GroupObject import parse_group
 from OwnerObject import parse_owner
-from OwnerMetricsObject import parse_metrics
 from TaskObject import parse_task
 from VictimObject import parse_victim
 from Resources.BatchJobs import BatchJobs, parse_batch_job
+from DnsResolutionObject import parse_dns_resolution
 
 from ReportEntry import ReportEntry
 from Report import Report
+from IndicatorObjectParser import IndicatorObjectParser, parse_typed_indicator
+
 from Resources.Adversaries import Adversaries
 from Resources.Bulk import Bulk
 from Resources.BulkIndicators import BulkIndicators
@@ -129,11 +130,20 @@ class ThreatConnect:
         # instantiate report object
         self.report = Report()
 
+        # save custom types for later
+        self._indicator_parser = IndicatorObjectParser(self)
+
         #
         # Memory Testing
         #
         # self._p = psutil.Process(os.getpid())
         # self._memory = self._p.memory_info().rss
+        #
+
+
+    @property
+    def indicator_parser(self):
+        return self._indicator_parser
 
     def _renew_token(self):
         """
@@ -163,7 +173,7 @@ class ThreatConnect:
             window_padding = 15  # bcs - possible configuration option
             current_time = int(time.time()) - window_padding
             if (self._api_token_expires < current_time):
-                self._renew_token();
+                self._renew_token()
             authorization = 'TC-Token {0}'.format(self._api_token)
 
         elif self._api_aid is not None and self._api_sec is not None:
@@ -205,12 +215,16 @@ class ThreatConnect:
                 # iterate through all owners
                 for o in owners:
                     self.tcl.debug('owner: {0!s}'.format(o))
+
                     if len(filter_obj) > 0:
                         # request object are for api filters
                         for ro in filter_obj:
                             if ro.owner_allowed:
                                 ro.set_owner(o)
-                            results = self.api_response_handler(resource_obj, ro)
+                            if hasattr(filter_obj, 'api_entity'):
+                                results = self.api_response_handler(resource_obj, ro, api_entity=filter_obj.api_entity)
+                            else:
+                                results = self.api_response_handler(resource_obj, ro)
 
                             if ro.resource_type not in [ResourceType.OWNERS,
                                                         ResourceType.VICTIMS,
@@ -226,7 +240,10 @@ class ThreatConnect:
                         ro = filter_obj.default_request_object
                         if ro.owner_allowed:
                             ro.set_owner(o)
-                        results = self.api_response_handler(resource_obj, ro)
+                        if hasattr(filter_obj, 'api_entity'):
+                            results = self.api_response_handler(resource_obj, ro, api_entity=filter_obj.api_entity)
+                        else:
+                            results = self.api_response_handler(resource_obj, ro)
 
                         if ro.resource_type not in [ResourceType.OWNERS, ResourceType.VICTIMS]:
                             # TODO: should this be done?
@@ -292,7 +309,7 @@ class ThreatConnect:
         for obj in data_set:
             resource_obj.add_obj(obj)
 
-    def api_request(self, ro):
+    def api_request(self, ro, log=True):
         """ """
         api_response = None
         fail_msg = None
@@ -323,9 +340,10 @@ class ThreatConnect:
         #
         # Debug
         #
-        self.tcl.debug('request_object: {0!s}'.format(ro))
-        self.tcl.debug('url: {0!s}'.format(url))
-        self.tcl.debug('path url: {0!s}'.format(request_prepped.path_url))
+        if log:
+            self.tcl.debug('request_object: {0!s}'.format(ro))
+            self.tcl.debug('url: {0!s}'.format(url))
+            self.tcl.debug('path url: {0!s}'.format(request_prepped.path_url))
 
         #
         # api request (gracefully handle temporary communications issues with the API)
@@ -415,17 +433,19 @@ class ThreatConnect:
         #
         # Debug
         #
-        self.tcl.debug('url: %s', api_response.url)
-        self.tcl.debug('status_code: %s', api_response.status_code)
-        self.tcl.debug('content-length: %s', h_content_length)
-        self.tcl.debug('content-type: %s', h_content_type)
+        if log:
+            self.tcl.debug('url: %s', api_response.url)
+            self.tcl.debug('status_code: %s', api_response.status_code)
+            self.tcl.debug('content-length: %s', h_content_length)
+            self.tcl.debug('content-type: %s', h_content_type)
 
         #
         # Report
         #
         self.report.add_api_call()  # count api calls
         self.report.add_request_time(datetime.now() - start)
-        self.tcl.debug('Request Time: {0!s}'.format(datetime.now() - start))
+        if log:
+            self.tcl.debug('Request Time: {0!s}'.format(datetime.now() - start))
 
         if self._enable_report:
             report_entry = ReportEntry()
@@ -440,7 +460,7 @@ class ThreatConnect:
         #
         return api_response
 
-    def api_response_handler(self, resource_obj, ro):
+    def api_response_handler(self, resource_obj, ro, api_entity=None):
         """ """
         #
         # initialize vars
@@ -488,8 +508,8 @@ class ThreatConnect:
                     if ro.resource_type == ResourceType.INDICATORS:
                         data = api_response_dict['indicator']
                         for item in data:
-                            obj_list.append(parse_indicator(
-                                    item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
+                            obj_list.append(parse_typed_indicator(item, resource_obj, ro.description, ro.request_uri,
+                                                                  self._indicators_regex, indicator_parser=self.indicator_parser))
 
                             if len(obj_list) % 500 == 0:
                                 self.tcl.debug('obj_list len: {0!s}'.format(len(obj_list)))
@@ -520,8 +540,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(
-                                item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
+                        obj_list.append(parse_typed_indicator(item, resource_obj, ro.description, ro.request_uri,
+                                                              self._indicators_regex, indicator_parser=self.indicator_parser))
 
                 #
                 # ADDRESSES
@@ -531,8 +551,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(
-                                item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
+                        obj_list.append(parse_typed_indicator(item, resource_obj, ro.description, ro.request_uri,
+                                                              self._indicators_regex, indicator_parser=self.indicator_parser))
 
                 #
                 # DOCUMENTS
@@ -566,8 +586,22 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(
-                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
+                        obj_list.append(parse_typed_indicator(item, resource_obj, ro.description, ro.request_uri,
+                                                              self._indicators_regex, indicator_parser=self.indicator_parser))
+
+
+                #
+                # CUSTOM INDICATORS
+                #
+                elif ro.resource_type == ResourceType.CUSTOM_INDICATORS:
+                    # api_entity MUST be provided for Custom Indicators
+                    data = api_response_dict['data'][api_entity]
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(parse_typed_indicator(item, resource_obj, ro.description, ro.request_uri,
+                                                              self._indicators_regex, indicator_parser=self.indicator_parser))
+
 
                 #
                 # GROUPS
@@ -588,8 +622,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(
-                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
+                        obj_list.append(parse_typed_indicator(item, resource_obj, ro.description, ro.request_uri,
+                                                              self._indicators_regex, indicator_parser=self.indicator_parser))
 
                 #
                 # HOSTS
@@ -599,8 +633,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(
-                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
+                        obj_list.append(parse_typed_indicator(item, resource_obj, ro.description, ro.request_uri,
+                                                              self._indicators_regex, indicator_parser=self.indicator_parser))
 
                 #
                 # DNSResolutions
@@ -708,8 +742,8 @@ class ThreatConnect:
                     if not isinstance(data, list):
                         data = [data]  # for single results to be a list
                     for item in data:
-                        obj_list.append(parse_indicator(
-                            item, resource_obj, ro.description, ro.request_uri, self._indicators_regex))
+                        obj_list.append(parse_typed_indicator(item, resource_obj, ro.description, ro.request_uri,
+                                                              self._indicators_regex, indicator_parser=self.indicator_parser))
 
                 #
                 # VICTIMS
@@ -860,8 +894,10 @@ class ThreatConnect:
         if os.access(file_path, os.W_OK):
             if self.tcl.level > self.log_level[level]:
                 self.tcl.setLevel(self.log_level[level])
-            fh = ApiLoggingHandler(fqpn, self)
-            # fh = logging.FileHandler(fqpn)
+            if self._api_token is not None:
+                fh = ApiLoggingHandler(fqpn, self)
+            else:
+                fh = FileHandler(fqpn)
             # fh.set_name('tc_log_file')  # not supported in python 2.6
             if level in self.log_level.keys():
                 fh.setLevel(self.log_level[level])
