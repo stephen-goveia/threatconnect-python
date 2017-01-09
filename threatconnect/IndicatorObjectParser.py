@@ -65,8 +65,7 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
     # address
     #
     if 'ip' in indicator_dict:
-        indicator = AddressIndicatorObject().copy_slots(indicator)
-        # indicator = type('AddressIndicatorObject', (IndicatorObject, ), {'__slots__': IndicatorObject.__slots__})
+        indicator = AddressIndicatorObject(indicator)
         indicator.set_indicator(indicator_dict['ip'])
         if indicator.type is None:
             indicator.set_type('Address')  # set type before indicator
@@ -75,7 +74,7 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
     # email address
     #
     elif 'address' in indicator_dict:
-        indicator = EmailAddressIndicatorObject().copy_slots(indicator)
+        indicator = EmailAddressIndicatorObject(indicator)
         indicator.set_indicator(indicator_dict['address'])
         if indicator.type is None:
             indicator.set_type('EmailAddress')  # set type before indicator
@@ -84,7 +83,7 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
     # files
     #
     elif any(x for x in ['md5', 'sha1', 'sha256'] if x in indicator_dict):
-        indicator = FileIndicatorObject().copy_slots(indicator)
+        indicator = FileIndicatorObject(indicator)
 
         if 'md5' in indicator_dict:
             indicator.set_indicator(indicator_dict['md5'])
@@ -108,7 +107,7 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
     # hosts
     #
     elif any(x for x in ['hostName', 'dnsActive', 'whoisActive'] if x in indicator_dict):
-        indicator = HostIndicatorObject().copy_slots(indicator)
+        indicator = HostIndicatorObject(indicator)
         if 'hostName' in indicator_dict:
             indicator.set_indicator(indicator_dict['hostName'], ResourceType.HOSTS)
             if indicator.type is None:
@@ -124,7 +123,7 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
     # urls
     #
     elif any(x for x in ['text', 'source'] if x in indicator_dict):
-        indicator = UrlIndicatorObject().copy_slots(indicator)
+        indicator = UrlIndicatorObject(indicator)
         if 'text' in indicator_dict:
             indicator.set_indicator(indicator_dict['text'], ResourceType.URLS)
 
@@ -138,7 +137,7 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
         indicator_val = indicator_dict.get('summary')
         resource_type = get_resource_type(indicators_regex, indicator_val)
         if indicator.resource_type == ResourceType.CUSTOM_INDICATORS:
-            indicator = CustomIndicatorObject().copy_slots(indicator)
+            indicator = CustomIndicatorObject(indicator)
 
             # summary comes in as a colon delimited string; we don't want that
             _type = indicator_dict.get('type', None)
@@ -181,7 +180,7 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
     # custom indicators
     #
     else:
-        indicator = CustomIndicatorObject().copy_slots(indicator)
+        indicator = CustomIndicatorObject(indicator)
         # type MUST exist as well as tc_obj for us to continue
         _type = indicator_dict.get('type', None)
         if _type is None or indicator_parser is None:
