@@ -1,12 +1,16 @@
+import re
 from setuptools import setup, find_packages
-from threatconnect import __author__, __version__
+
+with open('threatconnect/__init__.py', 'r') as fd:
+    version = re.search(
+        r'^__version__(?:\s+)?=(?:\s+)?[\'|\"]((?:[0-9]{1,3}(?:\.)?){1,3})[\'|\"]', fd.read(), re.MULTILINE).group(1)
 
 setup(
-    author=__author__,
+    author='ThreatConnect (support@threatconnect.com)',
     author_email='support@threatconnect.com',
     # convert_2to3_doctests = [''],
     description='Python SDK for ThreatConnect API',
-    download_url='https://github.com/ThreatConnect-Inc/threatconnect-python/tarball/{}'.format(__version__),
+    download_url='https://github.com/ThreatConnect-Inc/threatconnect-python/tarball/{}'.format(version),
     entry_points={
         'console_scripts': [
             'stanchion=bin.stanchion:main'
@@ -24,5 +28,5 @@ setup(
     use_2to3_exclude_fixers=['lib2to3.fixes.fix_print'],
     # use_2to3_fixers = [''],
     url='https://github.com/ThreatConnect-Inc/threatconnect-python',
-    version=__version__
+    version=version
 )
