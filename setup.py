@@ -5,6 +5,9 @@ with open('threatconnect/__init__.py', 'r') as fd:
     version = re.search(
         r'^__version__(?:\s+)?=(?:\s+)?[\'|\"]((?:[0-9]{1,3}(?:\.)?){1,3})[\'|\"]', fd.read(), re.MULTILINE).group(1)
 
+if not version:
+    raise RuntimeError('Cannot find version information')
+
 setup(
     author='ThreatConnect (support@threatconnect.com)',
     author_email='support@threatconnect.com',

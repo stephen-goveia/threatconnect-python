@@ -102,7 +102,7 @@ class ThreatConnect:
         self._api_aid = api_aid
         self._api_sec = api_sec
         self._api_token = api_token
-        self._api_token_expires = api_token_expires
+        self._api_token_expires = int(api_token_expires)
 
         # user defined values
         self._api_org = api_org
@@ -154,17 +154,24 @@ class ThreatConnect:
         }
         """
         # make api call to get new token
-        url = '{0!s}{1!s}'.format(self._api_url, '/appAuth/appAuth/')
+        url = '{0!s}{1!s}'.format(self._api_url.strip('api'), '/appAuth')
         payload = {'expiredToken': self._api_token}
 
         token_response = self._session.get(
                 url, params=payload, verify=self._verify_ssl, timeout=self._api_request_timeout,
                 proxies=self._proxies, stream=False)
+        if token_response.status_code == 401:
+            if 'application/json' in token_response.headers['content-type']:
+                err_data = token_response.json().get('message')
+            else:
+                err_data = token_response.text
+            err = 'Could not refresh ThreatConnect Token ({}).'.format(err_data)
+            raise RuntimeError(err)
 
         # bcs - return new token and set expiration date
         token_data = token_response.json()
         self._api_token = token_data['apiToken']
-        self._api_token_expires = token_data['apiTokenExpires']
+        self._api_token_expires = int(token_data['apiTokenExpires'])
 
     def _api_request_headers(self, ro):
         """ """
