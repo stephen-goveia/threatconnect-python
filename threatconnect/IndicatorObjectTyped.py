@@ -8,8 +8,10 @@ from IndicatorObject import IndicatorObject
 class AddressIndicatorObject(IndicatorObject):
     __slots__ = ()
 
-    def __init__(self):
+    def __init__(self, obj_from=None):
         super(AddressIndicatorObject, self).__init__()
+        if obj_from is not None:
+            self.copy_slots(obj_from)
         self._set_resource_type(ResourceType.ADDRESSES)
 
     # def set_indicator(self, data, resource_type=None, update=True):
@@ -34,8 +36,10 @@ class AddressIndicatorObject(IndicatorObject):
 class EmailAddressIndicatorObject(IndicatorObject):
     __slots__ = ()
 
-    def __init__(self):
+    def __init__(self, obj_from=None):
         super(EmailAddressIndicatorObject, self).__init__()
+        if obj_from is not None:
+            self.copy_slots(obj_from)
         self._set_resource_type(ResourceType.EMAIL_ADDRESSES)
     #
     # def set_indicator(self, data, resource_type=None, update=True):
@@ -57,8 +61,10 @@ class EmailAddressIndicatorObject(IndicatorObject):
 class FileIndicatorObject(IndicatorObject):
     __slots__ = ()
 
-    def __init__(self):
+    def __init__(self, obj_from=None):
         super(FileIndicatorObject, self).__init__()
+        if obj_from is not None:
+            self.copy_slots(obj_from)
         self._set_resource_type(ResourceType.FILES)
 
     # def set_indicator(self, data, resource_type=None, update=True):
@@ -113,8 +119,10 @@ class FileIndicatorObject(IndicatorObject):
 class HostIndicatorObject(IndicatorObject):
     __slots__ = ()
 
-    def __init__(self):
+    def __init__(self, obj_from=None):
         super(HostIndicatorObject, self).__init__()
+        if obj_from is not None:
+            self.copy_slots(obj_from)
         self._set_resource_type(ResourceType.HOSTS)
 
     # def set_indicator(self, data, resource_type=None, update=True):
@@ -146,8 +154,10 @@ class HostIndicatorObject(IndicatorObject):
 class UrlIndicatorObject(IndicatorObject):
     __slots__ = ()
 
-    def __init__(self):
+    def __init__(self, obj_from=None):
         super(UrlIndicatorObject, self).__init__()
+        if obj_from is not None:
+            self.copy_slots(obj_from)
         self._set_resource_type(ResourceType.URLS)
 
     # def set_indicator(self, data, resource_type=None, update=True):
@@ -169,8 +179,10 @@ class UrlIndicatorObject(IndicatorObject):
 class CustomIndicatorObject(IndicatorObject):
     __slots__ = ()
 
-    def __init__(self):
+    def __init__(self, obj_from=None):
         super(CustomIndicatorObject, self).__init__()
+        if obj_from is not None:
+            self.copy_slots(obj_from)
         self._set_resource_type(ResourceType.CUSTOM_INDICATORS)
 
     # def set_indicator(self, data, resource_type=None, update=True, field_names=None):
