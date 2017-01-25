@@ -102,7 +102,7 @@ class ThreatConnect:
         self._api_aid = api_aid
         self._api_sec = api_sec
         self._api_token = api_token
-        self._api_token_expires = int(api_token_expires)
+        self._api_token_expires = api_token_expires
 
         # user defined values
         self._api_org = api_org
@@ -179,7 +179,7 @@ class ThreatConnect:
         if self._api_token is not None and self._api_token_expires is not None:
             window_padding = 15  # bcs - possible configuration option
             current_time = int(time.time()) - window_padding
-            if (self._api_token_expires < current_time):
+            if (int(self._api_token_expires) < current_time):
                 self._renew_token()
             authorization = 'TC-Token {0}'.format(self._api_token)
 
