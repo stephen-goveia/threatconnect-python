@@ -91,10 +91,15 @@ ipv6_re = re.compile(
 #
 # email_pat = r'[^@]+@[^@]+\.[^@]+$'
 # email_re = re.compile(email_pat)
-email_re = re.compile(
-    '[a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/='
-    '?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+'
-    '[a-z0-9](?:[a-z0-9-]*[a-z0-9])?')
+# email_re = re.compile(
+#     '[a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/='
+#     '?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+'
+#     '[a-z0-9](?:[a-z0-9-]*[a-z0-9])?')
+# provided by jhurd
+email_pat = r'(?i)[a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+'
+email_pat += r'/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)'
+email_pat += r'+[a-z0-9](?:[a-z0-9-]*[a-z0-9])'
+email_re = re.compile(email_pat)
 
 #
 # md5/sha256 indicator
