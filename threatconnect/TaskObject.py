@@ -25,7 +25,7 @@ def parse_task(task_dict, resource_type=ResourceType.TASKS, resource_obj=None, a
     """ """
     # task object
     task = TaskObject()
-    
+
     #
     # standard values
     #
@@ -218,7 +218,7 @@ class TaskObject(object):
     def set_assignee(self, data, update=True):
         """Read-Write task metadata"""
         self._assignee = self._uni(data)
-        
+
         if update and self._phase == 0:
             self._phase = 2
 
@@ -245,7 +245,7 @@ class TaskObject(object):
     def set_due_date(self, data, update=True):
         """Read-Write task metadata"""
         self._due_date = data
-        
+
         if update and self._phase == 0:
             self._phase = 2
 
@@ -260,10 +260,10 @@ class TaskObject(object):
     def set_escalated(self, data, update=True):
         """Read-Write task metadata"""
         self._escalated = data
-        
+
         if update and self._phase == 0:
             self._phase = 2
-            
+
     #
     # escalation_date
     #
@@ -275,7 +275,7 @@ class TaskObject(object):
     def set_escalation_date(self, data, update=True):
         """Read-Write task metadata"""
         self._escalation_date = data
-        
+
         if update and self._phase == 0:
             self._phase = 2
 
@@ -323,7 +323,7 @@ class TaskObject(object):
         self._name = self._uni(data)
         if update and self._phase == 0:
             self._phase = 2
-            
+
     #
     # overdue
     #
@@ -335,7 +335,7 @@ class TaskObject(object):
     def set_overdue(self, data, update=True):
         """Read-Write task metadata"""
         self._overdue = data
-        
+
         if update and self._phase == 0:
             self._phase = 2
 
@@ -362,7 +362,7 @@ class TaskObject(object):
     def set_reminded(self, data, update=True):
         """Read-Write task metadata"""
         self._reminded = data
-        
+
         if update and self._phase == 0:
             self._phase = 2
 
@@ -377,7 +377,7 @@ class TaskObject(object):
     def set_reminder_date(self, data, update=True):
         """Read-Write task metadata"""
         self._reminder_date = data
-        
+
         if update and self._phase == 0:
             self._phase = 2
 
@@ -392,10 +392,10 @@ class TaskObject(object):
     def set_status(self, data, update=True):
         """Read-Write task metadata"""
         self._status = data
-        
+
         if update and self._phase == 0:
             self._phase = 2
-            
+
     #
     # weblink
     #
@@ -497,12 +497,13 @@ class TaskObject(object):
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('resource_type', self.resource_type))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('owner_name', self.owner_name))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('date_added', self.date_added))
-        
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('escalated', self.escalated))
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('escalation_date', self.escalation_date))
+
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('overdue', self.overdue))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('due_date', self.due_date))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('reminded', self.reminded))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('reminder_date', self.reminder_date))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('escalated', self.escalated))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('escalation_date', self.escalation_date))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('status', self.status))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('weblink', self.weblink))
 
@@ -554,9 +555,9 @@ class TaskObjectAdvanced(TaskObject):
     def __init__(self, tc_obj, resource_container, resource_obj):
         """ add methods to resource object """
         super(TaskObject, self).__init__()
-        
+
         self._resource_properties = ApiProperties.api_properties[resource_obj.resource_type.name]['properties']
-        
+
         self._resource_container = resource_container
         self._resource_obj = resource_obj
         self._basic_structure = {
@@ -622,7 +623,7 @@ class TaskObjectAdvanced(TaskObject):
             if attribute.type == attr_type and attribute.value == attr_value:
                 self._attributes.remove(attribute)
                 break
-            
+
     def add_escalatee(self, escalatee):
         """ add escalatee to task by id """
         prop = self._resource_properties['escalatee_add']
@@ -734,7 +735,7 @@ class TaskObjectAdvanced(TaskObject):
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._id))
             ro.set_resource_pagination(prop['pagination'])
-            
+
             if self.validate:
                 api_response = self._tc.api_request(ro)
                 if api_response.headers['content-type'] == 'application/json':
@@ -752,7 +753,7 @@ class TaskObjectAdvanced(TaskObject):
             ro.set_owner_allowed(prop['owner_allowed'])
             ro.set_request_uri(prop['uri'].format(self._id))
             ro.set_resource_pagination(prop['pagination'])
-            
+
             api_response = self._tc.api_request(ro)
             if api_response.headers['content-type'] == 'application/json':
                 api_response_dict = api_response.json()
@@ -857,7 +858,7 @@ class TaskObjectAdvanced(TaskObject):
         ro.set_resource_type(self.resource_type)
         self._tc.api_request(ro)
         self.set_phase(3)
-        
+
     def delete_assignee(self, assignee):
         """ delete assignee from task by id """
         prop = self._resource_properties['assignee_delete']
@@ -896,7 +897,7 @@ class TaskObjectAdvanced(TaskObject):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
-        
+
     def delete_security_label(self, label):
         """ delete the security label for this indicator """
         prop = self._resource_properties['security_label_delete']
@@ -1156,8 +1157,8 @@ class TaskObjectAdvanced(TaskObject):
     def attributes(self):
         """ """
         return self._resource_obj._attributes
-        
-        
+
+
 """
 {
     "status": "Success",
