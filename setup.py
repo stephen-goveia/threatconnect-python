@@ -27,9 +27,9 @@ setup(
     name='threatconnect',
     # package_dir = {'': 'src'},
     packages=find_packages(),
+    url='https://github.com/ThreatConnect-Inc/threatconnect-python',
     use_2to3=True,
     use_2to3_exclude_fixers=['lib2to3.fixes.fix_print'],
     # use_2to3_fixers = [''],
-    url='https://github.com/ThreatConnect-Inc/threatconnect-python',
     version=version
 )
