@@ -5,12 +5,10 @@ def parse_file_occurrence(fo_dict):
     #
     # standard values
     #
-    if 'date' in fo_dict:
-        fo.set_date(fo_dict['date'])
-    if 'fileName' in fo_dict:
-        fo.set_file_name(fo_dict['fileName'])
-    if 'path' in fo_dict:
-        fo.set_path(fo_dict['path'])
+    fo.set_date(fo_dict.get('date'))
+    fo.set_file_name(fo_dict.get('fileName'))
+    fo.set_id(fo_dict.get('id'))
+    fo.set_path(fo_dict.get('path'))
 
     return fo
 
@@ -19,12 +17,14 @@ class FileOccurrenceObject(object):
     __slots__ = (
         '_date',
         '_file_name',
+        '_id',
         '_path',
     )
 
     def __init__(self):
         self._date = None
         self._file_name = None
+        self._id = None
         self._path = None
 
     #
@@ -69,6 +69,18 @@ class FileOccurrenceObject(object):
         self._file_name = data
 
     #
+    # id
+    #
+    @property
+    def id(self):
+        """ """
+        return self._id
+
+    def set_id(self, data):
+        """Read-Write file occurrence metadata"""
+        self._id = data
+
+    #
     # path
     #
     @property
@@ -92,8 +104,9 @@ class FileOccurrenceObject(object):
         # retrievable methods
         #
         printable_string += '{0!s:40}\n'.format('Retrievable Methods')
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('file_name', self.file_name))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('date', self.date))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('file_name', self.file_name))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('id', self.id))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('path', self.path))
 
         return printable_string
