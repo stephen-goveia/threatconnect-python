@@ -22,7 +22,10 @@ setup(
     extras_require={
         ':python_version=="2.7"': ['enum34']
     },
-    install_requires=['requests', 'python-dateutil'],
+    install_requires=[
+        'requests==2.13.0',
+        'python-dateutil==2.6.0'
+    ],
     license = 'Apache License, Version 2',
     name='threatconnect',
     # package_dir = {'': 'src'},

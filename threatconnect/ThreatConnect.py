@@ -359,7 +359,7 @@ class ThreatConnect:
             try:
                 api_response = self._session.send(
                     request_prepped, verify=self._verify_ssl, timeout=self._api_request_timeout,
-                    proxies=self._proxies, stream=False)
+                    proxies=self._proxies, stream=ro.stream)
                 break
             except exceptions.ReadTimeout as e:
                 self.tcl.error('Error: {0!s}'.format(e))
@@ -435,7 +435,8 @@ class ThreatConnect:
         # set response encoding (best guess)
         #
         if api_response.encoding is None:
-            api_response.encoding = api_response.apparent_encoding
+            ## api_response.encoding = api_response.apparent_encoding
+            api_response.encoding = 'utf-8'  # using apparent encoding is costly with bulk
 
         #
         # Debug
@@ -515,8 +516,10 @@ class ThreatConnect:
                     if ro.resource_type == ResourceType.INDICATORS:
                         data = api_response_dict['indicator']
                         for item in data:
-                            obj_list.append(parse_typed_indicator(item, resource_obj, ro.description, ro.request_uri,
-                                                                  self._indicators_regex, indicator_parser=self.indicator_parser))
+                            obj_list.append(
+                                parse_typed_indicator(
+                                    item, resource_obj, ro.description, ro.request_uri,
+                                    self._indicators_regex, indicator_parser=self.indicator_parser))
 
                             if len(obj_list) % 500 == 0:
                                 self.tcl.debug('obj_list len: {0!s}'.format(len(obj_list)))
@@ -955,55 +958,70 @@ class ThreatConnect:
 
     def adversaries(self):
         """ return an adversary container object """
+        self._indicator_parser.init()
         return Adversaries(self)
 
     def bulk(self):
         """ return a bulk container object """
+        self._indicator_parser.init()
         return Bulk(self)
 
     def bulk_indicators(self, on_demand=False):
         """ return a bulk indicator container object """
+        self._indicator_parser.init()
         return BulkIndicators(self, on_demand)
 
     def documents(self):
         """ return a document container object """
+        self._indicator_parser.init()
         return Documents(self)
 
     def emails(self):
         """ return an email container object """
+        self._indicator_parser.init()
         return Emails(self)
 
     def groups(self):
         """ return an group container object """
+        self._indicator_parser.init()
         return Groups(self)
 
     def incidents(self):
         """ return an incident container object """
+        self._indicator_parser.init()
         return Incidents(self)
 
     def indicators(self):
         """ return an indicator container object """
+        self._indicator_parser.init()
         return Indicators(self)
 
     def owners(self):
         """ return an owner container object """
+        self._indicator_parser.init()
         return Owners(self)
 
     def signatures(self):
         """ return a signature container object """
+        self._indicator_parser.init()
         return Signatures(self)
 
     def tasks(self):
         """ return a task container object """
+        self._indicator_parser.init()
         return Tasks(self)
 
     def threats(self):
         """ return a threat container object """
+        self._indicator_parser.init()
         return Threats(self)
 
     def victims(self):
         """ return a victim container object """
+        self._indicator_parser.init()
         return Victims(self)
 
     def batch_jobs(self):
+        """ return a batch container object """
+        self._indicator_parser.init()
         return BatchJobs(self)

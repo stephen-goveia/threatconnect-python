@@ -1,5 +1,15 @@
 # Release Notes
 
+## 2.4.15
++ Fixed issue with proxy when accessing IndicatorType.
++ Added id to File Occurrence.
++ Updated __string__ structure for File Occurrence.
++ Updated __string__ structure for Task.
++ Removed redundant set_description() call on IndicatorObjectAdvanced.
++ Updated EmailAddress regex.
++ Updated Attribute Object to handle attribute with no value.
++ Merged pull request with new Host regex.
+
 ## 2.4.14
 + Update for token_expires typing when using tokens.
 
