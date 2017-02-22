@@ -19,12 +19,12 @@ def parse_attribute(attribute_dict, container):
     #
     # standard values
     #
-    attribute.set_date_added(attribute_dict['dateAdded'])
-    attribute.set_displayed(attribute_dict['displayed'])
-    attribute.set_id(attribute_dict['id'])
-    attribute.set_last_modified(attribute_dict['lastModified'])
-    attribute.set_type(attribute_dict['type'])
-    attribute.set_value(attribute_dict['value'])
+    attribute.set_date_added(attribute_dict.get('dateAdded'))
+    attribute.set_displayed(attribute_dict.get('displayed'))
+    attribute.set_id(attribute_dict.get('id'))
+    attribute.set_last_modified(attribute_dict.get('lastModified'))
+    attribute.set_type(attribute_dict.get('type'))
+    attribute.set_value(attribute_dict.get('value'))
 
     return attribute
 
@@ -71,7 +71,9 @@ class AttributeObject(object):
     @staticmethod
     def _uni(data):
         """ """
-        if isinstance(data, (int, list, dict)):
+        if data is None:
+            return data
+        elif isinstance(data, (int, list, dict)):
             return data
         elif isinstance(data, unicode):
             return unicode(data.encode('utf-8').strip(), errors='ignore')  # re-encode poorly encoded unicode

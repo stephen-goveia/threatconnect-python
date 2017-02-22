@@ -29,6 +29,7 @@ class RequestObject(object):
         self._resource_type = None
         self._result_limit = 0
         self._result_start = 0
+        self._stream = False
         self._track = False
         self._failure_callback = None
         self._success_callback = None
@@ -140,6 +141,10 @@ class RequestObject(object):
     def set_failure_callback(self, callback):
         self._failure_callback = callback
 
+    def set_stream(self, stream):
+        if isinstance(stream, bool):
+            self._stream = stream
+
     def set_success_callback(self, callback):
         """ position to start retrieving results """
         self._success_callback = callback
@@ -228,6 +233,11 @@ class RequestObject(object):
     def failure_callback(self):
         """ """
         return self._failure_callback
+
+    @property
+    def stream(self):
+        """ """
+        return self._stream
 
     @property
     def success_callback(self):

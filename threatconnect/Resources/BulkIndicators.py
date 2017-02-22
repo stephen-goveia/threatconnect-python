@@ -91,7 +91,8 @@ class BulkIndicatorFilterObject(FilterObject):
         request_object.set_request_uri(self._resource_properties['bulk']['uri'])
         request_object.set_resource_pagination(self._resource_properties['bulk']['pagination'])
         request_object.set_resource_type(self._resource_type)
-        
+        request_object.set_stream(True)
+
         if self.tc._bulk_on_demand:
             request_object.add_payload('runNow', True)
 

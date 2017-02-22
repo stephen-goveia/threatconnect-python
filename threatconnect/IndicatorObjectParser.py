@@ -349,6 +349,9 @@ class IndicatorObjectParser(object):
 
     def __init__(self, tc_obj):
         self._tc = tc_obj
+
+    def init(self):
+        """Adding second init process to allow proxies to be set before requesting IndicatorTypes"""
         self._custom_indicator_types = self._get_custom_types_from_api()
 
     @property
