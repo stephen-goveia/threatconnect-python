@@ -7,7 +7,7 @@ import sys
 
 """ custom """
 from threatconnect import ThreatConnect
-from threatconnect.Config.ResourceType import ResourceType
+from threatconnect.RequestObject import RequestObject
 
 # configuration file
 config_file = "tc.conf"
