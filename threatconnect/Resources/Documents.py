@@ -24,7 +24,7 @@ class Documents(Resource):
         """ """
         return GroupObjectAdvanced(self.tc, self, resource_object)
 
-    @ property
+    @property
     def default_request_object(self):
         """ default request when no filters are provided """
         resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
@@ -57,7 +57,7 @@ class DocumentFilterObject(FilterObject):
             method = getattr(GroupFilterMethods, method_name)
             setattr(self, method_name, types.MethodType(method, self))
 
-    @ property
+    @property
     def default_request_object(self):
         """ default request when only a owner filter is provided """
         request_object = RequestObject()

@@ -10,6 +10,7 @@ from Config.ResourceType import ResourceType
 g_type_to_r_type = {
     'Address': ResourceType.EMAILS,
     'Adversary': ResourceType.ADVERSARIES,
+    'Campaign': ResourceType.CAMPAIGNS,
     'Document': ResourceType.DOCUMENTS,
     'Email': ResourceType.EMAILS,
     'Incident': ResourceType.INCIDENTS,

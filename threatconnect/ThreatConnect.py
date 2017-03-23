@@ -45,6 +45,7 @@ from IndicatorObjectParser import IndicatorObjectParser, parse_typed_indicator
 from Resources.Adversaries import Adversaries
 from Resources.Bulk import Bulk
 from Resources.BulkIndicators import BulkIndicators
+from Resources.Campaigns import Campaigns
 from Resources.Documents import Documents
 from Resources.Emails import Emails
 from Resources.Groups import Groups
@@ -543,6 +544,17 @@ class ThreatConnect:
                             parse_group(item, ResourceType.ADVERSARIES, resource_obj, ro.description, ro.request_uri))
 
                 #
+                # CAMPAIGNS
+                #
+                elif ro.resource_type == ResourceType.CAMPAIGNS:
+                    data = api_response_dict['data']['campaign']
+                    if not isinstance(data, list):
+                        data = [data]  # for single results to be a list
+                    for item in data:
+                        obj_list.append(
+                            parse_group(item, ResourceType.CAMPAIGNS, resource_obj, ro.description, ro.request_uri))
+
+                #
                 # INDICATORS
                 #
                 elif ro.resource_type == ResourceType.INDICATORS:
@@ -970,6 +982,11 @@ class ThreatConnect:
         """ return a bulk indicator container object """
         self._indicator_parser.init()
         return BulkIndicators(self, on_demand)
+
+    def campaigns(self):
+        """ return an adversary container object """
+        self._indicator_parser.init()
+        return Campaigns(self)
 
     def documents(self):
         """ return a document container object """

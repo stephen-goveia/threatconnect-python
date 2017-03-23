@@ -65,3 +65,6 @@ threatconnect/ThreatConnect-urllib.py
 .python-version
 /.project
 /.pydevproject
+
+# Misc
+bcs*

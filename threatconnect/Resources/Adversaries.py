@@ -24,7 +24,7 @@ class Adversaries(Resource):
         """ """
         return GroupObjectAdvanced(self.tc, self, resource_object)
 
-    @ property
+    @property
     def default_request_object(self):
         """ default request when no filters are provided """
         resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']

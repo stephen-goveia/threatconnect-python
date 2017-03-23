@@ -25,7 +25,7 @@ class Owners(Resource):
         """ """
         return OwnerObjectAdvanced(self.tc, self, resource_object)
 
-    @ property
+    @property
     def default_request_object(self):
         """ default request when no filters are provided """
         resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
@@ -61,7 +61,7 @@ class Owners(Resource):
         """ generator for owner names """
         for obj in self._objects:
             yield obj.name
-            
+
     def retrieve_metrics(self):
         """ retrieve owner metrics """
         prop = ApiProperties.api_properties['OWNERS']['properties']['metrics']
@@ -73,7 +73,7 @@ class Owners(Resource):
         ro.set_request_uri(prop['uri'])
         ro.set_resource_type(ResourceType.OWNER_METRICS)
         api_response = self.tc.api_request(ro)
-        
+
         metrics = []
         if api_response.headers['content-type'] == 'application/json':
             api_response_dict = api_response.json()
@@ -81,9 +81,9 @@ class Owners(Resource):
                 data = api_response_dict['data']['ownerMetric']
                 for item in data:
                     metrics.append(parse_metrics(item))
-                    
+
         return metrics  # if class is called directly
-            
+
     def retrieve_members(self):
         """ retrieve owner members """
         prop = ApiProperties.api_properties['OWNERS']['properties']['members']
@@ -95,7 +95,7 @@ class Owners(Resource):
         ro.set_request_uri(prop['uri'])
         ro.set_resource_type(ResourceType.OWNER_MEMBERS)
         api_response = self.tc.api_request(ro)
-        
+
         members = []
         if api_response.headers['content-type'] == 'application/json':
             api_response_dict = api_response.json()
@@ -103,12 +103,12 @@ class Owners(Resource):
                 data = api_response_dict['data']['user']
                 for item in data:
                     members.append(parse_member(item))
-                    
+
         return members  # if class is called directly
-            
+
     def retrieve_mine(self):
         """ retrieve owner mine """
-        
+
         prop = ApiProperties.api_properties['OWNERS']['properties']['mine']
         ro = RequestObject()
         ro.set_description('load owner mine')
@@ -117,7 +117,7 @@ class Owners(Resource):
         ro.set_resource_pagination(prop['pagination'])
         ro.set_request_uri(prop['uri'])
         ro.set_resource_type(ResourceType.OWNERS)
-        
+
         data_set = self.tc.api_response_handler(self, ro)
         for obj in data_set:
             self.add_obj(obj)
@@ -142,7 +142,7 @@ class OwnerFilterObject(FilterObject):
             method = getattr(OwnerFilterMethods, method_name)
             setattr(self, method_name, types.MethodType(method, self))
 
-    @ property
+    @property
     def default_request_object(self):
         """ default request when no filter is provided """
         request_object = RequestObject()

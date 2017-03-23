@@ -20,7 +20,7 @@ class Victims(Resource):
         self._filter_class = VictimFilterObject
         self._resource_type = ResourceType.VICTIMS
 
-    @ property
+    @property
     def default_request_object(self):
         """ default request when no filters are provided """
         resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
@@ -61,7 +61,7 @@ class VictimFilterObject(FilterObject):
             method = getattr(VictimFilterMethods, method_name)
             setattr(self, method_name, types.MethodType(method, self))
 
-    @ property
+    @property
     def default_request_object(self):
         """ default request when only a owner filter is provided """
         request_object = RequestObject()

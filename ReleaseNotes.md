@@ -1,5 +1,9 @@
 # Release Notes
 
+## 2.4.16
++ Added Campaign support.
++ Added delete file occurrence functionality.
+
 ## 2.4.15
 + Fixed issue with proxy when accessing IndicatorType.
 + Added id to File Occurrence.

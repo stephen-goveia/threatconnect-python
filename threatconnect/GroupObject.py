@@ -48,6 +48,10 @@ def parse_group(group_dict, resource_type=ResourceType.GROUPS, resource_obj=None
     #
 
     #
+    # campaign
+    #
+
+    #
     # document
     #
     if 'fileName' in group_dict:
@@ -500,7 +504,7 @@ class GroupObject(object):
                 self._phase = 2
         else:
             raise RuntimeError(ErrorCodes.e10020.value.format(data))
-            
+
     #
     # malware
     #
@@ -514,7 +518,7 @@ class GroupObject(object):
         """Read-Write group metadata"""
         if self._resource_type == ResourceType.DOCUMENTS:
             self._malware = data
-            
+
             if update and self._phase == 0:
                 self._phase = 2
 
@@ -556,7 +560,7 @@ class GroupObject(object):
     def set_owner_name(self, data):
         """Read-Only group metadata"""
         self._owner_name = self._uni(data)
-            
+
     #
     # password
     #
@@ -570,7 +574,7 @@ class GroupObject(object):
         """Read-Write group metadata"""
         if self._resource_type == ResourceType.DOCUMENTS:
             self._password = data
-            
+
             if update and self._phase == 0:
                 self._phase = 2
 
@@ -871,7 +875,7 @@ class GroupObjectAdvanced(GroupObject):
             if attribute.type == attr_type and attribute.value == attr_value:
                 self._attributes.remove(attribute)
                 break
-            
+
     def add_security_label(self, label):
         """ set the security label for this group """
         prop = self._resource_properties['security_label_add']

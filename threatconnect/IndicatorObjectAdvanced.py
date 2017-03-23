@@ -447,6 +447,13 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
         ro.set_description('delete attribute id {0} from {1}'.format(attr_id, self._reference_indicator))
         self._resource_container.add_commit_queue(self.id, ro)
 
+    def delete_file_occurrence(self, fo_id):
+        """ delete file occurrence from indicator by id """
+        ro = self._create_basic_request_object('file_occurrence_delete', fo_id)
+
+        ro.set_description('delete file occurrence id {0} from {1}'.format(fo_id, self._reference_indicator))
+        self._resource_container.add_commit_queue(self.id, ro)
+
     def delete_security_label(self, label):
         """ set the security label for this indicator """
         ro = self._create_basic_request_object('security_label_delete', urlsafe(label))

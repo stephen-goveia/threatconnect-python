@@ -31,6 +31,23 @@ def add_adversary_id(self, data_int):
     ro.set_resource_type(self._resource_type)
     self._add_request_objects(ro)
 
+
+def add_campaign_id(self, data_int):
+    """ filter api results by campaign id """
+    # validation of data input
+    if not isinstance(data_int, int):
+        raise AttributeError(ErrorCodes.e4005.value.format(data_int))
+
+    prop = self._resource_properties['groups']
+    ro = RequestObject()
+    ro.set_description('api filter by campaign id {0}'.format(data_int))
+    ro.set_http_method(prop['http_method'])
+    ro.set_owner_allowed(prop['owner_allowed'])
+    ro.set_request_uri(prop['uri'], ['campaigns', data_int])
+    ro.set_resource_pagination(prop['pagination'])
+    ro.set_resource_type(self._resource_type)
+    self._add_request_objects(ro)
+
 # def add_custom_type_id(self, data_int):
 #     # validation of data input
 #     if not isinstance(data_int, int):
@@ -45,6 +62,7 @@ def add_adversary_id(self, data_int):
 #     ro.set_resource_pagination(prop['pagination'])
 #     ro.set_resource_type(self._resource_type)
 #     self._add_request_objects(ro)
+
 
 def add_document_id(self, data_int):
     """ filter api results by document id """
@@ -348,7 +366,7 @@ def add_pf_tag(self, data, operator=FilterOperator.EQ):
 
 
 def add_pf_type(self, data, operator=FilterOperator.EQ):
-    """ add post filter by type 
+    """ add post filter by type
     :type operator: FilterOperator
     """
     post_filter = PostFilterObject()
