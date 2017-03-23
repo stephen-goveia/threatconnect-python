@@ -15,6 +15,7 @@ class ResourceType(Enum):
 
     # groups
     ADVERSARIES = 115
+    CAMPAIGNS = 120
     DOCUMENTS = 125
     EMAILS = 135
     # FILE_OCCURRENCES = 145

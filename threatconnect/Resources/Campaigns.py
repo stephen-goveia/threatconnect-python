@@ -12,14 +12,13 @@ from threatconnect.RequestObject import RequestObject
 from threatconnect.Resource import Resource
 
 
-class Emails(Resource):
+class Campaigns(Resource):
     """ """
-
     def __init__(self, tc_obj):
         """ """
-        super(Emails, self).__init__(tc_obj)
-        self._filter_class = EmailFilterObject
-        self._resource_type = ResourceType.EMAILS
+        super(Campaigns, self).__init__(tc_obj)
+        self._filter_class = CampaignFilterObject
+        self._resource_type = ResourceType.CAMPAIGNS
 
     def _method_wrapper(self, resource_object):
         """ """
@@ -39,15 +38,15 @@ class Emails(Resource):
         return request_object
 
 
-class EmailFilterObject(FilterObject):
+class CampaignFilterObject(FilterObject):
     """ """
     def __init__(self, tc_obj):
         """ """
-        super(EmailFilterObject, self).__init__(tc_obj)
+        super(CampaignFilterObject, self).__init__(tc_obj)
         self._owners = []
 
         # define properties for resource type
-        self._resource_type = ResourceType.EMAILS
+        self._resource_type = ResourceType.CAMPAIGNS
         self._resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
 
         #
@@ -61,7 +60,7 @@ class EmailFilterObject(FilterObject):
             method = getattr(GroupFilterMethods, method_name)
             setattr(self, method_name, types.MethodType(method, self))
 
-    @property
+    @ property
     def default_request_object(self):
         """ default request when only a owner filter is provided """
         request_object = RequestObject()
@@ -73,5 +72,3 @@ class EmailFilterObject(FilterObject):
         request_object.set_resource_type(self._resource_type)
 
         return request_object
-
-

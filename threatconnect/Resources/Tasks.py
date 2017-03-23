@@ -28,7 +28,7 @@ class Tasks(Resource):
         """ """
         return TaskObjectAdvanced(self.tc, self, resource_object)
 
-    @ property
+    @property
     def default_request_object(self):
         """ default request when no filters are provided """
         resource_properties = ApiProperties.api_properties[self._resource_type.name]['properties']
@@ -64,7 +64,7 @@ class TaskFilterObject(FilterObject):
             method = getattr(TaskFilterMethods, method_name)
             setattr(self, method_name, types.MethodType(method, self))
 
-    @ property
+    @property
     def default_request_object(self):
         """ default request when only a owner filter is provided """
         request_object = RequestObject()

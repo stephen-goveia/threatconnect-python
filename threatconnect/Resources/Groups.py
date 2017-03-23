@@ -64,7 +64,7 @@ class GroupFilterObject(FilterObject):
             method = getattr(GroupFilterMethods, method_name)
             setattr(self, method_name, types.MethodType(method, self))
 
-    @ property
+    @property
     def default_request_object(self):
         """ default request when only a owner filter is provided """
         request_object = RequestObject()

@@ -146,6 +146,7 @@ def g_properties(group_uri):
         },
         'filters': [
             'add_adversary_id',
+            'add_campaign_id',
             'add_email_id',
             'add_document_id',
             'add_id',
@@ -367,6 +368,7 @@ def i_properties(indicator_uri):
         },
         'filters': [
             'add_adversary_id',
+            'add_campaign_id',
             'add_document_id',
             'add_email_id',
             'add_incident_id',
@@ -556,6 +558,7 @@ groups_properties = {
     },
     'filters': [
         'add_adversary_id',
+        'add_campaign_id',
         'add_document_id',
         'add_email_id',
         'add_incident_id',
@@ -628,6 +631,7 @@ indicators_properties = {
     },
     'filters': [
         'add_adversary_id',
+        'add_campaign_id',
         'add_email_id',
         'add_incident_id',
         'add_indicator',
@@ -867,6 +871,7 @@ tasks_properties = {
     },
     'filters': [
         'add_adversary_id',
+        'add_campaign_id',
         'add_document_id',
         'add_email_id',
         'add_id',
@@ -1076,6 +1081,7 @@ victims_properties = {
     },
     'filters': [
         'add_adversary_id',
+        'add_campaign_id',
         'add_document_id',
         'add_email_id',
         'add_id',
@@ -1233,6 +1239,11 @@ api_properties = {
         'properties': g_properties('adversaries'),
         'resource_key':  'adversary',
         'uri_attribute':  'adversaries',
+    },
+    'CAMPAIGNS': {
+        'properties': g_properties('campaigns'),
+        'resource_key':  'campaign',
+        'uri_attribute':  'campaigns',
     },
     'DOCUMENTS': {
         'properties': g_properties('documents'),
@@ -1403,6 +1414,7 @@ def custom_i_properties(api_branch):
         },
         'filters': [
             'add_adversary_id',
+            'add_campaign_id',
             'add_document_id',
             'add_email_id',
             'add_incident_id',

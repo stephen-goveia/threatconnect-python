@@ -28,6 +28,7 @@ class ErrorCodes(Enum):
 
     # group filters
     e4000 = 'Filter Error: ({0!s}) is an invalid adversary ID. The adversary ID must be an integer.'
+    e4005 = 'Filter Error: ({0!s}) is an invalid campaign ID. The campaign ID must be an integer.'
     e4010 = 'Filter Error: ({0!s}) is an invalid document ID. The document ID must be an integer.'
     e4020 = 'Filter Error: ({0!s}) is an invalid email ID. The email ID must be an integer.'
     e4030 = 'Filter Error: ({0!s}) is an invalid ID. The ID must be an integer.'

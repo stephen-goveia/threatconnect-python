@@ -1,6 +1,9 @@
 # Release Notes
 
 ## 2.4.15
++ Added Campaigns support.
+
+## 2.4.15
 + Fixed issue with proxy when accessing IndicatorType.
 + Added id to File Occurrence.
 + Updated __string__ structure for File Occurrence.
