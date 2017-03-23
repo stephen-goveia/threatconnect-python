@@ -28,10 +28,10 @@ def parse_group(group_dict, resource_type=ResourceType.GROUPS, resource_obj=None
     #
     # standard values
     #
-    group.set_date_added(group_dict['dateAdded'])
-    group.set_id(group_dict['id'], False)
-    group.set_name(group_dict['name'], False)
-    group.set_weblink(group_dict['webLink'])
+    group.set_date_added(group_dict.get('dateAdded'))
+    group.set_id(group_dict.get('id'), False)
+    group.set_name(group_dict.get('name'), False)
+    group.set_weblink(group_dict.get('webLink'))
 
     #
     # optional values
@@ -50,6 +50,7 @@ def parse_group(group_dict, resource_type=ResourceType.GROUPS, resource_obj=None
     #
     # campaign
     #
+    group.set_first_seen(group_dict.get('firstSeen'), False)  # bcs - new way
 
     #
     # document
@@ -131,6 +132,7 @@ class GroupObject(object):
         '_file_size',  # document specific
         '_file_text',  # signature specific
         '_file_type',  # signature specific
+        '_first_seen',  # campaign specific
         '_from_address',  # email specific
         '_header',  # email specific
         '_id',
@@ -163,6 +165,7 @@ class GroupObject(object):
         self._file_size = None
         self._file_text = None
         self._file_type = None
+        self._first_seen = None
         self._from_address = None
         self._header = None
         self._id = None
@@ -190,7 +193,13 @@ class GroupObject(object):
         self._type = None
         self._weblink = None
 
-        if self._resource_type == ResourceType.DOCUMENTS:
+        if self._resource_type == ResourceType.CAMPAIGNS:
+            self._properties['_first_seen'] = {
+                'api_field': 'firstSeen',
+                'method': 'set_first_seen',
+                'required': False
+            }
+        elif self._resource_type == ResourceType.DOCUMENTS:
             self._properties['_file_name'] = {
                 'api_field': 'fileName',
                 'method': 'set_filename',
@@ -446,6 +455,27 @@ class GroupObject(object):
                 self._phase = 2
         else:
             raise AttributeError(ErrorCodes.e10260.value)
+
+    #
+    # file type (signature specific)
+    #
+    @property
+    def first_seen(self):
+        """ """
+        if self._resource_type == ResourceType.CAMPAIGNS:
+            return self._first_seen
+        else:
+            raise AttributeError(ErrorCodes.e10265.value)
+
+    def set_first_seen(self, data, update=True):
+        """Read-Write group metadata"""
+        if data is not None:
+            if self._resource_type == ResourceType.CAMPAIGNS:
+                self._first_seen = self._uni(data)
+                if update and self._phase == 0:
+                    self._phase = 2
+            else:
+                raise AttributeError(ErrorCodes.e10265.value)
 
     #
     # from_address (email specific)
@@ -832,6 +862,8 @@ class GroupObjectAdvanced(GroupObject):
             self._structure['fileSize'] = 'file_size'
             self._structure['malware'] = 'malware'
             self._structure['password'] = 'password'
+        elif self._resource_type == ResourceType.CAMPAIGNS:
+            self._structure['firstSeen'] = 'first_seen'
         elif self._resource_type == ResourceType.EMAILS:
             self._structure['body'] = 'body'
             self._structure['from'] = 'from_address'
