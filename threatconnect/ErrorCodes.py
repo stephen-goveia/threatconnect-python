@@ -80,6 +80,7 @@ class ErrorCodes(Enum):
     e10240 = 'Resource Error: File Size is not supported for this resource type.'
     e10250 = 'Resource Error: File Text is not supported for this resource type.'
     e10260 = 'Resource Error: File Type is not supported for this resource type.'
+    e10265 = 'Resource Error: First Seen is not supported for this resource type.'
     e10270 = 'Resource Error: From is not supported for this resource type.'
     e10280 = 'Resource Error: Header is not supported for this resource type.'
     e10290 = 'Resource Error: Score is not supported for this resource type.'
