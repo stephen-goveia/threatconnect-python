@@ -1,5 +1,5 @@
 __author__ = 'ThreatConnect (support@threatconnect.com)'
-__version__ = '2.4.16'
+__version__ = '2.4.17'
 __license__ = 'Apache License, Version 2',
 __url__ = 'https://github.com/ThreatConnect-Inc/threatconnect-python'
 
