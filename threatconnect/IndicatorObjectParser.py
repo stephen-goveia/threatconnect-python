@@ -153,10 +153,16 @@ def parse_typed_indicator(indicator_dict, resource_obj=None, api_filter=None,
 
             # get the type and field names, then check the dict for those names
             field_names = indicator_parser.get_field_labels(custom_indicator_type)
-            field_values = indicator_val.split(" : ")
+            field_values = indicator_val.split(' : ')
             custom_fields = OrderedDict()
-            for i in range(0, len(field_names)):
-                custom_fields[field_names[i]]=field_values[i]
+
+            for i in range(0, len(field_values)):
+                try:
+                    custom_fields[field_names[i]] = field_values[i]
+                except IndexError:
+                    # some fields are optional and may not have a value
+                    pass
+
                 # custom_field = CustomIndicatorField(field_names[i], value=field_values[i])
                 # indicator.add_custom_fields(custom_field)
             indicator.set_custom_fields(custom_fields)
