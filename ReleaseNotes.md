@@ -1,5 +1,9 @@
 # Release Notes
 
+## 2.4.17
++ Fixes in setup.py for Python 2.6
++ Fixed issue for custom indcator IndexError
+
 ## 2.4.16
 + Added Campaign support.
 + Added delete file occurrence functionality.
