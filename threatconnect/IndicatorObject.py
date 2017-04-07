@@ -776,7 +776,8 @@ class IndicatorObject(object):
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('threat_assess_confidence',
                                                                self.threat_assess_confidence))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('threat_assess_rating', self.threat_assess_rating))
-        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('security_label', self.security_label))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('security_labels',
+                                                               ', '.join([sl.name for sl in self._security_label])))
         # printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('type', self.type))
         printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('weblink', self.weblink))
 
