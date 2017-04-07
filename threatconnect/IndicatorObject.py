@@ -106,7 +106,7 @@ class IndicatorObject(object):
                 if r_type == resource_type_enum:
                     self.set_type(i_type)
 
-        self._security_label = None
+        self._security_label = []
         self._sha1 = None  # file indicator type specific
         self._sha256 = None  # file indicator type specific
         self._source = None  # url indicator type specific

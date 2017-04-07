@@ -733,7 +733,7 @@ class IndicatorObjectAdvanced(AddressIndicatorObject,
             if api_response_dict['status'] == 'Success':
                 data = api_response_dict['data']['securityLabel']
                 for item in data:
-                    self._security_label = parse_security_label(item)  # add to main resource object
+                    self._security_label.append(parse_security_label(item))  # add to main resource object
 
     def load_tags(self):
         """ retrieve tags for this indicator """
