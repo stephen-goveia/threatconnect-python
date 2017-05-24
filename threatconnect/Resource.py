@@ -515,6 +515,10 @@ class Resource(object):
         """ """
         pass
 
+    def __getitem__(self, index):
+        """ """
+        return self._method_wrapper(self._objects[index])
+
     def __iter__(self):
         """ """
         for obj in self._objects:
