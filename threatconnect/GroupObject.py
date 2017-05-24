@@ -1029,6 +1029,8 @@ class GroupObjectAdvanced(GroupObject):
         r_id = self.id
         ro = RequestObject()
         ro.set_body(self.gen_body)
+        if self.resource_type == ResourceType.EMAILS:
+            ro.add_payload('option', 'createVictims')
         if self.owner_name is not None:
             ro.set_owner(self.owner_name)
         ro.set_resource_type(self.resource_type)
