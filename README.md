@@ -26,7 +26,7 @@ pip install threatconnect
 
 Documentation
 -----
-http://docs.threatconnect.com/#threatconnect-python-reg-sdk
+https://docs.threatconnect.com/en/latest/python/python_sdk.html
 
 Examples
 -----
