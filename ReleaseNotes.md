@@ -1,5 +1,9 @@
 # Release Notes
 
+## 2.4.18
++ adding index support to Resource
++ added options=createVictim to Email resource commit
+
 ## 2.4.17
 + Fixes in setup.py for Python 2.6
 + Fixed issue for custom indcator IndexError
