@@ -823,6 +823,7 @@ class GroupObject(object):
 class GroupObjectAdvanced(GroupObject):
     """ Temporary Object with extended functionality. """
     __slots__ = (
+        '_create_victim',
         '_resource_container',
         '_resource_obj',
         '_resource_properties',
@@ -847,6 +848,7 @@ class GroupObjectAdvanced(GroupObject):
             'type': 'type',
             'weblink': 'weblink',
         }
+        self._create_victim = False
         self._structure = self._basic_structure.copy()
         self._tc = tc_obj
         self._tc.tcl = tc_obj.tcl
@@ -1010,6 +1012,10 @@ class GroupObjectAdvanced(GroupObject):
         ro.set_resource_type(self._resource_type)
         self._resource_container.add_commit_queue(self.id, ro)
 
+    def create_victim(self, bool_value):
+        """ """
+        self._create_victim = bool_value
+
     @property
     def gen_body(self):
         """ generate json body for POST and PUT API requests """
@@ -1020,6 +1026,7 @@ class GroupObjectAdvanced(GroupObject):
         return json.dumps(body_dict)
 
     def commit(self):
+        """ """
 
         # phase 0 (no action) -> don't validate and don't POST group, only POST items in commit queue.
         # phase 1 (add) -> validate before POST group, only POST items in commit queue if group POST succeeded.
@@ -1029,7 +1036,7 @@ class GroupObjectAdvanced(GroupObject):
         r_id = self.id
         ro = RequestObject()
         ro.set_body(self.gen_body)
-        if self.resource_type == ResourceType.EMAILS:
+        if self._create_victim:
             ro.add_payload('option', 'createVictims')
         if self.owner_name is not None:
             ro.set_owner(self.owner_name)
