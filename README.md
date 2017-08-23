@@ -20,13 +20,13 @@ Please see https://www.threatconnect.com/products/ for more information on Threa
 
 Installation
 -----
-```
+```sh
 cd threatconnect-python
 python setup.py install --force
 ```
 
 Using pip
-```
+```sh
 pip install threatconnect
 ```
 
