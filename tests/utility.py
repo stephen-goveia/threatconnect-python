@@ -22,7 +22,7 @@ def fake_api_request(self, ro):
             self.headers = {'content-type': 'application/json'}
 
         def json(self):
-            return json.load(open(resource_file, 'rb'))
+            return json.load(open(resource_file, 'r'))
 
         def close(self):
             return
