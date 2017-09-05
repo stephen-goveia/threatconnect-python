@@ -1,0 +1,14 @@
+install: 
+- pip install pytest
+- pip install pytest-cov
+- pip install codecov
+- pip install python-dateutil==2.6.0
+- pip install requests==2.17.3
+- pip install threatconnect
+- pip install mock
+language: python
+python:
+    - "2.7"
+    - "3.4"
+    - "3.5"
+script: cd ./tests/ && pytest
