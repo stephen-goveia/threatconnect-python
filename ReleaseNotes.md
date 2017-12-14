@@ -1,12 +1,15 @@
 # Release Notes
 
+## 2.4.19
++ Updated token renewal url.
+
 ## 2.4.18
-+ adding index support to Resource
-+ added options=createVictim to Email resource commit
++ Adding index support to Resource
++ Added options=createVictim to Email resource commit
 
 ## 2.4.17
 + Fixes in setup.py for Python 2.6
-+ Fixed issue for custom indcator IndexError
++ Fixed issue for custom indicator IndexError
 
 ## 2.4.16
 + Added Campaign support.
@@ -29,7 +32,7 @@
 + Fix for token refresh
 
 ## 2.4.10
-+ Custom Indicator Bugfixes
++ Custom Indicator Bug fixes.
 
 ## 2.4.9
 ** DEPRECATED
@@ -64,6 +67,6 @@
 + Added task filter code
 
 ## 2.4
-+ Added Tasks functionality
-+ Update Victims functionlity
-+ Add Owner Metrics, Mine, and Members
++ Added Tasks functionality.
++ Update Victims functionality.
++ Add Owner Metrics, Mine, and Members.

@@ -743,43 +743,43 @@ owners_properties = {
 tasks_properties = {
     'add': {
         'http_method': 'POST',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks',
     },
     'assignee_add': {
         'http_method': 'POST',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}/assignees/{1}',  # task id, assignee account
     },
     'assignee_delete': {
         'http_method': 'DELETE',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}/assignees/{1}',  # task id, assignee account
     },
     'association_groups': {
         'http_method': 'GET',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': True,
         'uri': '/v2/tasks/{0}/groups',  # task id
     },
     'association_group_add': {
         'http_method': 'POST',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}/groups/{1}/{2}',  # task id, group type, group id
     },
     'association_group_delete': {
         'http_method': 'DELETE',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}/groups/{1}/{2}',  # task id, group type, group id
     },
     'association_indicators': {
         'http_method': 'GET',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': True,
         'uri': '/v2/tasks/{0}/indicators',  # task id
     },
@@ -817,55 +817,55 @@ tasks_properties = {
     },
     'attributes': {
         'http_method': 'GET',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}/attributes',  # task id
     },
     'attribute_add': {
         'http_method': 'POST',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}/attributes',  # task id
     },
     'attribute_delete': {
         'http_method': 'DELETE',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}/attributes/{1}',  # tasks id, attribute id
     },
     'attribute_update': {
         'http_method': 'PUT',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}/attributes/{1}',  # task id, attribute id
     },
     'base': {
         'http_method': 'GET',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': True,
         'uri': '/v2/tasks',
     },
     'escalatee_add': {
         'http_method': 'POST',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}/escalatees/{1}',  # task id, assignee account
     },
     'escalatee_delete': {
         'http_method': 'DELETE',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}/escalatees/{1}',  # task id, assignee account
     },
     'delete': {
         'http_method': 'DELETE',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}',
     },
     'groups': {
         'http_method': 'GET',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': True,
         'uri': '/v2/groups/{0}/{1}/tasks',  # group type, group value
     },
@@ -889,73 +889,73 @@ tasks_properties = {
     ],
     'id': {
         'http_method': 'GET',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}',  # task id
     },
     'indicators': {
         'http_method': 'GET',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/indicators/{0}/{1}/tasks',  # indicator type, indicator value
     },
     'security_label_add': {
         'http_method': 'POST',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': True,
         'uri': '/v2/tasks/{0}/securityLabels/{1}',  # task id, security label
     },
     'security_label_delete': {
         'http_method': 'DELETE',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': True,
         'uri': '/v2/tasks/{0}/securityLabels/{1}',  # task id, security label
     },
     'security_label_load': {
         'http_method': 'GET',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': True,
         'uri': '/v2/tasks/{0}/securityLabels',  # task id
     },
     'security_labels': {
         'http_method': 'GET',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': True,
         'uri': '/v2/securityLabels/{0}/tasks',  # security labels
     },
     'tag_add': {
         'http_method': 'POST',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}/tags/{1}',  # task id, security label
     },
     'tag_delete': {
         'http_method': 'DELETE',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}/tags/{1}',  # task id, security label
     },
     'tags': {
         'http_method': 'GET',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': True,
         'uri': '/v2/tags/{0}/tasks',  # tag name
     },
     'tags_load': {
         'http_method': 'GET',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': True,
         'uri': '/v2/tasks/{0}/tags',  # tasks id
     },
     'update': {
         'http_method': 'PUT',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': False,
         'uri': '/v2/tasks/{0}',  # task id
     },
     'victims': {
         'http_method': 'GET',
-        'owner_allowed': False,
+        'owner_allowed': True,
         'pagination': True,
         'uri': '/v2/victims/{0}/tasks',  # victim id
     },

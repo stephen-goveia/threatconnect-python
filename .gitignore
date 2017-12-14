@@ -1,70 +1,57 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
+#=================================================
+# Python SDK
+# Version: 1.0.0
+# Last Updated: 2017/12/08
+#=================================================
 
-# C extensions
+#-------------------------------------------------
+# Language Exclusions
+#-------------------------------------------------
+__pycache__
+*.py[cod]
 *.so
 
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
+#-------------------------------------------------
+# SDK Specific Exclusions
+#-------------------------------------------------
+log
+sample-*.json
+*.log
+
+#-------------------------------------------------
+# Build Exclusions
+#-------------------------------------------------
+build
+env
+develop-eggs
+dist
+eggs
+lib
+lib64
+target
+temp
 *.egg
+*.egg-info
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
-
-# Installer logs
+#-------------------------------------------------
+# Installer Logs
+#-------------------------------------------------
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.cache
-nosetests.xml
-coverage.xml
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# PyCharm
-.idea/
-
-# ThreatConnect
-threatconnect/ThreatConnect-urllib.py
-
-# IDE Directories
-.idea
+#-------------------------------------------------
+# IDE Exclusions
+#-------------------------------------------------
 .c9
+.idea
+.project
 .python-version
-/.project
-/.pydevproject
+.settings
+.vscode
+nbproject
 
-# Misc
+#-------------------------------------------------
+# Other Nonsense
+#-------------------------------------------------
 bcs*
+ThreatConnect-urllib.py

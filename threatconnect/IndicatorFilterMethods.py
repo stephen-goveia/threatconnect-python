@@ -1,5 +1,6 @@
 """ standard """
 import time
+import pytz
 
 """ third-party """
 import dateutil.parser
@@ -276,7 +277,7 @@ def add_pf_date_added(self, data_date, operator=FilterOperator.EQ):
     """
     # properly format date
     date_added = data_date
-    date_added = dateutil.parser.parse(date_added)
+    date_added = dateutil.parser.parse(date_added).astimezone(pytz.utc)
     date_added_seconds = int(time.mktime(date_added.timetuple()))
 
     post_filter = PostFilterObject()
@@ -305,7 +306,7 @@ def add_pf_last_modified(self, data_date, operator=FilterOperator.EQ):
     """
     # properly format date
     last_modified = data_date
-    last_modified = dateutil.parser.parse(last_modified)
+    last_modified = dateutil.parser.parse(last_modified).astimezone(pytz.utc)
     last_modified_seconds = int(time.mktime(last_modified.timetuple()))
 
     post_filter = PostFilterObject()
