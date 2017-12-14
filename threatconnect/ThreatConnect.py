@@ -155,7 +155,7 @@ class ThreatConnect:
         }
         """
         # make api call to get new token
-        url = '{0!s}{1!s}'.format(self._api_url.strip('api'), '/appAuth')
+        url = '{0!s}{1!s}'.format(self._api_url, '/appAuth')
         payload = {'expiredToken': self._api_token}
 
         token_response = self._session.get(
