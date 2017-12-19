@@ -1,9 +1,9 @@
 """ standard """
 import time
-import pytz
 
 """ third-party """
 import dateutil.parser
+import pytz
 
 """ custom """
 from Config.FilterOperator import FilterOperator
