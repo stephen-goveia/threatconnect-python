@@ -1,7 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Provide generic functions for use throughout the tests."""
+
 import json
 import os
-from threatconnect import *
+
 from mock import patch
+
+
+def start():
+    patcher = patch('threatconnect.ThreatConnect.api_request', fake_api_request)
+    patcher.start()
 
 
 def fake_api_request(self, ro):
@@ -13,19 +22,9 @@ def fake_api_request(self, ro):
             self.headers = {'content-type': 'application/json'}
 
         def json(self):
-            return json.load(open(resource_file, 'rb'))
+            return json.load(open(resource_file, 'r'))
 
         def close(self):
             return
 
     return ApiResponse()
-
-
-def test_setup(self):
-    self.patcher = patch('threatconnect.ThreatConnect.api_request', fake_api_request)
-    self.patcher.start()
-    self.threatconnect = ThreatConnect('accessId', 'secretKey', 'System', '//')
-
-
-def test_teardown(self):
-    self.patcher.stop()

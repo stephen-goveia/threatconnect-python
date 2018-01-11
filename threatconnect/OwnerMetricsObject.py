@@ -56,6 +56,7 @@ class OwnerMetricsObject(object):
         '_metric_date',
         '_total_address',
         '_total_adversary',
+        '_total_campaign',
         '_total_document',
         '_total_email',
         '_total_emailaddress',

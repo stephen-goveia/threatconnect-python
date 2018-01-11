@@ -1,0 +1,28 @@
+{
+  "status": "Success",
+  "data": {
+    "resultCount": 4,
+    "owner": [
+      {
+        "id": 0,
+        "name": "Example Organization",
+        "type": "Organization"
+      },
+      {
+        "id": 1,
+        "name": "Common Community",
+        "type": "Community"
+      },
+      {
+        "id": 2,
+        "name": "Uncommon Community",
+        "type": "Community"
+      },
+      {
+        "id": 3,
+        "name": "Source of all Evil",
+        "type": "Source"
+      }
+    ]
+  }
+}

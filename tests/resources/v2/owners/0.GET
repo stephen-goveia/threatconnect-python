@@ -1,0 +1,10 @@
+{
+  "status": "Success",
+  "data": {
+    "owner": {
+      "id": 0,
+      "name": "Example Organization",
+      "type": "Organization"
+    }
+  }
+}
