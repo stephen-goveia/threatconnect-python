@@ -1,0 +1,64 @@
+{
+  "status": "Success",
+  "data": {
+    "resultCount": 7,
+    "group": [
+      {
+        "id": 123456,
+        "name": "Threat Example",
+        "type": "Threat",
+        "ownerName": "Example Organization",
+        "dateAdded": "2017-08-17T18:56:19Z",
+        "webLink": "null/auth/threat/threat.xhtml?threat=123456"
+      },
+      {
+        "id": 1435422,
+        "name": "Signature Example",
+        "type": "Signature",
+        "ownerName": "Example Organization",
+        "dateAdded": "2017-08-15T18:56:18Z",
+        "webLink": "null/auth/signature/signature.xhtml?signature=1435422"
+      },
+      {
+        "id": 14154,
+        "name": "Incident Example",
+        "type": "Incident",
+        "ownerName": "Common Community",
+        "dateAdded": "2017-07-30T18:56:18Z",
+        "webLink": "null/auth/incident/incident.xhtml?incident=14154"
+      },
+      {
+        "id": 2415420,
+        "name": "Email Example",
+        "type": "Email",
+        "ownerName": "Uncommon Community",
+        "dateAdded": "2016-10-19T18:56:17Z",
+        "webLink": "null/auth/email/email.xhtml?email=2415420"
+      },
+      {
+        "id": 2315419,
+        "name": "Document Example",
+        "type": "Document",
+        "ownerName": "Common Community",
+        "dateAdded": "2016-11-17T18:56:17Z",
+        "webLink": "null/auth/document/document.xhtml?document=2315419"
+      },
+      {
+        "id": 654321,
+        "name": "Campaign Example",
+        "type": "Campaign",
+        "ownerName": "Source of all Evil",
+        "dateAdded": "2016-06-13T18:56:16Z",
+        "webLink": "null/auth/campaign/campaign.xhtml?campaign=654321"
+      },
+      {
+        "id": 1416547,
+        "name": "Adversary Example",
+        "type": "Adversary",
+        "ownerName": "Source of all Evil",
+        "dateAdded": "2017-09-05T18:56:16Z",
+        "webLink": "null/auth/adversary/adversary.xhtml?adversary=1416547"
+      }
+    ]
+  }
+}

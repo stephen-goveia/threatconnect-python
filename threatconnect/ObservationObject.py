@@ -58,3 +58,20 @@ class ObservationObject(object):
     def set_date_observed(self, data):
         """ Read-Only """
         self._date_observed = self._uni(data)
+
+    #
+    # add print method
+    #
+    def __str__(self):
+        """Allow object to be displayed with print."""
+
+        printable_string = '\n{0!s:_^80}\n'.format('Observation Object Properties')
+
+        #
+        # retrievable methods
+        #
+        printable_string += '{0!s:40}\n'.format('Retrievable Methods')
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('count', self.count))
+        printable_string += ('  {0!s:<28}: {1!s:<50}\n'.format('date_observed', self.date_observed))
+
+        return printable_string

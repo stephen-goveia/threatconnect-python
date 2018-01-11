@@ -1,10 +1,16 @@
+"""ThreatConnect SDK setup.py"""
 import re
 import sys
 from setuptools import setup, find_packages
 
 with open('threatconnect/__init__.py', 'r') as fd:
     version = re.search(
-        r'^__version__(?:\s+)?=(?:\s+)?[\'|\"]((?:[0-9]{1,3}(?:\.)?){1,3})[\'|\"]', fd.read(), re.MULTILINE).group(1)
+        r'^__version__(?:\s+)?=(?:\s+)?[\'|\"]((?:[0-9]{1,3}(?:\.)?){1,3})[\'|\"]', fd.read(),
+        re.MULTILINE).group(1)
+
+# set download URL which requires a "release"
+download_url = 'https://github.com/ThreatConnect-Inc/threatconnect-python/archive/{}.tar.gz'
+download_url = download_url.format(version)
 
 if not version:
     raise RuntimeError('Cannot find version information')
@@ -22,7 +28,7 @@ setup(
     author_email='support@threatconnect.com',
     # convert_2to3_doctests = [''],
     description='Python SDK for ThreatConnect API',
-    download_url='https://github.com/ThreatConnect-Inc/threatconnect-python/archive/{}.tar.gz'.format(version),
+    download_url=download_url,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
