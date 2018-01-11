@@ -4,7 +4,7 @@ threatconnect-python
 [![Build Status](https://travis-ci.org/ThreatConnect-Inc/threatconnect-python.svg?branch=master)](https://travis-ci.org/ThreatConnect-Inc/threatconnect-python)
 
 The threatconnect-python project is a part of the ThreatConnect&trade; SDK.
-This module implement methods that can be used to push or pull data from the ThreatConnect V2 REST API.
+This module implement methods that can be used to push or pull data from the [ThreatConnect V2 REST API](https://docs.threatconnect.com/en/latest/rest_api/rest_api.html).
 
 Requirements
 ------
@@ -22,13 +22,13 @@ Please see https://www.threatconnect.com/products/ for more information on Threa
 
 Installation
 -----
-```
+```sh
 cd threatconnect-python
 python setup.py install --force
 ```
 
 Using pip
-```
+```sh
 pip install threatconnect
 ```
 
