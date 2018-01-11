@@ -12,6 +12,7 @@ if not version:
 install_requires = [
     'python-dateutil==2.6.0',
     'requests==2.17.3',
+    'pytz',
 ]
 if sys.version_info < (3, ):
     install_requires.append('enum34')
