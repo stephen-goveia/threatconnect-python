@@ -1,5 +1,9 @@
 # Release Notes
 
+## 2.4.20
++ Added missing pytz module dependency.
++ Updated test cases.
+
 ## 2.4.19
 + Updated token renewal url.
 
